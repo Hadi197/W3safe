@@ -424,6 +424,14 @@ const loadMonthlyData = async () => {
       console.error('Query Error:', queryError)
     }
     
+    // Debug for Management Walkthrough
+    if (selectedModule.value === 'management_walkthrough') {
+      console.log('=== MANAGEMENT WALKTHROUGH DEBUG ===')
+      console.log('Date Range:', startDate, 'to', endDate)
+      console.log('Data Count:', moduleData?.length || 0)
+      console.log('=====================================')
+    }
+    
     if (queryError) {
       console.error('Query Error:', queryError)
     }

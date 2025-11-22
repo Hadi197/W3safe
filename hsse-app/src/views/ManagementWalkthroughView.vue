@@ -1254,6 +1254,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { managementWalkthroughService, type ManagementWalkthrough } from '@/services/management-walkthrough.service'
+import { unitsService } from '@/services/api/units.service'
 import { useImageCompression } from '@/composables/useImageCompression'
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
@@ -1385,6 +1386,14 @@ const loadStats = async () => {
     followUpCount.value = followUpData.length
   } catch (error) {
     console.error('Error loading stats:', error)
+  }
+}
+
+const loadUnits = async () => {
+  try {
+    units.value = await unitsService.getActive()
+  } catch (error) {
+    console.error('Error loading units:', error)
   }
 }
 
@@ -1791,6 +1800,7 @@ watch(filters, () => {
 onMounted(() => {
   loadWalkthroughs()
   loadStats()
+  loadUnits()
 })
 </script>
 
