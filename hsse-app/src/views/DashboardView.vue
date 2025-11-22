@@ -420,15 +420,9 @@ const loadMonthlyData = async () => {
       .gte(dateField, startDate)
       .lte(dateField, endDate)
     
-    console.log('=== Debug Info ===')
-    console.log('Module:', selectedModule.value)
-    console.log('Table:', tableName)
-    console.log('Date Field:', dateField)
-    console.log('Date Range:', startDate, 'to', endDate)
-    console.log('Query Error:', queryError)
-    console.log('Data Count:', moduleData?.length || 0)
-    console.log('Raw Data:', moduleData)
-    console.log('==================')
+    if (queryError) {
+      console.error('Query Error:', queryError)
+    }
     
     if (queryError) {
       console.error('Query Error:', queryError)
