@@ -242,6 +242,19 @@ export interface DrillFilters {
   tanggal_sampai?: string
 }
 
+export interface PaginationParams {
+  page: number
+  pageSize: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  count: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 class SafetyDrillService {
   private tableName = 'safety_drill'
 
@@ -279,11 +292,21 @@ class SafetyDrillService {
     return `${prefix}-${newSequence}`
   }
 
-  // Get all drills with filters
+  // Get all drills with filters (backward compatible - no pagination)
   async getAll(filters?: DrillFilters): Promise<SafetyDrill[]> {
+    const result = await this.getPaginated(filters, { page: 1, pageSize: 10000 })
+    return result.data
+  }
+
+  // Get paginated drills with filters (NEW - Performance optimized)
+  async getPaginated(
+    filters?: DrillFilters,
+    pagination: PaginationParams = { page: 1, pageSize: 20 }
+  ): Promise<PaginatedResponse<SafetyDrill>> {
+    // Build query with count
     let query = supabase
       .from(this.tableName)
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('tanggal_drill', { ascending: false })
 
     if (filters?.search) {
@@ -322,14 +345,28 @@ class SafetyDrillService {
       query = query.lte('tanggal_drill', filters.tanggal_sampai)
     }
 
-    const { data, error } = await query
+    // Apply pagination
+    const from = (pagination.page - 1) * pagination.pageSize
+    const to = from + pagination.pageSize - 1
+    query = query.range(from, to)
+
+    const { data, error, count } = await query
 
     if (error) {
       console.error('Error fetching drills:', error)
       throw error
     }
 
-    return data || []
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / pagination.pageSize)
+
+    return {
+      data: data || [],
+      count: totalCount,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      totalPages
+    }
   }
 
   // Get by ID

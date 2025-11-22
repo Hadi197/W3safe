@@ -22,6 +22,12 @@ const stats = ref({
   grade_b: 0
 })
 
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(20)
+const totalRecords = ref(0)
+const totalPages = ref(0)
+
 // Filters
 const filters = ref<DrillFilters>({
   search: '',
@@ -119,7 +125,13 @@ const previewImageUrl = ref('')
 const loadDrills = async () => {
   loading.value = true
   try {
-    drills.value = await safetyDrillService.getAll(filters.value)
+    const response = await safetyDrillService.getPaginated(
+      filters.value,
+      { page: currentPage.value, pageSize: pageSize.value }
+    )
+    drills.value = response.data
+    totalRecords.value = response.count
+    totalPages.value = response.totalPages
   } catch (error) {
     console.error('Error loading drills:', error)
   } finally {
@@ -436,6 +448,64 @@ const getTingkatLabel = (value: string) => {
   return tingkatOptions.find(o => o.value === value)?.label || value
 }
 
+// Pagination Methods
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadDrills()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    loadDrills()
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    loadDrills()
+  }
+}
+
+const changePageSize = (newSize: number) => {
+  pageSize.value = newSize
+  currentPage.value = 1
+  loadDrills()
+}
+
+// Computed for pagination display
+const paginationInfo = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value + 1
+  const end = Math.min(currentPage.value * pageSize.value, totalRecords.value)
+  return `Menampilkan ${start}-${end} dari ${totalRecords.value} records`
+})
+
+const pageNumbers = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
+
+// Watch filters to reset pagination
+const applyFilters = () => {
+  currentPage.value = 1
+  loadDrills()
+}
+
 // Computed
 const filteredDrills = computed(() => {
   return drills.value
@@ -493,7 +563,7 @@ onMounted(() => {
         
         <select
           v-model="filters.jenis_drill"
-          @change="loadDrills"
+          @change="applyFilters"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Semua Jenis</option>
@@ -504,7 +574,7 @@ onMounted(() => {
 
         <select
           v-model="filters.kategori_drill"
-          @change="loadDrills"
+          @change="applyFilters"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Semua Kategori</option>
@@ -515,7 +585,7 @@ onMounted(() => {
 
         <select
           v-model="filters.status"
-          @change="loadDrills"
+          @change="applyFilters"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Semua Status</option>
@@ -526,7 +596,7 @@ onMounted(() => {
 
         <select
           v-model="filters.grade"
-          @change="loadDrills"
+          @change="applyFilters"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Semua Grade</option>
@@ -619,6 +689,107 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="mt-4 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <button 
+            @click="prevPage" 
+            :disabled="currentPage === 1"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button 
+            @click="nextPage" 
+            :disabled="currentPage === totalPages"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              {{ paginationInfo }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-700">Per halaman:</label>
+            <select 
+              v-model.number="pageSize" 
+              @change="changePageSize(pageSize)"
+              class="border border-gray-300 rounded-md text-sm px-2 py-1"
+            >
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+              <option :value="100">100</option>
+            </select>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <button 
+                @click="prevPage" 
+                :disabled="currentPage === 1"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">Previous</span>
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              
+              <button 
+                v-if="pageNumbers.length > 0 && pageNumbers[0]! > 1"
+                @click="goToPage(1)"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                1
+              </button>
+              <span v-if="pageNumbers.length > 0 && pageNumbers[0]! > 2" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+              
+              <button 
+                v-for="page in pageNumbers" 
+                :key="page"
+                @click="goToPage(page)"
+                :class="[
+                  'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
+                  page === currentPage 
+                    ? 'z-10 bg-primary-600 border-primary-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                ]"
+              >
+                {{ page }}
+              </button>
+              
+              <span v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages - 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+              <button 
+                v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages"
+                @click="goToPage(totalPages)"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {{ totalPages }}
+              </button>
+              
+              <button 
+                @click="nextPage" 
+                :disabled="currentPage === totalPages"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">Next</span>
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -871,7 +1042,12 @@ onMounted(() => {
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Foto Dokumentasi</h3>
             <div class="grid grid-cols-4 gap-3">
               <div v-for="(foto, idx) in selectedDrill.foto_dokumentasi" :key="idx" class="cursor-pointer" @click="viewImage(foto)">
-                <img :src="foto" alt="Dokumentasi" class="w-full h-24 object-cover rounded-lg border border-gray-200 hover:border-blue-500 transition-colors" />
+                <img 
+                  :src="foto" 
+                  alt="Dokumentasi" 
+                  loading="lazy"
+                  class="w-full h-24 object-cover rounded-lg border border-gray-200 hover:border-blue-500 transition-colors" 
+                />
               </div>
             </div>
           </div>
@@ -1369,7 +1545,12 @@ onMounted(() => {
                 </div>
                 <div v-if="formData.foto_dokumentasi && formData.foto_dokumentasi.length > 0" class="grid grid-cols-4 gap-3">
                   <div v-for="(foto, idx) in formData.foto_dokumentasi" :key="idx" class="relative group">
-                    <img :src="foto" alt="Foto" class="w-full h-24 object-cover rounded-lg border border-gray-200" />
+                    <img 
+                      :src="foto" 
+                      alt="Foto" 
+                      loading="lazy"
+                      class="w-full h-24 object-cover rounded-lg border border-gray-200" 
+                    />
                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg flex items-center justify-center gap-2">
                       <button type="button" @click="viewImage(foto)" class="opacity-0 group-hover:opacity-100 text-white bg-blue-600 px-2 py-1 rounded text-xs">
                         👁️ Lihat
