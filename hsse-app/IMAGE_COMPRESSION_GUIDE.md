@@ -79,11 +79,13 @@ const handlePhotoUpload = async (event: Event) => {
 - [x] Safety Patrol ✅
 - [x] Safety Drill ✅
 - [x] Safety Briefing ✅
-- [ ] Safety Induction
-- [ ] Management Walkthrough
-- [ ] Silent Inspection
-- [ ] Safety Forum (has 3 upload inputs)
-- [ ] Any other modules with photo upload
+- [x] Management Walkthrough ✅
+- [x] Silent Inspection ✅
+- [x] Safety Forum ✅ (has 2 image uploads: Daftar Hadir + Foto Forum)
+
+**✅ All 6 modules with photo upload complete (100%)**
+
+Note: Safety Induction doesn't have photo upload functionality.
 
 ### For Each Module:
 1. Import composable: `import { useImageCompression } from '@/composables/useImageCompression'`
