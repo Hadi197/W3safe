@@ -1017,6 +1017,7 @@
                     </div>
                     <div class="col-span-2">
                       <label class="block text-sm text-gray-700 mb-1">Foto Bukti Temuan</label>
+                      <!-- File input dari galeri -->
                       <input
                         :ref="el => temuanPhotoInputs[idx] = el as HTMLInputElement"
                         type="file"
@@ -1025,9 +1026,39 @@
                         class="hidden"
                         @change="handleTemuanPhotoUpload($event, idx)"
                       />
-                      <button
-                        type="button"
-                        @click="temuanPhotoInputs[idx]?.click()"
+                      <!-- File input dari kamera -->
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        class="hidden"
+                        :ref="el => temuanCameraInputs[idx] = el as HTMLInputElement"
+                        @change="handleTemuanPhotoUpload($event, idx)"
+                      />
+                      <div class="flex gap-2">
+                        <button
+                          type="button"
+                          @click="temuanCameraInputs[idx]?.click()"
+                          class="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center justify-center gap-2"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Ambil Foto
+                        </button>
+                        <button
+                          type="button"
+                          @click="temuanPhotoInputs[idx]?.click()"
+                          class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center justify-center gap-2"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Pilih dari Galeri
+                        </button>
+                      </div>
+                      <p class="text-xs text-gray-500 mt-1">📸 Foto akan dikompres otomatis jika >1MB</p>
                         class="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-blue-500 hover:text-blue-600"
                       >
                         📷 Upload Foto (Max 5MB per foto)
@@ -1220,6 +1251,9 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { managementWalkthroughService, type ManagementWalkthrough } from '@/services/management-walkthrough.service'
+import { useImageCompression } from '@/composables/useImageCompression'
+
+const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
 const loading = ref(false)
@@ -1319,6 +1353,7 @@ const rekomendasiText = ref('')
 
 // Photo upload refs
 const temuanPhotoInputs = ref<(HTMLInputElement | null)[]>([])
+const temuanCameraInputs = ref<(HTMLInputElement | null)[]>([])
 
 // Methods
 const loadWalkthroughs = async (page = currentPage.value) => {
@@ -1467,14 +1502,16 @@ const handleTemuanPhotoUpload = async (event: Event, temuanIndex: number) => {
       const file = files[i]
       if (!file) continue
       
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`File ${file.name} terlalu besar (max 5MB)`)
-        continue
+      // Auto-compress if >1MB
+      const result = await compressSingleImage(file)
+      const compressedFile = result.file
+      
+      if (result.wasCompressed) {
+        console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
       }
 
       // Upload to storage
-      const photoUrl = await managementWalkthroughService.uploadPhoto(file, tempId || 'temp')
+      const photoUrl = await managementWalkthroughService.uploadPhoto(compressedFile, tempId || 'temp')
       
       // Add to foto_urls array
       if (!temuan.foto_urls) {
