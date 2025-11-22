@@ -1137,7 +1137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { managementWalkthroughService, type ManagementWalkthrough } from '@/services/management-walkthrough.service'
 
 // State
@@ -1188,6 +1188,12 @@ const formTabs = [
   { id: 'scoring', label: 'Scoring' }
 ]
 
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(20)
+const totalRecords = ref(0)
+const totalPages = ref(0)
+
 // Form data
 const formData = ref<any>({
   nomor_walkthrough: '',
@@ -1234,10 +1240,17 @@ const rekomendasiText = ref('')
 const temuanPhotoInputs = ref<(HTMLInputElement | null)[]>([])
 
 // Methods
-const loadWalkthroughs = async () => {
+const loadWalkthroughs = async (page = currentPage.value) => {
   try {
     loading.value = true
-    walkthroughs.value = await managementWalkthroughService.getAll(filters.value)
+    currentPage.value = page
+    const response = await managementWalkthroughService.getPaginated(filters.value, {
+      page: currentPage.value,
+      pageSize: pageSize.value
+    })
+    walkthroughs.value = response.data
+    totalRecords.value = response.count
+    totalPages.value = response.totalPages
   } catch (error) {
     console.error('Error loading walkthroughs:', error)
     alert('Gagal memuat data walkthrough')

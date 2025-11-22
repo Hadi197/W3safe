@@ -1,5 +1,18 @@
 import { supabase } from '../api/supabase'
 
+export interface PaginationParams {
+  page: number
+  pageSize: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  count: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 export interface SafetyInduction {
   id?: string
   nomor_induction: string
@@ -176,7 +189,7 @@ class SafetyInductionService {
     return `${prefix}-001`
   }
 
-  // Get all inductions with filters
+  // Backward compatible - load all records
   async getAll(filters?: {
     search?: string
     unit_id?: string
@@ -187,12 +200,30 @@ class SafetyInductionService {
     perusahaan?: string
     instruktur?: string
   }) {
+    const result = await this.getPaginated(filters, { page: 1, pageSize: 10000 })
+    return result.data
+  }
+
+  // Paginated version for performance
+  async getPaginated(
+    filters?: {
+      search?: string
+      unit_id?: string
+      jenis_peserta?: string
+      status?: string
+      tanggal_dari?: string
+      tanggal_sampai?: string
+      perusahaan?: string
+      instruktur?: string
+    },
+    pagination: PaginationParams = { page: 1, pageSize: 20 }
+  ): Promise<PaginatedResponse<SafetyInduction>> {
     let query = supabase
       .from(this.tableName)
       .select(`
         *,
         unit:units(id, nama, kode)
-      `)
+      `, { count: 'exact' })
       .order('tanggal_induction', { ascending: false })
 
     if (filters?.search) {
@@ -227,10 +258,25 @@ class SafetyInductionService {
       query = query.lte('tanggal_induction', filters.tanggal_sampai)
     }
 
-    const { data, error } = await query
+    // Apply pagination
+    const from = (pagination.page - 1) * pagination.pageSize
+    const to = from + pagination.pageSize - 1
+    query = query.range(from, to)
+
+    const { data, error, count } = await query
 
     if (error) throw error
-    return data as SafetyInduction[]
+
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / pagination.pageSize)
+
+    return {
+      data: (data || []) as SafetyInduction[],
+      count: totalCount,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      totalPages
+    }
   }
 
   // Get by ID

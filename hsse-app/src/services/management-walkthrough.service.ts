@@ -1,5 +1,18 @@
 import { supabase } from '@/services/api/supabase'
 
+export interface PaginationParams {
+  page: number
+  pageSize: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  count: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 export interface ManagementWalkthrough {
   id?: string
   nomor_walkthrough: string
@@ -192,15 +205,31 @@ class ManagementWalkthroughService {
   }
 
   /**
-   * Get all walkthroughs dengan filter
+   * Get all walkthroughs dengan filter (backward compatible)
    */
   async getAll(filters?: WalkthroughFilters): Promise<ManagementWalkthrough[]> {
+    const response = await this.getPaginated(filters, { page: 1, pageSize: 10000 })
+    return response.data
+  }
+
+  /**
+   * Get paginated walkthroughs dengan filter
+   */
+  async getPaginated(
+    filters?: WalkthroughFilters,
+    pagination?: PaginationParams
+  ): Promise<PaginatedResponse<ManagementWalkthrough>> {
+    const page = pagination?.page || 1
+    const pageSize = pagination?.pageSize || 20
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
     let query = supabase
       .from(this.tableName)
       .select(`
         *,
         unit:units(id, kode, nama)
-      `)
+      `, { count: 'exact' })
       .order('tanggal_walkthrough', { ascending: false })
 
     // Apply filters
@@ -237,10 +266,19 @@ class ManagementWalkthroughService {
       }
     }
 
-    const { data, error } = await query
+    query = query.range(from, to)
+
+    const { data, error, count } = await query
 
     if (error) throw error
-    return data || []
+
+    return {
+      data: data || [],
+      count: count || 0,
+      page,
+      pageSize,
+      totalPages: Math.ceil((count || 0) / pageSize)
+    }
   }
 
   /**

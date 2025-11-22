@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { safetyInductionService, type SafetyInduction } from '@/services/hsse/safety-induction.service'
 import { useUnitsStore } from '@/stores/units'
 
@@ -35,6 +35,12 @@ const stats = ref({
   avg_rating_materi: 0,
   avg_rating_instruktur: 0
 })
+
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(20)
+const totalRecords = ref(0)
+const totalPages = ref(0)
 
 // Form data
 const formData = ref<Partial<SafetyInduction>>({
@@ -89,8 +95,13 @@ const newAksesArea = ref('')// Load data
 const loadInductions = async () => {
   try {
     loading.value = true
-    const data = await safetyInductionService.getAll(filters.value)
-    inductions.value = data
+    const response = await safetyInductionService.getPaginated(
+      filters.value,
+      { page: currentPage.value, pageSize: pageSize.value }
+    )
+    inductions.value = response.data
+    totalRecords.value = response.count
+    totalPages.value = response.totalPages
   } catch (error) {
     console.error('Error loading inductions:', error)
     alert('Gagal memuat data induction')
@@ -358,6 +369,63 @@ const countMateriDisampaikan = () => {
   return count + tambahan
 }
 
+// Pagination methods
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadInductions()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    loadInductions()
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    loadInductions()
+  }
+}
+
+const changePageSize = (newSize: number) => {
+  pageSize.value = newSize
+  currentPage.value = 1
+  loadInductions()
+}
+
+const applyFilters = () => {
+  currentPage.value = 1
+  loadInductions()
+}
+
+// Computed for pagination
+const paginationInfo = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value + 1
+  const end = Math.min(currentPage.value * pageSize.value, totalRecords.value)
+  return `Menampilkan ${start}-${end} dari ${totalRecords.value} records`
+})
+
+const pageNumbers = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
+
 onMounted(() => {
   loadInductions()
   loadStats()
@@ -406,7 +474,7 @@ onMounted(() => {
             class="w-full px-4 py-2 border rounded-lg text-sm" />
         </div>
         <div>
-          <select v-model="filters.unit_id" @change="loadInductions"
+          <select v-model="filters.unit_id" @change="applyFilters"
             class="w-full px-4 py-2 border rounded-lg text-sm">
             <option value="">Semua Unit</option>
             <option v-for="unit in unitsStore.units" :key="unit.id" :value="unit.id">
@@ -415,7 +483,7 @@ onMounted(() => {
           </select>
         </div>
         <div>
-          <select v-model="filters.jenis_peserta" @change="loadInductions"
+          <select v-model="filters.jenis_peserta" @change="applyFilters"
             class="w-full px-4 py-2 border rounded-lg text-sm">
             <option value="">Semua Jenis</option>
             <option value="karyawan_baru">Karyawan Baru</option>
@@ -428,7 +496,7 @@ onMounted(() => {
           </select>
         </div>
         <div>
-          <select v-model="filters.status" @change="loadInductions"
+          <select v-model="filters.status" @change="applyFilters"
             class="w-full px-4 py-2 border rounded-lg text-sm">
             <option value="">Semua Status</option>
             <option value="scheduled">Scheduled</option>
@@ -525,6 +593,32 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="mt-4 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <button @click="prevPage" :disabled="currentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+          <button @click="nextPage" :disabled="currentPage === totalPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div><p class="text-sm text-gray-700">{{ paginationInfo }}</p></div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-700">Per halaman:</label>
+            <select v-model.number="pageSize" @change="changePageSize(pageSize)" class="border border-gray-300 rounded-md text-sm px-2 py-1"><option :value="10">10</option><option :value="20">20</option><option :value="50">50</option><option :value="100">100</option></select>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+              <button @click="prevPage" :disabled="currentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
+              <button v-if="pageNumbers.length > 0 && pageNumbers[0]! > 1" @click="goToPage(1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">1</button>
+              <span v-if="pageNumbers.length > 0 && pageNumbers[0]! > 2" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+              <button v-for="page in pageNumbers" :key="page" @click="goToPage(page)" :class="['relative inline-flex items-center px-4 py-2 border text-sm font-medium', page === currentPage ? 'z-10 bg-primary-600 border-primary-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50']">{{ page }}</button>
+              <span v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages - 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+              <button v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages" @click="goToPage(totalPages)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ totalPages }}</button>
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg></button>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
 
