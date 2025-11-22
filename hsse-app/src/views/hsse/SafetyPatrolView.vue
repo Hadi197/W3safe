@@ -2,8 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { safetyPatrolService, type SafetyPatrol } from '@/services/hsse/safety-patrol.service'
 import { useUnitsStore } from '@/stores/units'
+import { useImageCompression } from '@/composables/useImageCompression'
 
 const unitsStore = useUnitsStore()
+const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
 const loading = ref(false)
@@ -314,12 +316,6 @@ const handleUnsafeConditionPhotoUpload = async (event: Event, conditionIndex: nu
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
     if (!file) continue
-    
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert(`File ${file.name} terlalu besar. Max 5MB`)
-      continue
-    }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -328,13 +324,21 @@ const handleUnsafeConditionPhotoUpload = async (event: Event, conditionIndex: nu
     }
 
     try {
+      // Auto-compress if >1MB
+      const result = await compressSingleImage(file)
+      const compressedFile = result.file
+      
+      if (result.wasCompressed) {
+        console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
+      }
+
       // Create preview using FileReader for immediate display
       const reader = new FileReader()
       reader.onload = (e) => {
         const dataUrl = e.target?.result as string
         condition.foto_urls.push(dataUrl)
       }
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(compressedFile)
 
       // Note: Actual upload to Supabase storage will happen on form submit
       // For now we just show preview with data URL
@@ -1448,7 +1452,7 @@ onMounted(() => {
                       class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
                       📷 Upload Foto
                     </button>
-                    <p class="text-xs text-gray-500 mt-1">Max 5MB per foto, format JPG/PNG</p>
+                    <p class="text-xs text-gray-500 mt-1">Foto akan dikompres otomatis jika >1MB</p>
                     
                     <!-- Preview Foto -->
                     <div v-if="item.foto_urls && item.foto_urls.length > 0" class="grid grid-cols-4 gap-2 mt-3">
