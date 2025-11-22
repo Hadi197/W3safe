@@ -271,21 +271,27 @@
             <div>
               <label class="label">Foto Dokumentasi</label>
               <div class="space-y-3">
-                <div class="flex items-center space-x-3">
-                  <label class="btn-secondary cursor-pointer">
-                    <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Pilih Foto (Single/Batch)
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      multiple 
-                      @change="handleFileSelect"
-                      class="hidden"
-                    />
-                  </label>
-                  <span class="text-sm text-gray-500">Maksimal 1MB per file</span>
+                <div class="flex items-center gap-4">
+                  <!-- File input dari galeri -->
+                  <input type="file" accept="image/*" multiple @change="handleFileSelect" class="hidden" ref="fileInputBriefing" />
+                  <!-- File input dari kamera -->
+                  <input type="file" accept="image/*" capture="environment" @change="handleFileSelect" class="hidden" ref="cameraInputBriefing" />
+                  <div class="flex gap-2 flex-1">
+                    <button type="button" @click="($refs.cameraInputBriefing as any)?.click()" class="flex-1 btn-secondary flex items-center justify-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Ambil Foto
+                    </button>
+                    <button type="button" @click="($refs.fileInputBriefing as any)?.click()" class="flex-1 btn-secondary flex items-center justify-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Pilih dari Galeri
+                    </button>
+                  </div>
+                  <span class="text-sm text-gray-500">📸 Foto akan dikompres otomatis jika >1MB</span>
                 </div>
 
                 <!-- Preview Selected Files -->
@@ -456,6 +462,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { format } from 'date-fns'
+import { useImageCompression } from '@/composables/useImageCompression'
 import { 
   safetyBriefingService, 
   type SafetyBriefing,
@@ -469,6 +476,8 @@ import { unitsService } from '@/services/api/units.service'
 interface FileWithPreview extends File {
   preview: string
 }
+
+const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
 const items = ref<SafetyBriefing[]>([])
@@ -602,26 +611,30 @@ const applyFilters = () => {
   fetchData()
 }
 
-const handleFileSelect = (event: Event) => {
+const handleFileSelect = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const files = target.files
   
   if (files) {
-    Array.from(files).forEach(file => {
-      if (file.size > 1 * 1024 * 1024) {
-        alert(`File ${file.name} terlalu besar (maksimal 1MB)`)
-        return
+    for (const file of Array.from(files)) {
+      // Auto-compress if >1MB
+      const result = await compressSingleImage(file)
+      const compressedFile = result.file
+      
+      if (result.wasCompressed) {
+        console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
       }
 
       const reader = new FileReader()
       reader.onload = (e) => {
-        const fileWithPreview = file as FileWithPreview
+        const fileWithPreview = compressedFile as FileWithPreview
         fileWithPreview.preview = e.target?.result as string
         selectedFiles.value.push(fileWithPreview)
       }
-      reader.readAsDataURL(file)
-    })
+      reader.readAsDataURL(compressedFile)
+    }
   }
+  target.value = ''
 }
 
 const removeFile = (index: number) => {
