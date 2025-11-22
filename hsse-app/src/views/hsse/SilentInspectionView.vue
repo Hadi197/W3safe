@@ -24,11 +24,12 @@
             type="text" 
             placeholder="Cari area..."
             class="input-field"
+            @change="applyFilters"
           />
         </div>
         <div>
           <label class="label">Unit</label>
-          <select v-model="filterUnit" class="input-field">
+          <select v-model="filterUnit" class="input-field" @change="applyFilters">
             <option value="">Semua Unit</option>
             <option v-for="unit in units" :key="unit.id" :value="unit.id">
               {{ unit.nama }}
@@ -37,7 +38,7 @@
         </div>
         <div>
           <label class="label">Tingkat Risiko</label>
-          <select v-model="filterRisk" class="input-field">
+          <select v-model="filterRisk" class="input-field" @change="applyFilters">
             <option value="">Semua Risiko</option>
             <option value="rendah">Rendah</option>
             <option value="sedang">Sedang</option>
@@ -47,7 +48,7 @@
         </div>
         <div>
           <label class="label">Status</label>
-          <select v-model="filterStatus" class="input-field">
+          <select v-model="filterStatus" class="input-field" @change="applyFilters">
             <option value="">Semua Status</option>
             <option value="draft">Draft</option>
             <option value="submitted">Submitted</option>
@@ -57,7 +58,7 @@
         </div>
         <div>
           <label class="label">Bulan</label>
-          <input v-model="filterMonth" type="month" class="input-field" />
+          <input v-model="filterMonth" type="month" class="input-field" @change="applyFilters" />
         </div>
       </div>
     </div>
@@ -155,6 +156,32 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="mt-4 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <button @click="prevPage" :disabled="currentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+          <button @click="nextPage" :disabled="currentPage === totalPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div><p class="text-sm text-gray-700">{{ paginationInfo }}</p></div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-700">Per halaman:</label>
+            <select v-model.number="pageSize" @change="changePageSize(pageSize)" class="border border-gray-300 rounded-md text-sm px-2 py-1"><option :value="10">10</option><option :value="20">20</option><option :value="50">50</option><option :value="100">100</option></select>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+              <button @click="prevPage" :disabled="currentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
+              <button v-if="pageNumbers.length > 0 && pageNumbers[0]! > 1" @click="goToPage(1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">1</button>
+              <span v-if="pageNumbers.length > 0 && pageNumbers[0]! > 2" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+              <button v-for="page in pageNumbers" :key="page" @click="goToPage(page)" :class="['relative inline-flex items-center px-4 py-2 border text-sm font-medium', page === currentPage ? 'z-10 bg-primary-600 border-primary-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50']">{{ page }}</button>
+              <span v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages - 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+              <button v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages" @click="goToPage(totalPages)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ totalPages }}</button>
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg></button>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -521,7 +548,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { format } from 'date-fns'
-import { silentInspectionService, type SilentInspection, type CreateSilentInspectionDto } from '@/services/api/silent-inspection.service'
+import { silentInspectionService, type SilentInspection, type CreateSilentInspectionDto, type PaginatedResponse } from '@/services/api/silent-inspection.service'
 import { unitsService, type Unit } from '@/services/api/units.service'
 
 // State
@@ -539,6 +566,12 @@ const filterUnit = ref('')
 const filterRisk = ref('')
 const filterStatus = ref('')
 const filterMonth = ref('')
+
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(20)
+const totalRecords = ref(0)
+const totalPages = ref(0)
 
 // Form
 const form = ref<CreateSilentInspectionDto>({
@@ -582,47 +615,55 @@ watch([() => form.value.temuan_critical, () => form.value.temuan_major, () => fo
 
 // Computed
 const filteredItems = computed(() => {
-  let result = items.value
+  return items.value
+})
 
-  if (searchQuery.value) {
-    result = result.filter(item => 
-      item.area_inspeksi?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.deskripsi_temuan?.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
+const paginationInfo = computed(() => {
+  const start = totalRecords.value === 0 ? 0 : (currentPage.value - 1) * pageSize.value + 1
+  const end = Math.min(currentPage.value * pageSize.value, totalRecords.value)
+  return `Menampilkan ${start} - ${end} dari ${totalRecords.value} data`
+})
+
+const pageNumbers = computed(() => {
+  const pages: number[] = []
+  const maxVisible = 5
+  let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let end = Math.min(totalPages.value, start + maxVisible - 1)
+  if (end - start + 1 < maxVisible) {
+    start = Math.max(1, end - maxVisible + 1)
   }
-
-  if (filterUnit.value) {
-    result = result.filter(item => item.unit_id === filterUnit.value)
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
   }
-
-  if (filterRisk.value) {
-    result = result.filter(item => item.tingkat_risiko === filterRisk.value)
-  }
-
-  if (filterStatus.value) {
-    result = result.filter(item => item.status === filterStatus.value)
-  }
-
-  if (filterMonth.value) {
-    const [year, month] = filterMonth.value.split('-')
-    result = result.filter(item => {
-      const itemDate = new Date(item.tanggal)
-      return itemDate.getFullYear() === parseInt(year || '0') && itemDate.getMonth() + 1 === parseInt(month || '0')
-    })
-  }
-
-  return result
+  return pages
 })
 
 // Methods
 const loadData = async () => {
   try {
     loading.value = true
-    const [inspectionsData, unitsData] = await Promise.all([
-      silentInspectionService.getAll(),
+    
+    // Build filters
+    const filters: any = {}
+    if (searchQuery.value) filters.search = searchQuery.value
+    if (filterUnit.value) filters.unit_id = filterUnit.value
+    if (filterRisk.value) filters.tingkat_risiko = filterRisk.value
+    if (filterStatus.value) filters.status = filterStatus.value
+    if (filterMonth.value) {
+      const [year, month] = filterMonth.value.split('-')
+      filters.tanggal_dari = `${year}-${month}-01`
+      const lastDay = new Date(parseInt(year || '2024'), parseInt(month || '1'), 0).getDate()
+      filters.tanggal_sampai = `${year}-${month}-${lastDay}`
+    }
+
+    const [result, unitsData] = await Promise.all([
+      silentInspectionService.getPaginated(filters, { page: currentPage.value, pageSize: pageSize.value }),
       unitsService.getActive()
     ])
-    items.value = inspectionsData
+    
+    items.value = result.data
+    totalRecords.value = result.count
+    totalPages.value = result.totalPages
     units.value = unitsData
   } catch (error) {
     console.error('Error loading data:', error)
@@ -630,6 +671,39 @@ const loadData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// Pagination methods
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadData()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    loadData()
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    loadData()
+  }
+}
+
+const changePageSize = (newSize: number) => {
+  pageSize.value = newSize
+  currentPage.value = 1
+  loadData()
+}
+
+const applyFilters = () => {
+  currentPage.value = 1
+  loadData()
 }
 
 const openModal = () => {

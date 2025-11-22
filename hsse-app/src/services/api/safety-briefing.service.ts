@@ -1,5 +1,18 @@
 import { supabase } from './supabase'
 
+export interface PaginationParams {
+  page: number
+  pageSize: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  count: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 export interface SafetyBriefing {
   id: string
   tanggal: string
@@ -42,7 +55,7 @@ class SafetyBriefingService {
   private readonly bucketName = 'safety-briefing-photos'
 
   /**
-   * Get all safety briefing records
+   * Get all safety briefing records (backward compatible)
    */
   async getAll(): Promise<SafetyBriefing[]> {
     const { data, error } = await supabase
@@ -57,6 +70,64 @@ class SafetyBriefingService {
 
     if (error) throw error
     return data || []
+  }
+
+  /**
+   * Get paginated safety briefing records with filters
+   */
+  async getPaginated(
+    params: PaginationParams,
+    filters?: {
+      searchQuery?: string
+      unitId?: string
+      status?: 'draft' | 'approved' | 'rejected'
+      month?: string
+    }
+  ): Promise<PaginatedResponse<SafetyBriefing>> {
+    const { page, pageSize } = params
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    let query = supabase
+      .from(this.tableName)
+      .select(`
+        *,
+        unit:unit_id (id, nama, kode),
+        petugas:petugas_id (id, nama, nip)
+      `, { count: 'exact' })
+
+    // Apply filters
+    if (filters?.searchQuery) {
+      query = query.ilike('topik', `%${filters.searchQuery}%`)
+    }
+
+    if (filters?.unitId) {
+      query = query.eq('unit_id', filters.unitId)
+    }
+
+    if (filters?.status) {
+      query = query.eq('status', filters.status)
+    }
+
+    if (filters?.month) {
+      query = query.ilike('tanggal', `${filters.month}%`)
+    }
+
+    // Apply pagination and ordering
+    const { data, error, count } = await query
+      .order('tanggal', { ascending: false })
+      .order('waktu_mulai', { ascending: false })
+      .range(from, to)
+
+    if (error) throw error
+
+    return {
+      data: data || [],
+      count: count || 0,
+      page,
+      pageSize,
+      totalPages: Math.ceil((count || 0) / pageSize)
+    }
   }
 
   /**

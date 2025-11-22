@@ -194,6 +194,87 @@
       </div>
     </div>
 
+    <!-- Pagination Controls -->
+    <div v-if="walkthroughs.length" class="bg-white rounded-lg shadow p-4 mt-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <!-- Pagination Info -->
+        <div class="text-sm text-gray-600">
+          {{ paginationInfo }}
+        </div>
+
+        <!-- Page Numbers -->
+        <div class="flex items-center gap-2">
+          <!-- Previous Button -->
+          <button
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="px-3 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ← Prev
+          </button>
+
+          <!-- First Page -->
+          <button
+            v-if="(pageNumbers[0] ?? 0) > 1"
+            @click="goToPage(1)"
+            class="px-3 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50"
+          >
+            1
+          </button>
+          <span v-if="(pageNumbers[0] ?? 0) > 2" class="text-gray-400">...</span>
+
+          <!-- Page Numbers -->
+          <button
+            v-for="page in pageNumbers"
+            :key="page"
+            @click="goToPage(page)"
+            :class="[
+              'px-3 py-1 rounded border text-sm',
+              currentPage === page
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'border-gray-300 hover:bg-gray-50'
+            ]"
+          >
+            {{ page }}
+          </button>
+
+          <!-- Last Page -->
+          <span v-if="(pageNumbers[pageNumbers.length - 1] ?? 0) < totalPages - 1" class="text-gray-400">...</span>
+          <button
+            v-if="(pageNumbers[pageNumbers.length - 1] ?? 0) < totalPages"
+            @click="goToPage(totalPages)"
+            class="px-3 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50"
+          >
+            {{ totalPages }}
+          </button>
+
+          <!-- Next Button -->
+          <button
+            @click="nextPage"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next →
+          </button>
+        </div>
+
+        <!-- Page Size Selector -->
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Per halaman:</label>
+          <select
+            :value="pageSize"
+            @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"
+            class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <!-- Detail Modal -->
     <div v-if="showDetailModal && selectedWalkthrough" class="fixed inset-0 z-50 overflow-y-auto" @click.self="closeDetailModal">
       <div class="flex items-center justify-center min-h-screen px-4">
@@ -1608,9 +1689,62 @@ const parseJSON = (data: any) => {
   return data || []
 }
 
+// Pagination methods
+const goToPage = async (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    await loadWalkthroughs(page)
+  }
+}
+
+const nextPage = async () => {
+  if (currentPage.value < totalPages.value) {
+    await loadWalkthroughs(currentPage.value + 1)
+  }
+}
+
+const prevPage = async () => {
+  if (currentPage.value > 1) {
+    await loadWalkthroughs(currentPage.value - 1)
+  }
+}
+
+const changePageSize = async (newSize: number) => {
+  pageSize.value = newSize
+  currentPage.value = 1
+  await loadWalkthroughs(1)
+}
+
+const applyFilters = async () => {
+  currentPage.value = 1
+  await loadWalkthroughs(1)
+}
+
+const paginationInfo = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value + 1
+  const end = Math.min(currentPage.value * pageSize.value, totalRecords.value)
+  return `Menampilkan ${start} - ${end} dari ${totalRecords.value} data`
+})
+
+const pageNumbers = computed(() => {
+  const pages: number[] = []
+  const maxVisible = 5
+  let start = Math.max(1, currentPage.value - 2)
+  let end = Math.min(totalPages.value, start + maxVisible - 1)
+  
+  if (end - start < maxVisible - 1) {
+    start = Math.max(1, end - maxVisible + 1)
+  }
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
+
 // Watchers
 watch(filters, () => {
-  loadWalkthroughs()
+  applyFilters()
 }, { deep: true })
 
 // Lifecycle

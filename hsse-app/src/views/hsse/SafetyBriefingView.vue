@@ -21,6 +21,7 @@
           <label class="label">Cari</label>
           <input 
             v-model="searchQuery" 
+            @input="applyFilters"
             type="text" 
             placeholder="Cari topik..."
             class="input-field"
@@ -28,7 +29,7 @@
         </div>
         <div>
           <label class="label">Unit</label>
-          <select v-model="filterUnit" class="input-field">
+          <select v-model="filterUnit" @change="applyFilters" class="input-field">
             <option value="">Semua Unit</option>
             <option v-for="unit in units" :key="unit.id" :value="unit.id">
               {{ unit.nama }}
@@ -37,7 +38,7 @@
         </div>
         <div>
           <label class="label">Status</label>
-          <select v-model="filterStatus" class="input-field">
+          <select v-model="filterStatus" @change="applyFilters" class="input-field">
             <option value="">Semua Status</option>
             <option value="draft">Draft</option>
             <option value="approved">Approved</option>
@@ -46,7 +47,7 @@
         </div>
         <div>
           <label class="label">Bulan</label>
-          <input v-model="filterMonth" type="month" class="input-field" />
+          <input v-model="filterMonth" @change="applyFilters" type="month" class="input-field" />
         </div>
       </div>
     </div>
@@ -58,7 +59,7 @@
         <p class="mt-2 text-gray-600">Memuat data...</p>
       </div>
 
-      <div v-else-if="filteredItems.length === 0" class="text-center py-12">
+      <div v-else-if="items.length === 0" class="text-center py-12">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
@@ -80,7 +81,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="item in filteredItems" :key="item.id" class="hover:bg-gray-50">
+            <tr v-for="item in items" :key="item.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">{{ formatDate(item.tanggal) }}</div>
                 <div class="text-sm text-gray-500">{{ item.waktu_mulai }} - {{ item.waktu_selesai || '-' }}</div>
@@ -144,6 +145,64 @@
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        <div v-if="items.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Info -->
+            <div class="text-sm text-gray-700">
+              {{ paginationInfo }}
+            </div>
+
+            <!-- Page Size Selector -->
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-700">Items per page:</label>
+              <select 
+                v-model.number="pageSize" 
+                @change="changePageSize(pageSize)"
+                class="input-field py-1 pr-8"
+              >
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+
+            <!-- Page Navigation -->
+            <div class="flex items-center gap-2">
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
+                class="px-3 py-1 rounded border text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+              >
+                Previous
+              </button>
+
+              <button
+                v-for="page in pageNumbers"
+                :key="page"
+                @click="goToPage(page)"
+                :class="[
+                  'px-3 py-1 rounded border text-sm',
+                  page === currentPage
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'hover:bg-gray-100'
+                ]"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
+                class="px-3 py-1 rounded border text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -400,7 +459,9 @@ import { format } from 'date-fns'
 import { 
   safetyBriefingService, 
   type SafetyBriefing,
-  type CreateSafetyBriefingDto 
+  type CreateSafetyBriefingDto,
+  type PaginationParams,
+  type PaginatedResponse
 } from '@/services/api/safety-briefing.service'
 import { unitsService } from '@/services/api/units.service'
 
@@ -431,6 +492,12 @@ const filterUnit = ref('')
 const filterStatus = ref('')
 const filterMonth = ref('')
 
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalRecords = ref(0)
+const totalPages = ref(0)
+
 // Form
 const form = ref({
   tanggal: '',
@@ -446,35 +513,48 @@ const form = ref({
 })
 
 // Computed
-const filteredItems = computed(() => {
-  let result = items.value
+const paginationInfo = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value + 1
+  const end = Math.min(currentPage.value * pageSize.value, totalRecords.value)
+  return `Menampilkan ${start}-${end} dari ${totalRecords.value} data`
+})
 
-  if (searchQuery.value) {
-    result = result.filter(item => 
-      item.topik.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
+const pageNumbers = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage + 1 < maxVisible) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
   }
 
-  if (filterUnit.value) {
-    result = result.filter(item => item.unit_id === filterUnit.value)
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
   }
-
-  if (filterStatus.value) {
-    result = result.filter(item => item.status === filterStatus.value)
-  }
-
-  if (filterMonth.value) {
-    result = result.filter(item => item.tanggal.startsWith(filterMonth.value))
-  }
-
-  return result
+  return pages
 })
 
 // Methods
 const fetchData = async () => {
   loading.value = true
   try {
-    items.value = await safetyBriefingService.getAll()
+    const params: PaginationParams = {
+      page: currentPage.value,
+      pageSize: pageSize.value
+    }
+
+    const filters = {
+      searchQuery: searchQuery.value || undefined,
+      unitId: filterUnit.value || undefined,
+      status: filterStatus.value as 'draft' | 'approved' | 'rejected' | undefined,
+      month: filterMonth.value || undefined
+    }
+
+    const response: PaginatedResponse<SafetyBriefing> = await safetyBriefingService.getPaginated(params, filters)
+    items.value = response.data
+    totalRecords.value = response.count
+    totalPages.value = response.totalPages
   } catch (error) {
     console.error('Error fetching data:', error)
   } finally {
@@ -488,6 +568,38 @@ const fetchUnits = async () => {
   } catch (error) {
     console.error('Error fetching units:', error)
   }
+}
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    fetchData()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    fetchData()
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    fetchData()
+  }
+}
+
+const changePageSize = (newSize: number) => {
+  pageSize.value = newSize
+  currentPage.value = 1
+  fetchData()
+}
+
+const applyFilters = () => {
+  currentPage.value = 1
+  fetchData()
 }
 
 const handleFileSelect = (event: Event) => {

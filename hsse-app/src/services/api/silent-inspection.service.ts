@@ -1,5 +1,18 @@
 import { supabase } from './supabase'
 
+export interface PaginationParams {
+  page: number
+  pageSize: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  count: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 export interface SilentInspection {
   id: string
   tanggal: string
@@ -150,8 +163,32 @@ class SilentInspectionService {
     if (error) throw error
   }
 
-  async getAll(): Promise<SilentInspection[]> {
-    const { data, error } = await supabase
+  // Backward compatible - load all records
+  async getAll(filters?: {
+    search?: string
+    unit_id?: string
+    tingkat_risiko?: string
+    status?: string
+    tanggal_dari?: string
+    tanggal_sampai?: string
+  }): Promise<SilentInspection[]> {
+    const result = await this.getPaginated(filters, { page: 1, pageSize: 10000 })
+    return result.data
+  }
+
+  // Paginated version for performance
+  async getPaginated(
+    filters?: {
+      search?: string
+      unit_id?: string
+      tingkat_risiko?: string
+      status?: string
+      tanggal_dari?: string
+      tanggal_sampai?: string
+    },
+    pagination: PaginationParams = { page: 1, pageSize: 20 }
+  ): Promise<PaginatedResponse<SilentInspection>> {
+    let query = supabase
       .from(this.tableName)
       .select(`
         *,
@@ -170,11 +207,52 @@ class SilentInspectionService {
           nama,
           nip
         )
-      `)
+      `, { count: 'exact' })
       .order('tanggal', { ascending: false })
 
+    if (filters?.search) {
+      query = query.or(`area_inspeksi.ilike.%${filters.search}%,deskripsi_temuan.ilike.%${filters.search}%`)
+    }
+
+    if (filters?.unit_id) {
+      query = query.eq('unit_id', filters.unit_id)
+    }
+
+    if (filters?.tingkat_risiko) {
+      query = query.eq('tingkat_risiko', filters.tingkat_risiko)
+    }
+
+    if (filters?.status) {
+      query = query.eq('status', filters.status)
+    }
+
+    if (filters?.tanggal_dari) {
+      query = query.gte('tanggal', filters.tanggal_dari)
+    }
+
+    if (filters?.tanggal_sampai) {
+      query = query.lte('tanggal', filters.tanggal_sampai)
+    }
+
+    // Apply pagination
+    const from = (pagination.page - 1) * pagination.pageSize
+    const to = from + pagination.pageSize - 1
+    query = query.range(from, to)
+
+    const { data, error, count } = await query
+
     if (error) throw error
-    return data || []
+
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / pagination.pageSize)
+
+    return {
+      data: (data || []) as SilentInspection[],
+      count: totalCount,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      totalPages
+    }
   }
 
   async getById(id: string): Promise<SilentInspection | null> {
