@@ -887,22 +887,43 @@
                   <input 
                     @change="handleDaftarHadirUpload" 
                     type="file" 
-                    accept=".pdf,.jpg,.jpeg,.png"
+                    accept="image/*"
+                    capture="environment"
+                    ref="daftarHadirCameraInput"
+                    class="hidden" 
+                  />
+                  <input 
+                    @change="handleDaftarHadirUpload" 
+                    type="file" 
+                    accept=".pdf,image/*"
                     ref="daftarHadirFileInput"
                     class="hidden" 
                   />
                   <div v-if="!formData.daftar_hadir_url" class="text-center">
-                    <button 
-                      @click="daftarHadirFileInput?.click()" 
-                      type="button"
-                      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      Upload Daftar Hadir
-                    </button>
-                    <p class="text-xs text-gray-500 mt-2">Format: PDF, JPG, PNG, Max 5MB</p>
+                    <div class="grid grid-cols-2 gap-3 mb-2">
+                      <button 
+                        @click="daftarHadirCameraInput?.click()" 
+                        type="button"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Ambil Foto
+                      </button>
+                      <button 
+                        @click="daftarHadirFileInput?.click()" 
+                        type="button"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Pilih File/PDF
+                      </button>
+                    </div>
+                    <p class="text-xs text-gray-500">Format: PDF atau Foto (otomatis dikompress jika >1MB)</p>
                   </div>
                   <div v-else class="flex items-center justify-between bg-white p-3 rounded-lg">
                     <div class="flex items-center">
@@ -933,11 +954,43 @@
                     @change="handleFotoForumUpload" 
                     type="file" 
                     accept="image/*"
+                    capture="environment"
+                    ref="fotoForumCameraInput"
+                    class="hidden" 
+                  />
+                  <input 
+                    @change="handleFotoForumUpload" 
+                    type="file" 
+                    accept="image/*"
                     multiple
                     ref="fotoForumFileInput"
                     class="hidden" 
                   />
                   <div class="text-center mb-3">
+                    <div class="grid grid-cols-2 gap-3 mb-2">
+                      <button 
+                        @click="fotoForumCameraInput?.click()" 
+                        type="button"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Ambil Foto
+                      </button>
+                      <button 
+                        @click="fotoForumFileInput?.click()" 
+                        type="button"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Pilih dari Galeri
+                      </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-3">Foto otomatis dikompress jika >1MB</p>
                     <button 
                       @click="fotoForumFileInput?.click()" 
                       type="button"
@@ -1015,8 +1068,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useImageCompression } from '@/composables/useImageCompression'
 import { safetyForumService, type SafetyForumDTO } from '@/services/api/safety-forum.service'
 import { unitsService } from '@/services/api/units.service'
+
+const { compressSingleImage, formatFileSize } = useImageCompression()
 
 const forums = ref<any[]>([])
 const units = ref<any[]>([])
@@ -1080,7 +1136,9 @@ const fotoForumText = ref('')
 // File upload refs
 const notulenFileInput = ref<HTMLInputElement>()
 const daftarHadirFileInput = ref<HTMLInputElement>()
+const daftarHadirCameraInput = ref<HTMLInputElement>()
 const fotoForumFileInput = ref<HTMLInputElement>()
+const fotoForumCameraInput = ref<HTMLInputElement>()
 const uploadedPhotos = ref<Array<{ file: File; preview: string; url?: string }>>([])
 const uploadingFiles = ref(false)
 
@@ -1345,14 +1403,19 @@ const handleDaftarHadirUpload = async (event: Event) => {
   const file = target.files?.[0]
   if (!file) return
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert('File terlalu besar. Maksimal 5MB')
-    return
-  }
-
   try {
     uploadingFiles.value = true
-    const url = await safetyForumService.uploadDocument(file, 'daftar_hadir')
+    
+    let fileToUpload = file
+    
+    // Compress if image
+    if (file.type.startsWith('image/')) {
+      const result = await compressSingleImage(file)
+      fileToUpload = result.file
+      console.log(`Daftar Hadir compression: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${result.compressionRatio})`)
+    }
+    
+    const url = await safetyForumService.uploadDocument(fileToUpload, 'daftar_hadir')
     formData.value.daftar_hadir_url = url
     alert('File daftar hadir berhasil diupload')
   } catch (error) {
@@ -1376,19 +1439,18 @@ const handleFotoForumUpload = async (event: Event) => {
   if (!files || files.length === 0) return
 
   for (const file of Array.from(files)) {
-    if (file.size > 2 * 1024 * 1024) {
-      alert(`File ${file.name} terlalu besar. Maksimal 2MB per foto`)
-      continue
-    }
-
     if (!file.type.startsWith('image/')) {
       alert(`File ${file.name} bukan gambar`)
       continue
     }
 
+    // Compress image
+    const result = await compressSingleImage(file)
+    console.log(`Foto forum compression: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${result.compressionRatio})`)
+    
     // Create preview
-    const preview = URL.createObjectURL(file)
-    uploadedPhotos.value.push({ file, preview })
+    const preview = URL.createObjectURL(result.file)
+    uploadedPhotos.value.push({ file: result.file, preview })
   }
 
   // Reset input
