@@ -79,7 +79,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'safety-forum',
         name: 'safety-forum',
-        component: () => import('@/views/hsse/SafetyForumListView.vue'),
+        component: () => import('@/views/hsse/SafetyForumView.vue'),
         meta: { title: 'Safety Forum' }
       },
       {
