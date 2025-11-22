@@ -95,6 +95,19 @@ export interface PatrolFilters {
   end_date?: string
 }
 
+export interface PaginationParams {
+  page: number
+  pageSize: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  count: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 export interface PatrolStats {
   total_patrol: number
   patrol_bulan_ini: number
@@ -106,10 +119,20 @@ export interface PatrolStats {
 }
 
 class SafetyPatrolService {
+  // Backward compatible - load all records
   async getAll(filters?: PatrolFilters): Promise<SafetyPatrol[]> {
+    const result = await this.getPaginated(filters, { page: 1, pageSize: 10000 })
+    return result.data
+  }
+
+  // Paginated version for performance
+  async getPaginated(
+    filters?: PatrolFilters,
+    pagination: PaginationParams = { page: 1, pageSize: 20 }
+  ): Promise<PaginatedResponse<SafetyPatrol>> {
     let query = supabase
       .from('safety_patrol')
-      .select('*, unit:units(id, kode, nama)')
+      .select('*, unit:units(id, kode, nama)', { count: 'exact' })
       .order('tanggal_patrol', { ascending: false })
 
     if (filters?.search) {
@@ -140,10 +163,25 @@ class SafetyPatrolService {
       query = query.lte('tanggal_patrol', filters.end_date)
     }
 
-    const { data, error } = await query
+    // Apply pagination
+    const from = (pagination.page - 1) * pagination.pageSize
+    const to = from + pagination.pageSize - 1
+    query = query.range(from, to)
+
+    const { data, error, count } = await query
 
     if (error) throw error
-    return data || []
+
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / pagination.pageSize)
+
+    return {
+      data: data || [],
+      count: totalCount,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      totalPages
+    }
   }
 
   async getById(id: string): Promise<SafetyPatrol | null> {

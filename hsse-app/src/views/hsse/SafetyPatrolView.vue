@@ -33,6 +33,12 @@ const stats = ref({
   avg_skor: 0
 })
 
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(20)
+const totalRecords = ref(0)
+const totalPages = ref(0)
+
 // Form data
 const formData = ref<Partial<SafetyPatrol>>({
   nomor_patrol: '',
@@ -76,12 +82,74 @@ const filteredPatrols = computed(() => {
 
 const patrolData = computed(() => selectedPatrol.value as any)
 
+// Pagination methods
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadPatrols()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    loadPatrols()
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    loadPatrols()
+  }
+}
+
+const changePageSize = (newSize: number) => {
+  pageSize.value = newSize
+  currentPage.value = 1
+  loadPatrols()
+}
+
+const applyFilters = () => {
+  currentPage.value = 1
+  loadPatrols()
+}
+
+// Computed for pagination
+const paginationInfo = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value + 1
+  const end = Math.min(currentPage.value * pageSize.value, totalRecords.value)
+  return `Menampilkan ${start}-${end} dari ${totalRecords.value} records`
+})
+
+const pageNumbers = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
+
 // Methods
 const loadPatrols = async () => {
   loading.value = true
   try {
-    const data = await safetyPatrolService.getAll(filters.value)
-    patrols.value = data
+    const response = await safetyPatrolService.getPaginated(
+      filters.value,
+      { page: currentPage.value, pageSize: pageSize.value }
+    )
+    patrols.value = response.data
+    totalRecords.value = response.count
+    totalPages.value = response.totalPages
   } catch (error) {
     console.error('Error loading patrols:', error)
     alert('Gagal memuat data patrol')
@@ -507,26 +575,26 @@ onMounted(() => {
           class="px-4 py-2 border rounded-lg"
           @input="loadPatrols"
         />
-        <select v-model="filters.unit_id" class="px-4 py-2 border rounded-lg" @change="loadPatrols">
+        <select v-model="filters.unit_id" class="px-4 py-2 border rounded-lg" @change="applyFilters">
           <option value="">Semua Unit</option>
           <option v-for="unit in unitsStore.units" :key="unit.id" :value="unit.id">
             {{ unit.nama }}
           </option>
         </select>
-        <select v-model="filters.jenis" class="px-4 py-2 border rounded-lg" @change="loadPatrols">
+        <select v-model="filters.jenis" class="px-4 py-2 border rounded-lg" @change="applyFilters">
           <option value="">Semua Jenis</option>
           <option value="rutin">Rutin</option>
           <option value="insidental">Insidental</option>
           <option value="khusus">Khusus</option>
           <option value="emergency">Emergency</option>
         </select>
-        <select v-model="filters.shift" class="px-4 py-2 border rounded-lg" @change="loadPatrols">
+        <select v-model="filters.shift" class="px-4 py-2 border rounded-lg" @change="applyFilters">
           <option value="">Semua Shift</option>
           <option value="pagi">Pagi</option>
           <option value="siang">Siang</option>
           <option value="malam">Malam</option>
         </select>
-        <select v-model="filters.status" class="px-4 py-2 border rounded-lg" @change="loadPatrols">
+        <select v-model="filters.status" class="px-4 py-2 border rounded-lg" @change="applyFilters">
           <option value="">Semua Status</option>
           <option value="draft">Draft</option>
           <option value="submitted">Submitted</option>
@@ -639,6 +707,105 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="mt-4 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <button 
+            @click="prevPage" 
+            :disabled="currentPage === 1"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button 
+            @click="nextPage" 
+            :disabled="currentPage === totalPages"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              {{ paginationInfo }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-700">Per halaman:</label>
+            <select 
+              v-model.number="pageSize" 
+              @change="changePageSize(pageSize)"
+              class="border border-gray-300 rounded-md text-sm px-2 py-1"
+            >
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+              <option :value="100">100</option>
+            </select>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+              <button 
+                @click="prevPage" 
+                :disabled="currentPage === 1"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              
+              <button 
+                v-if="pageNumbers.length > 0 && pageNumbers[0]! > 1"
+                @click="goToPage(1)"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                1
+              </button>
+              <span v-if="pageNumbers.length > 0 && pageNumbers[0]! > 2" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+              
+              <button 
+                v-for="page in pageNumbers" 
+                :key="page"
+                @click="goToPage(page)"
+                :class="[
+                  'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
+                  page === currentPage 
+                    ? 'z-10 bg-primary-600 border-primary-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                ]"
+              >
+                {{ page }}
+              </button>
+              
+              <span v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages - 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+              <button 
+                v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages"
+                @click="goToPage(totalPages)"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {{ totalPages }}
+              </button>
+              
+              <button 
+                @click="nextPage" 
+                :disabled="currentPage === totalPages"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -764,7 +931,7 @@ onMounted(() => {
                     <div class="text-sm font-medium text-gray-700 mb-2">📷 Foto Dokumentasi:</div>
                     <div class="grid grid-cols-4 gap-2">
                       <div v-for="(url, photoIdx) in item.foto_urls" :key="photoIdx" class="relative">
-                        <img :src="url" :alt="`Foto ${photoIdx + 1}`" class="w-full h-24 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity" @click="openImageModal(url)" />
+                        <img :src="url" :alt="`Foto ${photoIdx + 1}`" loading="lazy" class="w-full h-24 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity" @click="openImageModal(url)" />
                       </div>
                     </div>
                   </div>
@@ -1287,7 +1454,7 @@ onMounted(() => {
                     <div v-if="item.foto_urls && item.foto_urls.length > 0" class="grid grid-cols-4 gap-2 mt-3">
                       <div v-for="(url, photoIdx) in item.foto_urls" :key="photoIdx"
                         class="relative group">
-                        <img :src="url" alt="Foto" class="w-full h-24 object-cover rounded border" />
+                        <img :src="url" alt="Foto" loading="lazy" class="w-full h-24 object-cover rounded border" />
                         <button type="button"
                           @click="removeUnsafeConditionPhoto(idx, photoIdx)"
                           class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
