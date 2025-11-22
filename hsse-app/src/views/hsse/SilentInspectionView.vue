@@ -377,15 +377,27 @@
               Foto Kondisi Unsafe
             </h3>
             <div>
-              <label class="label">Upload Foto (Max 1MB per file)</label>
-              <input 
-                type="file" 
-                accept="image/*" 
-                multiple
-                @change="handleFileSelectKondisi"
-                class="input-field"
-              />
-              <p class="text-sm text-gray-500 mt-1">Pilih satu atau beberapa foto sekaligus</p>
+              <label class="label">Upload Foto</label>
+              <!-- File input dari galeri -->
+              <input type="file" accept="image/*" multiple @change="handleFileSelectKondisi" class="hidden" ref="fileInputKondisi" />
+              <!-- File input dari kamera -->
+              <input type="file" accept="image/*" capture="environment" @change="handleFileSelectKondisi" class="hidden" ref="cameraInputKondisi" />
+              <div class="flex gap-2">
+                <button type="button" @click="($refs.cameraInputKondisi as any)?.click()" class="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Ambil Foto
+                </button>
+                <button type="button" @click="($refs.fileInputKondisi as any)?.click()" class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Pilih dari Galeri
+                </button>
+              </div>
+              <p class="text-sm text-gray-500 mt-1">📸 Foto akan dikompres otomatis jika >1MB</p>
             </div>
 
             <!-- Preview Foto Kondisi Baru -->
@@ -436,15 +448,27 @@
               Foto Perilaku Unsafe
             </h3>
             <div>
-              <label class="label">Upload Foto (Max 1MB per file)</label>
-              <input 
-                type="file" 
-                accept="image/*" 
-                multiple
-                @change="handleFileSelectPerilaku"
-                class="input-field"
-              />
-              <p class="text-sm text-gray-500 mt-1">Pilih satu atau beberapa foto sekaligus</p>
+              <label class="label">Upload Foto</label>
+              <!-- File input dari galeri -->
+              <input type="file" accept="image/*" multiple @change="handleFileSelectPerilaku" class="hidden" ref="fileInputPerilaku" />
+              <!-- File input dari kamera -->
+              <input type="file" accept="image/*" capture="environment" @change="handleFileSelectPerilaku" class="hidden" ref="cameraInputPerilaku" />
+              <div class="flex gap-2">
+                <button type="button" @click="($refs.cameraInputPerilaku as any)?.click()" class="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Ambil Foto
+                </button>
+                <button type="button" @click="($refs.fileInputPerilaku as any)?.click()" class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Pilih dari Galeri
+                </button>
+              </div>
+              <p class="text-sm text-gray-500 mt-1">📸 Foto akan dikompres otomatis jika >1MB</p>
             </div>
 
             <!-- Preview Foto Perilaku Baru -->
@@ -548,8 +572,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { format } from 'date-fns'
+import { useImageCompression } from '@/composables/useImageCompression'
 import { silentInspectionService, type SilentInspection, type CreateSilentInspectionDto, type PaginatedResponse } from '@/services/api/silent-inspection.service'
 import { unitsService, type Unit } from '@/services/api/units.service'
+
+const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
 const items = ref<SilentInspection[]>([])
@@ -781,50 +808,56 @@ const editItem = async (item: SilentInspection) => {
   showModal.value = true
 }
 
-const handleFileSelectKondisi = (event: Event) => {
+const handleFileSelectKondisi = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (!target.files) return
 
   const files = Array.from(target.files)
-  files.forEach(file => {
-    if (file.size > 1024 * 1024) {
-      alert(`File ${file.name} melebihi 1MB`)
-      return
+  for (const file of files) {
+    // Auto-compress if >1MB
+    const result = await compressSingleImage(file)
+    const compressedFile = result.file
+    
+    if (result.wasCompressed) {
+      console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
     }
 
     const reader = new FileReader()
     reader.onload = (e) => {
       newPhotosKondisi.value.push({
-        file: file,
+        file: compressedFile,
         preview: e.target?.result as string
       })
     }
-    reader.readAsDataURL(file)
-  })
+    reader.readAsDataURL(compressedFile)
+  }
 
   target.value = ''
 }
 
-const handleFileSelectPerilaku = (event: Event) => {
+const handleFileSelectPerilaku = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (!target.files) return
 
   const files = Array.from(target.files)
-  files.forEach(file => {
-    if (file.size > 1024 * 1024) {
-      alert(`File ${file.name} melebihi 1MB`)
-      return
+  for (const file of files) {
+    // Auto-compress if >1MB
+    const result = await compressSingleImage(file)
+    const compressedFile = result.file
+    
+    if (result.wasCompressed) {
+      console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
     }
 
     const reader = new FileReader()
     reader.onload = (e) => {
       newPhotosPerilaku.value.push({
-        file: file,
+        file: compressedFile,
         preview: e.target?.result as string
       })
     }
-    reader.readAsDataURL(file)
-  })
+    reader.readAsDataURL(compressedFile)
+  }
 
   target.value = ''
 }
