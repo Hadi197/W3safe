@@ -212,10 +212,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit),
-          ketua:pegawai!ketua_forum(id, nama_lengkap),
-          notulis:pegawai!notulen_by(id, nama_lengkap),
-          approver:pegawai!approved_by(id, nama_lengkap)
+          unit:units(id, nama)
         `)
         .order('tanggal_forum', { ascending: false })
 
@@ -260,11 +257,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit),
-          ketua:pegawai!ketua_forum(id, nama_lengkap),
-          notulis:pegawai!notulen_by(id, nama_lengkap),
-          approver:pegawai!approved_by(id, nama_lengkap),
-          forum_sebelumnya:safety_forum!forum_sebelumnya_id(nomor_forum, tanggal_forum)
+          unit:units(id, nama)
         `)
         .eq('id', id)
         .single()
@@ -301,8 +294,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit),
-          ketua:pegawai!ketua_forum(id, nama_lengkap)
+          unit:units(id, nama)
         `)
         .eq('unit_id', unitId)
         .order('tanggal_forum', { ascending: false })
@@ -322,8 +314,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit),
-          ketua:pegawai!ketua_forum(id, nama_lengkap)
+          unit:units(id, nama)
         `)
         .gte('tanggal_forum', startDate)
         .lte('tanggal_forum', endDate)
@@ -344,8 +335,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit),
-          ketua:pegawai!ketua_forum(id, nama_lengkap)
+          unit:units(id, nama)
         `)
         .eq('status', status)
         .order('tanggal_forum', { ascending: false })
@@ -378,15 +368,16 @@ class SafetyForumService {
   // Update forum
   async update(id: string, dto: Partial<SafetyForumDTO>) {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('safety_forum')
         .update(dto)
         .eq('id', id)
-        .select()
-        .single()
 
       if (error) throw error
-      return data
+      
+      // Return the updated data without re-fetching
+      // This bypasses the schema cache issue
+      return { id, ...dto }
     } catch (error) {
       console.error('Error updating safety forum:', error)
       throw error

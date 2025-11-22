@@ -1,0 +1,135 @@
+{
+  "created_at": "2025-11-22T06:44:50.924Z",
+  "total": 18,
+  "success": 18,
+  "skipped": 0,
+  "errors": 0,
+  "results": [
+    {
+      "username": "area-balinusra",
+      "email": "area-balinusra@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "10a47c87-714f-4de4-aa36-1d764ffd1af2"
+    },
+    {
+      "username": "area-jawa1",
+      "email": "area-jawa1@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "3438a428-6d1b-4f3f-8194-ab09676ed22d"
+    },
+    {
+      "username": "area-kalimantan3",
+      "email": "area-kalimantan3@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "fdf1542e-a598-4fc5-80f6-647421483da9"
+    },
+    {
+      "username": "unit-banjarmasin",
+      "email": "unit-banjarmasin@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "99a8c2f2-9544-4164-a928-dec80dcfec01"
+    },
+    {
+      "username": "unit-batulicin",
+      "email": "unit-batulicin@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "0c615eae-3208-445f-958a-3ef86eca72f3"
+    },
+    {
+      "username": "unit-benoa",
+      "email": "unit-benoa@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "9ba211c7-2878-41fe-9f42-2530e7bee770"
+    },
+    {
+      "username": "unit-bunati",
+      "email": "unit-bunati@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "e9263e64-3f4e-405b-a17e-9d98392a86fa"
+    },
+    {
+      "username": "unit-celukanbawang",
+      "email": "unit-celukanbawang@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "34443696-de49-445f-aafb-b0fc584bf3c1"
+    },
+    {
+      "username": "unit-gresik",
+      "email": "unit-gresik@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "5626f805-79bb-4fea-af09-da4b692810e4"
+    },
+    {
+      "username": "unit-kotabaru",
+      "email": "unit-kotabaru@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "4bc6756e-c8c6-4939-9c02-4a2d54b7a913"
+    },
+    {
+      "username": "unit-kumai",
+      "email": "unit-kumai@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "8721fe76-e25f-4938-b797-98a7ff3a8590"
+    },
+    {
+      "username": "unit-lembar",
+      "email": "unit-lembar@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "8b17647d-3d76-4c2e-ba63-e0cf1a9383a5"
+    },
+    {
+      "username": "unit-mekarputih",
+      "email": "unit-mekarputih@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "6b74fd52-70ed-4b9f-a1b9-85269cd343ac"
+    },
+    {
+      "username": "unit-sampit",
+      "email": "unit-sampit@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "66263aca-83ce-45fe-ac4e-4145cc7b1e19"
+    },
+    {
+      "username": "unit-satui",
+      "email": "unit-satui@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "975f4aa6-84f0-4880-901e-47d5b980eb49"
+    },
+    {
+      "username": "unit-tanjungintan",
+      "email": "unit-tanjungintan@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "ae18ce06-91b6-408f-a3fd-2c52a4b79e58"
+    },
+    {
+      "username": "unit-tanjungperak",
+      "email": "unit-tanjungperak@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "d0947ccc-97f7-4b2b-a4f0-9639797ca326"
+    },
+    {
+      "username": "unit-tenaukupang",
+      "email": "unit-tenaukupang@w3safe.local",
+      "status": "success",
+      "message": "User created successfully",
+      "userId": "502e77c4-e76e-4404-8a1f-1f8892a82428"
+    }
+  ]
+}

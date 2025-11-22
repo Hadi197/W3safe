@@ -85,25 +85,25 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'management-walkthrough',
         name: 'management-walkthrough',
-        component: () => import('@/views/hsse/ManagementWalkthroughListView.vue'),
+        component: () => import('@/views/ManagementWalkthroughView.vue'),
         meta: { title: 'Management Walkthrough' }
       },
       {
         path: 'safety-patrol',
         name: 'safety-patrol',
-        component: () => import('@/views/hsse/SafetyPatrolListView.vue'),
+        component: () => import('@/views/hsse/SafetyPatrolView.vue'),
         meta: { title: 'Safety Patrol' }
       },
       {
         path: 'safety-induction',
         name: 'safety-induction',
-        component: () => import('@/views/hsse/SafetyInductionListView.vue'),
+        component: () => import('@/views/hsse/SafetyInductionView.vue'),
         meta: { title: 'Safety Induction' }
       },
       {
         path: 'safety-drill',
         name: 'safety-drill',
-        component: () => import('@/views/hsse/SafetyDrillListView.vue'),
+        component: () => import('@/views/hsse/SafetyDrillView.vue'),
         meta: { title: 'Safety Drill' }
       },
       // Profile

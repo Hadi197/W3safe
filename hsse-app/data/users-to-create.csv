@@ -1,0 +1,19 @@
+no,username,email,password,nama_unit,role
+1,area-balinusra,area-balinusra@w3safe.local,@w3Safe,Area Bali Nusatenggara,unit_user
+2,area-jawa1,area-jawa1@w3safe.local,@w3Safe,Area Jawa 1,unit_user
+3,area-kalimantan3,area-kalimantan3@w3safe.local,@w3Safe,Area Kalimantan 3,unit_user
+4,unit-banjarmasin,unit-banjarmasin@w3safe.local,@w3Safe,Banjarmasin,unit_user
+5,unit-batulicin,unit-batulicin@w3safe.local,@w3Safe,Batulicin,unit_user
+6,unit-benoa,unit-benoa@w3safe.local,@w3Safe,Benoa,unit_user
+7,unit-bunati,unit-bunati@w3safe.local,@w3Safe,Bunati,unit_user
+8,unit-celukanbawang,unit-celukanbawang@w3safe.local,@w3Safe,Celukan Bawang,unit_user
+9,unit-gresik,unit-gresik@w3safe.local,@w3Safe,Gresik,unit_user
+10,unit-kotabaru,unit-kotabaru@w3safe.local,@w3Safe,Kotabaru,unit_user
+11,unit-kumai,unit-kumai@w3safe.local,@w3Safe,Kumai,unit_user
+12,unit-lembar,unit-lembar@w3safe.local,@w3Safe,Lembar,unit_user
+13,unit-mekarputih,unit-mekarputih@w3safe.local,@w3Safe,Mekar Putih,unit_user
+14,unit-sampit,unit-sampit@w3safe.local,@w3Safe,Sampit,unit_user
+15,unit-satui,unit-satui@w3safe.local,@w3Safe,Satui,unit_user
+16,unit-tanjungintan,unit-tanjungintan@w3safe.local,@w3Safe,Tanjung Intan,unit_user
+17,unit-tanjungperak,unit-tanjungperak@w3safe.local,@w3Safe,Tanjung Perak,unit_user
+18,unit-tenaukupang,unit-tenaukupang@w3safe.local,@w3Safe,Tenau Kupang,unit_user
