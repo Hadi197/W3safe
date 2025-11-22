@@ -77,11 +77,12 @@ const handlePhotoUpload = async (event: Event) => {
 
 ### Modules to Update:
 - [x] Safety Patrol ✅
-- [ ] Safety Drill  
+- [x] Safety Drill ✅
+- [x] Safety Briefing ✅
 - [ ] Safety Induction
 - [ ] Management Walkthrough
 - [ ] Silent Inspection
-- [ ] Safety Briefing
+- [ ] Safety Forum (has 3 upload inputs)
 - [ ] Any other modules with photo upload
 
 ### For Each Module:
