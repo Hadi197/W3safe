@@ -1059,6 +1059,9 @@
                         </button>
                       </div>
                       <p class="text-xs text-gray-500 mt-1">📸 Foto akan dikompres otomatis jika >1MB</p>
+                      <button
+                        type="button"
+                        @click="temuanPhotoInputs[idx]?.click()"
                         class="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-blue-500 hover:text-blue-600"
                       >
                         📷 Upload Foto (Max 5MB per foto)

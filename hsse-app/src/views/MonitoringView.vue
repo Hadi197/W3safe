@@ -371,7 +371,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isToday, isThisWeek, isThisMonth } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
-import { supabase } from '@/config/supabase'
+import { supabase } from '@/services/api/supabase'
 
 interface Activity {
   id: string
