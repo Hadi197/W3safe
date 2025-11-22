@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { safetyDrillService, type SafetyDrill, type DrillFilters } from '@/services/safety-drill.service'
+import { useImageCompression } from '@/composables/useImageCompression'
+
+const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
 const drills = ref<SafetyDrill[]>([])
@@ -325,23 +328,31 @@ const removeKorban = (index: number) => {
 }
 
 // Photo Upload Handlers
-const handlePhotoUpload = (event: Event) => {
+const handlePhotoUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files.length > 0) {
     const file = input.files[0]
     if (!file) return
     
+    // Auto-compress if >1MB
+    const result = await compressSingleImage(file)
+    const compressedFile = result.file
+    
+    if (result.wasCompressed) {
+      console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
+    }
+    
     const reader = new FileReader()
     
     reader.onload = (e) => {
-      const result = e.target?.result as string
+      const dataUrl = e.target?.result as string
       if (!formData.value.foto_dokumentasi) {
         formData.value.foto_dokumentasi = []
       }
-      formData.value.foto_dokumentasi.push(result)
+      formData.value.foto_dokumentasi.push(dataUrl)
     }
     
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(compressedFile)
     input.value = ''
   }
 }
@@ -1538,10 +1549,26 @@ onMounted(() => {
               <div class="col-span-2 border-t pt-4 mt-4">
                 <h3 class="font-semibold text-gray-800 mb-3">Foto Dokumentasi</h3>
                 <div class="mb-3">
-                  <label class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-                    <span class="text-sm text-gray-600">📷 Klik untuk upload foto</span>
-                    <input type="file" accept="image/*" @change="handlePhotoUpload" class="hidden" />
-                  </label>
+                  <!-- File input dari galeri -->
+                  <input type="file" accept="image/*" @change="handlePhotoUpload" class="hidden" ref="fileInputDrill" />
+                  <!-- File input dari kamera -->
+                  <input type="file" accept="image/*" capture="environment" @change="handlePhotoUpload" class="hidden" ref="cameraInputDrill" />
+                  <div class="flex gap-2">
+                    <button type="button" @click="($refs.cameraInputDrill as any)?.click()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm flex items-center justify-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Ambil Foto
+                    </button>
+                    <button type="button" @click="($refs.fileInputDrill as any)?.click()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center justify-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Pilih dari Galeri
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">📸 Ambil foto langsung atau pilih dari galeri. Foto akan dikompres otomatis jika >1MB</p>
                 </div>
                 <div v-if="formData.foto_dokumentasi && formData.foto_dokumentasi.length > 0" class="grid grid-cols-4 gap-3">
                   <div v-for="(foto, idx) in formData.foto_dokumentasi" :key="idx" class="relative group">
