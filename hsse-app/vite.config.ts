@@ -17,9 +17,12 @@ export default defineConfig({
         name: 'HSSE Unsafe Action/Condition',
         short_name: 'Unsafe Action',
         description: 'HSSE Application for Unsafe Action and Condition Reporting',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        start_url: '/pwa/unsafe-action-condition',
         display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#4F46E5',
+        lang: 'id',
+        scope: '/',
         icons: [
           {
             src: 'pwa-192x192.svg',
