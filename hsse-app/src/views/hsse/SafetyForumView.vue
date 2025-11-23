@@ -446,14 +446,14 @@
                 <div v-if="selectedForum.foto_forum?.length > 0">
                   <label class="text-sm font-medium text-gray-600 block mb-2">Foto Forum ({{ selectedForum.foto_forum.length }})</label>
                   <div class="grid grid-cols-4 gap-2">
-                    <div 
-                      v-for="(foto, idx) in selectedForum.foto_forum" 
+                    <div
+                      v-for="(foto, idx) in selectedForum.foto_forum"
                       :key="idx"
                       class="relative group cursor-pointer"
                       @click="openPhotoViewer(selectedForum.foto_forum, idx)"
                     >
-                      <img 
-                        :src="foto" 
+                      <img
+                        :src="foto"
                         :alt="`Foto ${idx + 1}`"
                         class="w-full h-24 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-500 transition-colors"
                       />
@@ -466,7 +466,71 @@
                   </div>
                 </div>
 
-                <p v-if="!selectedForum.notulen_file_url && !selectedForum.daftar_hadir_url && (!selectedForum.foto_forum || selectedForum.foto_forum.length === 0)" class="text-sm text-gray-500 text-center py-4">
+                <!-- Dokumen Pendukung -->
+                <div v-if="selectedForum.dokumen_pendukung?.length > 0" class="mt-4">
+                  <label class="text-sm font-medium text-gray-600 block mb-2">Dokumen Pendukung ({{ selectedForum.dokumen_pendukung.length }})</label>
+                  <div class="space-y-2">
+                    <div
+                      v-for="(dokumen, idx) in selectedForum.dokumen_pendukung"
+                      :key="idx"
+                      class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                    >
+                      <svg class="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">{{ getFileName(dokumen) }}</p>
+                        <p class="text-xs text-gray-500">{{ getFileExtension(dokumen) }}</p>
+                      </div>
+                      <a
+                        :href="dokumen"
+                        target="_blank"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Notulen & Daftar Hadir -->
+                <div v-if="selectedForum.notulen_file_url || selectedForum.daftar_hadir_url" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div v-if="selectedForum.notulen_file_url" class="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                    <svg class="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900">Notulen Rapat</p>
+                      <p class="text-xs text-gray-500">{{ getFileName(selectedForum.notulen_file_url) }}</p>
+                    </div>
+                    <a
+                      :href="selectedForum.notulen_file_url"
+                      target="_blank"
+                      class="text-green-600 hover:text-green-800 text-sm font-medium"
+                    >
+                      Download
+                    </a>
+                  </div>
+
+                  <div v-if="selectedForum.daftar_hadir_url" class="flex items-center p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <svg class="w-8 h-8 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900">Daftar Hadir</p>
+                      <p class="text-xs text-gray-500">{{ getFileName(selectedForum.daftar_hadir_url) }}</p>
+                    </div>
+                    <a
+                      :href="selectedForum.daftar_hadir_url"
+                      target="_blank"
+                      class="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                    >
+                      Download
+                    </a>
+                  </div>
+                </div>
+
+                <p v-if="!selectedForum.notulen_file_url && !selectedForum.daftar_hadir_url && (!selectedForum.foto_forum || selectedForum.foto_forum.length === 0) && (!selectedForum.dokumen_pendukung || selectedForum.dokumen_pendukung.length === 0)" class="text-sm text-gray-500 text-center py-4">
                   Belum ada dokumentasi
                 </p>
               </div>
@@ -1630,6 +1694,26 @@ const closePhotoViewer = () => {
   showPhotoViewer.value = false
   photoViewerPhotos.value = []
   currentPhotoIndex.value = 0
+}
+
+// Helper functions for file display
+const getFileName = (url: string) => {
+  if (!url) return 'Unknown File'
+  try {
+    const urlObj = new URL(url)
+    const pathname = urlObj.pathname
+    const filename = pathname.substring(pathname.lastIndexOf('/') + 1)
+    return decodeURIComponent(filename)
+  } catch {
+    return url.split('/').pop() || 'Unknown File'
+  }
+}
+
+const getFileExtension = (url: string) => {
+  if (!url) return ''
+  const filename = getFileName(url)
+  const ext = filename.split('.').pop()?.toUpperCase()
+  return ext ? `${ext} File` : 'File'
 }
 
 const previousPhoto = () => {
