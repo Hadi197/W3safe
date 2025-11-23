@@ -132,7 +132,7 @@ class SafetyPatrolService {
   ): Promise<PaginatedResponse<SafetyPatrol>> {
     let query = supabase
       .from('safety_patrol')
-      .select('*, unit:units(id, kode_unit, nama_unit)', { count: 'exact' })
+      .select('*, unit:units!unit_id(id, kode_unit, nama_unit)', { count: 'exact' })
       .order('tanggal_patrol', { ascending: false })
 
     if (filters?.search) {
@@ -194,7 +194,7 @@ class SafetyPatrolService {
   async getById(id: string): Promise<SafetyPatrol | null> {
     const { data, error } = await supabase
       .from('safety_patrol')
-      .select('*, unit:units(id, kode_unit, nama_unit)')
+      .select('*, unit:units!unit_id(id, kode_unit, nama_unit)')
       .eq('id', id)
       .single()
 
@@ -395,7 +395,7 @@ class SafetyPatrolService {
   async getFollowUpPatrols(): Promise<SafetyPatrol[]> {
     const { data, error } = await supabase
       .from('safety_patrol')
-      .select('*, unit:units(id, kode_unit, nama_unit)')
+      .select('*, unit:units!unit_id(id, kode_unit, nama_unit)')
       .eq('perlu_follow_up', true)
       .neq('status_follow_up', 'selesai')
       .order('tanggal_follow_up', { ascending: true })
@@ -414,7 +414,7 @@ class SafetyPatrolService {
   async getCriticalFindings(): Promise<SafetyPatrol[]> {
     const { data, error } = await supabase
       .from('safety_patrol')
-      .select('*, unit:units(id, kode_unit, nama_unit)')
+      .select('*, unit:units!unit_id(id, kode_unit, nama_unit)')
       .gt('temuan_kritikal', 0)
       .order('tanggal_patrol', { ascending: false })
       .limit(20)
