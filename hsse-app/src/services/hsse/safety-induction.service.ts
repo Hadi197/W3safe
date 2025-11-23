@@ -218,12 +218,10 @@ class SafetyInductionService {
     },
     pagination: PaginationParams = { page: 1, pageSize: 20 }
   ): Promise<PaginatedResponse<SafetyInduction>> {
+    // Use simple query without join to avoid PostgREST relationship issues
     let query = supabase
       .from(this.tableName)
-      .select(`
-        *,
-        unit:units!unit_id(id, nama_unit, kode_unit)
-      `, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .order('tanggal_induction', { ascending: false })
 
     if (filters?.search) {
@@ -283,10 +281,7 @@ class SafetyInductionService {
   async getById(id: string) {
     const { data, error } = await supabase
       .from(this.tableName)
-      .select(`
-        *,
-        unit:units!unit_id(id, nama_unit, kode_unit)
-      `)
+      .select('*')
       .eq('id', id)
       .single()
 
@@ -425,10 +420,7 @@ class SafetyInductionService {
 
     const { data, error } = await supabase
       .from(this.tableName)
-      .select(`
-        *,
-        unit:units!unit_id(id, nama_unit, kode_unit)
-      `)
+      .select('*')
       .eq('sertifikat_diterbitkan', true)
       .gte('tanggal_expired', now.toISOString().split('T')[0])
       .lte('tanggal_expired', next30Days.toISOString().split('T')[0])
@@ -445,10 +437,7 @@ class SafetyInductionService {
 
     const { data, error } = await supabase
       .from(this.tableName)
-      .select(`
-        *,
-        unit:units!unit_id(id, nama_unit, kode_unit)
-      `)
+      .select('*')
       .eq('status', 'scheduled')
       .gte('tanggal_induction', today)
       .order('tanggal_induction', { ascending: true })
@@ -481,10 +470,7 @@ class SafetyInductionService {
   async getByCompany(perusahaan: string) {
     const { data, error } = await supabase
       .from(this.tableName)
-      .select(`
-        *,
-        unit:units!unit_id(id, nama_unit, kode_unit)
-      `)
+      .select('*')
       .ilike('perusahaan', `%${perusahaan}%`)
       .order('tanggal_induction', { ascending: false })
 
