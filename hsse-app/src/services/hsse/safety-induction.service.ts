@@ -222,7 +222,7 @@ class SafetyInductionService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, nama, kode)
+        unit:units!unit_id(id, nama_unit, kode_unit)
       `, { count: 'exact' })
       .order('tanggal_induction', { ascending: false })
 
@@ -285,7 +285,7 @@ class SafetyInductionService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, nama, kode)
+        unit:units!unit_id(id, nama_unit, kode_unit)
       `)
       .eq('id', id)
       .single()
@@ -427,7 +427,7 @@ class SafetyInductionService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, nama, kode)
+        unit:units!unit_id(id, nama_unit, kode_unit)
       `)
       .eq('sertifikat_diterbitkan', true)
       .gte('tanggal_expired', now.toISOString().split('T')[0])
@@ -447,7 +447,7 @@ class SafetyInductionService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, nama, kode)
+        unit:units!unit_id(id, nama_unit, kode_unit)
       `)
       .eq('status', 'scheduled')
       .gte('tanggal_induction', today)
@@ -483,7 +483,7 @@ class SafetyInductionService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, nama, kode)
+        unit:units!unit_id(id, nama_unit, kode_unit)
       `)
       .ilike('perusahaan', `%${perusahaan}%`)
       .order('tanggal_induction', { ascending: false })
