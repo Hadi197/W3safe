@@ -204,25 +204,37 @@
                   {{ incident.status }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                <button
-                  @click="viewIncident(incident)"
-                  class="text-primary-600 hover:text-primary-900"
-                >
-                  Lihat
-                </button>
-                <button
-                  @click="editIncident(incident)"
-                  class="text-blue-600 hover:text-blue-900"
-                >
-                  Edit
-                </button>
-                <button
-                  @click="deleteIncident(incident.id)"
-                  class="text-red-600 hover:text-red-900"
-                >
-                  Hapus
-                </button>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex items-center space-x-3">
+                  <button
+                    @click="viewIncident(incident)"
+                    class="text-primary-600 hover:text-primary-900 p-1 rounded-md hover:bg-primary-50 transition-colors duration-200"
+                    title="Lihat Detail"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="editIncident(incident)"
+                    class="text-blue-600 hover:text-blue-900 p-1 rounded-md hover:bg-blue-50 transition-colors duration-200"
+                    title="Edit"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteIncident(incident.id)"
+                    class="text-red-600 hover:text-red-900 p-1 rounded-md hover:bg-red-50 transition-colors duration-200"
+                    title="Hapus"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -346,11 +358,13 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">Pilih Unit Kerja</option>
-                  <option value="Unit Banjarmasin">Unit Banjarmasin</option>
-                  <option value="Unit Batulicin">Unit Batulicin</option>
-                  <option value="Unit Benoa">Unit Benoa</option>
-                  <option value="Unit Celukan Bawang">Unit Celukan Bawang</option>
-                  <option value="Unit Gresik">Unit Gresik</option>
+                  <option 
+                    v-for="unit in units" 
+                    :key="unit.id" 
+                    :value="unit.nama_unit"
+                  >
+                    {{ unit.nama_unit }}
+                  </option>
                 </select>
               </div>
             </div>
@@ -593,15 +607,317 @@
         </div>
       </div>
     </div>
+
+    <!-- View Modal -->
+    <div
+      v-if="showViewModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="showViewModal = false"
+    >
+      <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+        <div class="mt-3">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">
+              Detail Laporan Unsafe Action/Condition
+            </h3>
+            <button
+              @click="showViewModal = false"
+              class="text-gray-400 hover:text-gray-600"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div v-if="viewIncidentData" class="space-y-6">
+            <!-- Incident Details -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Kejadian</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.tanggal_kejadian }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Kejadian</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.waktu_kejadian }}</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Lokasi Kejadian</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.lokasi_kejadian }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Unit Kerja</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.unit_kerja }}</p>
+              </div>
+            </div>
+
+            <!-- Incident Classification -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Kejadian</label>
+                <span
+                  class="inline-flex px-3 py-2 rounded-lg text-sm font-medium"
+                  :class="viewIncidentData.jenis_kejadian === 'unsafe_action' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'"
+                >
+                  {{ viewIncidentData.jenis_kejadian === 'unsafe_action' ? 'Unsafe Action' : 'Unsafe Condition' }}
+                </span>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.kategori }}</p>
+              </div>
+            </div>
+
+            <div v-if="viewIncidentData.sub_kategori" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Sub Kategori</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.sub_kategori }}</p>
+              </div>
+            </div>
+
+            <!-- Description and Analysis -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi Kejadian</label>
+              <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg whitespace-pre-wrap">{{ viewIncidentData.deskripsi_kejadian }}</p>
+            </div>
+
+            <div v-if="viewIncidentData.penyebab_diduga" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Penyebab Diduga</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg whitespace-pre-wrap">{{ viewIncidentData.penyebab_diduga }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Potensi Risiko</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg whitespace-pre-wrap">{{ viewIncidentData.potensi_risiko }}</p>
+              </div>
+            </div>
+
+            <!-- Reporter Information -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pelapor</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.pelapor_nama }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Jabatan</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.pelapor_jabatan || '-' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Kontak</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.pelapor_kontak || '-' }}</p>
+              </div>
+            </div>
+
+            <!-- Immediate Actions and Status -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tindakan Segera</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg whitespace-pre-wrap">{{ viewIncidentData.tindakan_segera || '-' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Area Diamankan</label>
+                <span
+                  class="inline-flex px-3 py-2 rounded-lg text-sm font-medium"
+                  :class="viewIncidentData.area_diamankan ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                >
+                  {{ viewIncidentData.area_diamankan ? 'Ya' : 'Tidak' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Victim Information -->
+            <div v-if="viewIncidentData.korban_ada" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Korban Ada</label>
+                <span class="inline-flex px-3 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-800">
+                  Ya
+                </span>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Korban</label>
+                <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.korban_jumlah || 0 }}</p>
+              </div>
+            </div>
+
+            <!-- Status and Priority -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <span
+                  class="inline-flex px-3 py-2 rounded-lg text-sm font-medium"
+                  :class="{
+                    'bg-gray-100 text-gray-800': viewIncidentData.status === 'draft',
+                    'bg-blue-100 text-blue-800': viewIncidentData.status === 'reported',
+                    'bg-yellow-100 text-yellow-800': viewIncidentData.status === 'investigating',
+                    'bg-green-100 text-green-800': viewIncidentData.status === 'resolved',
+                    'bg-purple-100 text-purple-800': viewIncidentData.status === 'closed'
+                  }"
+                >
+                  {{ viewIncidentData.status }}
+                </span>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Prioritas</label>
+                <span
+                  class="inline-flex px-3 py-2 rounded-lg text-sm font-medium"
+                  :class="{
+                    'bg-green-100 text-green-800': viewIncidentData.prioritas === 'low',
+                    'bg-yellow-100 text-yellow-800': viewIncidentData.prioritas === 'medium',
+                    'bg-orange-100 text-orange-800': viewIncidentData.prioritas === 'high',
+                    'bg-red-100 text-red-800': viewIncidentData.prioritas === 'critical'
+                  }"
+                >
+                  {{ viewIncidentData.prioritas }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Investigation Results (if available) -->
+            <div v-if="viewIncidentData.investigasi_dilakukan" class="border-t pt-6">
+              <h4 class="text-lg font-medium text-gray-900 mb-4">Hasil Investigasi</h4>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Temuan Investigasi</label>
+                  <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg whitespace-pre-wrap">{{ viewIncidentData.temuan_investigasi || '-' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Rekomendasi Koreksi</label>
+                  <div v-if="viewIncidentData.rekomendasi_koreksi && viewIncidentData.rekomendasi_koreksi.length > 0" class="space-y-2">
+                    <p v-for="(rek, index) in viewIncidentData.rekomendasi_koreksi" :key="index" class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">
+                      {{ index + 1 }}. {{ rek }}
+                    </p>
+                  </div>
+                  <p v-else class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">-</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Target Penyelesaian</label>
+                    <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.target_penyelesaian || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Aktual Penyelesaian</label>
+                    <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.aktual_penyelesaian || '-' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Media Documentation -->
+            <div v-if="(viewIncidentData.foto_kejadian && viewIncidentData.foto_kejadian.length > 0) || (viewIncidentData.video_kejadian && viewIncidentData.video_kejadian.length > 0)" class="border-t pt-6">
+              <h4 class="text-lg font-medium text-gray-900 mb-4">📸 Dokumentasi Foto/Video</h4>
+
+              <div v-if="viewIncidentData.foto_kejadian && viewIncidentData.foto_kejadian.length > 0" class="mb-4">
+                <h5 class="text-sm font-medium text-gray-700 mb-2">Foto:</h5>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div v-for="(photo, index) in viewIncidentData.foto_kejadian" :key="index">
+                    <img :src="photo" :alt="`Foto ${index + 1}`" class="w-full h-24 object-cover rounded-lg border cursor-pointer" @click="openMediaModal(photo, 'image')">
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="viewIncidentData.video_kejadian && viewIncidentData.video_kejadian.length > 0" class="mb-4">
+                <h5 class="text-sm font-medium text-gray-700 mb-2">Video:</h5>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div v-for="(video, index) in viewIncidentData.video_kejadian" :key="index">
+                    <video :src="video" class="w-full h-24 object-cover rounded-lg border cursor-pointer" controls @click="openMediaModal(video, 'video')"></video>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- GPS Information (if available) -->
+            <div v-if="viewIncidentData.latitude && viewIncidentData.longitude" class="border-t pt-6">
+              <h4 class="text-lg font-medium text-gray-900 mb-4">📍 Lokasi GPS</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                  <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.latitude }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                  <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.longitude }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Akurasi GPS</label>
+                  <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ viewIncidentData.gps_accuracy ? viewIncidentData.gps_accuracy + 'm' : '-' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="border-t pt-6">
+              <h4 class="text-lg font-medium text-gray-900 mb-4">⏰ Informasi Waktu</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Dibuat Pada</label>
+                  <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ formatDate(viewIncidentData.created_at) }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Terakhir Diupdate</label>
+                  <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">{{ formatDate(viewIncidentData.updated_at) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Actions -->
+          <div class="flex justify-end space-x-3 pt-6 border-t mt-6">
+            <button
+              @click="exportToPDF"
+              class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Save to PDF</span>
+            </button>
+            <button
+              @click="showViewModal = false"
+              class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors duration-200"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Media Modal for viewing full-size images/videos -->
+    <div
+      v-if="showMediaModal"
+      class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+      @click.self="showMediaModal = false"
+    >
+      <div class="relative max-w-4xl max-h-full p-4">
+        <button
+          @click="showMediaModal = false"
+          class="absolute -top-12 right-0 text-white hover:text-gray-300 text-2xl"
+        >
+          ×
+        </button>
+        <div v-if="mediaType === 'image'" class="max-h-full overflow-auto">
+          <img :src="currentMedia" class="max-w-full max-h-full object-contain" />
+        </div>
+        <div v-if="mediaType === 'video'" class="max-h-full overflow-auto">
+          <video :src="currentMedia" controls class="max-w-full max-h-full object-contain"></video>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { UnsafeActionConditionService } from '@/services/hsse/unsafe-action-condition.service'
+import { unitsService } from '@/services/api/units.service'
+import jsPDF from 'jspdf'
 
 // Reactive data
 const incidents = ref<any[]>([])
+const units = ref<any[]>([])
 const stats = reactive({
   total_incidents: 0,
   by_type: { unsafe_action: 0, unsafe_condition: 0 },
@@ -623,6 +939,11 @@ const totalIncidents = ref(0)
 const showForm = ref(false)
 const selectedIncident = ref(null)
 const saving = ref(false)
+const showViewModal = ref(false)
+const viewIncidentData = ref<any>(null)
+const showMediaModal = ref(false)
+const currentMedia = ref('')
+const mediaType = ref('')
 
 // Form data
 const formData = reactive({
@@ -683,9 +1004,398 @@ const loadStats = async () => {
   }
 }
 
-const viewIncident = (incident: any) => {
-  // TODO: Implement view modal
-  console.log('View incident:', incident)
+const loadUnits = async () => {
+  try {
+    units.value = await unitsService.getActive()
+  } catch (error) {
+    console.error('Error loading units:', error)
+  }
+}
+
+const viewIncident = async (incident: any) => {
+  viewIncidentData.value = incident
+
+  // Generate PDF preview
+  const pdf = new jsPDF()
+  const pageWidth = pdf.internal.pageSize.getWidth()
+  const pageHeight = pdf.internal.pageSize.getHeight()
+  const margin = 20
+  let yPosition = margin
+
+  // Helper functions
+  const addText = (text: string, x: number, y: number, options: any = {}) => {
+    pdf.setFontSize(options.fontSize || 10)
+    pdf.setFont(options.font || 'helvetica', options.style || 'normal')
+    if (options.color) pdf.setTextColor(options.color[0], options.color[1], options.color[2])
+    if (options.align === 'center') {
+      pdf.text(text, pageWidth / 2, y, { align: 'center' })
+    } else if (options.align === 'right') {
+      pdf.text(text, pageWidth - margin, y, { align: 'right' })
+    } else {
+      pdf.text(text, x, y)
+    }
+    if (options.color) pdf.setTextColor(0, 0, 0) // Reset to black
+  }
+
+  const addLine = (x1: number, y1: number, x2: number, y2: number) => {
+    pdf.line(x1, y1, x2, y2)
+  }
+
+  const addColoredRect = (x: number, y: number, width: number, height: number, color: [number, number, number]) => {
+    pdf.setFillColor(color[0], color[1], color[2])
+    pdf.rect(x, y, width, height, 'F')
+  }
+
+  const checkPageBreak = (requiredHeight: number) => {
+    if (yPosition + requiredHeight > pageHeight - margin) {
+      pdf.addPage()
+      yPosition = margin
+      return true
+    }
+    return false
+  }
+
+  // Load image as base64
+  const loadImageAsBase64 = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'))
+          return
+        }
+
+        // Calculate dimensions to fit in PDF (max width 150px, maintain aspect ratio)
+        const maxWidth = 150
+        const aspectRatio = img.width / img.height
+        const width = Math.min(maxWidth, img.width)
+        const height = width / aspectRatio
+
+        canvas.width = width
+        canvas.height = height
+
+        ctx.drawImage(img, 0, 0, width, height)
+        const base64 = canvas.toDataURL('image/jpeg', 0.8)
+        resolve(base64)
+      }
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = url
+    })
+  }
+
+  try {
+    // Header with colored background
+    addColoredRect(0, 0, pageWidth, 30, [41, 128, 185]) // Blue header
+    pdf.setTextColor(255, 255, 255) // White text
+    pdf.setFontSize(20)
+    pdf.setFont('helvetica', 'bold')
+    addText('LAPORAN UNSAFE ACTION/CONDITION', pageWidth / 2, 18, { fontSize: 20, align: 'center' })
+    pdf.setTextColor(0, 0, 0) // Reset to black
+    yPosition = 40
+
+    // Separator line
+    addLine(margin, yPosition, pageWidth - margin, yPosition)
+    yPosition += 10
+
+    // Incident Details Section with colored header
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [52, 152, 219]) // Light blue
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    addText('DETAIL KEJADIAN', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(10)
+
+    // Create a table-like structure with alternating colors
+    const details = [
+      ['Tanggal Kejadian', incident.tanggal_kejadian || '-'],
+      ['Waktu Kejadian', incident.waktu_kejadian || '-'],
+      ['Lokasi Kejadian', incident.lokasi_kejadian || '-'],
+      ['Unit Kerja', incident.unit_kerja || '-'],
+      ['Jenis Kejadian', incident.jenis_kejadian === 'unsafe_action' ? 'Unsafe Action' : 'Unsafe Condition'],
+      ['Kategori', incident.kategori || '-'],
+      ['Sub Kategori', incident.sub_kategori || '-'],
+      ['Prioritas', incident.prioritas || '-'],
+      ['Status', incident.status || '-']
+    ]
+
+    let isAlternate = false
+    details.forEach(([label, value]) => {
+      checkPageBreak(8)
+      if (isAlternate) {
+        addColoredRect(margin, yPosition - 2, pageWidth - 2 * margin, 6, [245, 245, 245]) // Light gray background
+      }
+      addText(`${label}:`, margin, yPosition)
+      addText(value, margin + 50, yPosition)
+      yPosition += 6
+      isAlternate = !isAlternate
+    })
+
+    yPosition += 5
+
+    // Description Section with colored header
+    checkPageBreak(20)
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [46, 204, 113]) // Green
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFont('helvetica', 'bold')
+    addText('DESKRIPSI KEJADIAN', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    const description = incident.deskripsi_kejadian || '-'
+    const descLines = pdf.splitTextToSize(description, pageWidth - 2 * margin)
+    descLines.forEach((line: string) => {
+      checkPageBreak(6)
+      addText(line, margin, yPosition)
+      yPosition += 6
+    })
+
+    yPosition += 5
+
+    // Photos Section
+    if (incident.foto_kejadian && incident.foto_kejadian.length > 0) {
+      checkPageBreak(30)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [155, 89, 182]) // Purple
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('FOTO KEJADIAN', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      for (let i = 0; i < incident.foto_kejadian.length; i++) {
+        const photoUrl = incident.foto_kejadian[i]
+        try {
+          const base64Image = await loadImageAsBase64(photoUrl)
+          checkPageBreak(80)
+
+          // Add image
+          pdf.addImage(base64Image, 'JPEG', margin, yPosition, 150, 100)
+          yPosition += 110
+
+          // Add caption
+          pdf.setFontSize(8)
+          pdf.setFont('helvetica', 'italic')
+          addText(`Foto ${i + 1}`, margin, yPosition)
+          yPosition += 10
+        } catch (error) {
+          console.warn(`Failed to load image ${i + 1}:`, error)
+          checkPageBreak(15)
+          addText(`Foto ${i + 1}: Gagal memuat gambar`, margin, yPosition)
+          yPosition += 10
+        }
+      }
+      yPosition += 5
+    }
+
+    // Cause and Risk Section with colored header
+    if (incident.penyebab_diduga || incident.potensi_risiko) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [230, 126, 34]) // Orange
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('PENYEBAB & RISIKO', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+
+      if (incident.penyebab_diduga) {
+        checkPageBreak(15)
+        addText('Penyebab Diduga:', margin, yPosition)
+        yPosition += 6
+        const causeLines = pdf.splitTextToSize(incident.penyebab_diduga, pageWidth - 2 * margin - 10)
+        causeLines.forEach((line: string) => {
+          checkPageBreak(6)
+          addText(line, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+
+      if (incident.potensi_risiko) {
+        checkPageBreak(15)
+        addText('Potensi Risiko:', margin, yPosition)
+        yPosition += 6
+        const riskLines = pdf.splitTextToSize(incident.potensi_risiko, pageWidth - 2 * margin - 10)
+        riskLines.forEach((line: string) => {
+          checkPageBreak(6)
+          addText(line, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+    }
+
+    // Reporter Information with colored header
+    checkPageBreak(20)
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [52, 73, 94]) // Dark gray
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFont('helvetica', 'bold')
+    addText('INFORMASI PELAPOR', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    const reporterInfo = [
+      ['Nama Pelapor', incident.pelapor_nama || '-'],
+      ['Jabatan', incident.pelapor_jabatan || '-'],
+      ['Kontak', incident.pelapor_kontak || '-']
+    ]
+
+    reporterInfo.forEach(([label, value]) => {
+      checkPageBreak(6)
+      addText(`${label}:`, margin, yPosition)
+      addText(value, margin + 50, yPosition)
+      yPosition += 6
+    })
+
+    yPosition += 5
+
+    // Immediate Actions with colored header
+    if (incident.tindakan_segera) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [231, 76, 60]) // Red
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('TINDAKAN SEGERA', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+      const actionLines = pdf.splitTextToSize(incident.tindakan_segera, pageWidth - 2 * margin)
+      actionLines.forEach((line: string) => {
+        checkPageBreak(6)
+        addText(line, margin, yPosition)
+        yPosition += 6
+      })
+      yPosition += 5
+    }
+
+    // Safety Status with colored header
+    checkPageBreak(15)
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [149, 165, 166]) // Light gray
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFont('helvetica', 'bold')
+    addText('STATUS KESELAMATAN', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    addText(`Area Diamankan: ${incident.area_diamankan ? 'Ya' : 'Tidak'}`, margin, yPosition)
+    yPosition += 6
+
+    if (incident.korban_ada) {
+      addText(`Jumlah Korban: ${incident.korban_jumlah || 0}`, margin, yPosition)
+      yPosition += 6
+    }
+
+    yPosition += 5
+
+    // Investigation Section with colored header
+    if (incident.investigasi_dilakukan) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [44, 62, 80]) // Dark blue
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('HASIL INVESTIGASI', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+
+      if (incident.temuan_investigasi) {
+        checkPageBreak(15)
+        addText('Temuan Investigasi:', margin, yPosition)
+        yPosition += 6
+        const findingLines = pdf.splitTextToSize(incident.temuan_investigasi, pageWidth - 2 * margin - 10)
+        findingLines.forEach((line: string) => {
+          checkPageBreak(6)
+          addText(line, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+
+      if (incident.rekomendasi_koreksi && incident.rekomendasi_koreksi.length > 0) {
+        checkPageBreak(15)
+        addText('Rekomendasi Koreksi:', margin, yPosition)
+        yPosition += 6
+        incident.rekomendasi_koreksi.forEach((rek: string, index: number) => {
+          checkPageBreak(8)
+          addText(`${index + 1}. ${rek}`, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+
+      if (incident.target_penyelesaian) {
+        checkPageBreak(12)
+        addText(`Target Penyelesaian: ${incident.target_penyelesaian}`, margin, yPosition)
+        yPosition += 6
+      }
+
+      if (incident.aktual_penyelesaian) {
+        checkPageBreak(6)
+        addText(`Aktual Penyelesaian: ${incident.aktual_penyelesaian}`, margin, yPosition)
+        yPosition += 6
+      }
+    }
+
+    // GPS Information with colored header
+    if (incident.latitude && incident.longitude) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [39, 174, 96]) // Green
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('INFORMASI GPS', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+      addText(`Latitude: ${incident.latitude}`, margin, yPosition)
+      yPosition += 6
+      addText(`Longitude: ${incident.longitude}`, margin, yPosition)
+      yPosition += 6
+      if (incident.gps_accuracy) {
+        addText(`Akurasi: ${incident.gps_accuracy}m`, margin, yPosition)
+        yPosition += 6
+      }
+    }
+
+    // Footer with colored background
+    checkPageBreak(20)
+    yPosition = pageHeight - 30
+
+    addColoredRect(0, yPosition - 5, pageWidth, 25, [44, 62, 80]) // Dark blue footer
+    pdf.setTextColor(255, 255, 255)
+    addLine(margin, yPosition, pageWidth - margin, yPosition)
+    yPosition += 8
+
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'italic')
+    addText(`Dibuat pada: ${formatDate(incident.created_at)}`, margin, yPosition)
+    addText(`Terakhir diupdate: ${formatDate(incident.updated_at)}`, pageWidth - margin, yPosition, { align: 'right' })
+
+    yPosition += 4
+    addText(`ID Laporan: ${incident.id}`, margin, yPosition)
+    pdf.setTextColor(0, 0, 0)
+
+    // Generate PDF blob and open in new window for preview
+    const pdfBlob = pdf.output('blob')
+    const pdfUrl = URL.createObjectURL(pdfBlob)
+    window.open(pdfUrl, '_blank')
+
+  } catch (error) {
+    console.error('❌ Error generating PDF preview:', error)
+    alert('Gagal menampilkan preview PDF. Silakan coba lagi.')
+  }
 }
 
 const editIncident = (incident: any) => {
@@ -910,6 +1620,12 @@ const removeMedia = (field: string, index: number) => {
   ;(formData as any)[field].splice(index, 1)
 }
 
+const openMediaModal = (mediaUrl: string, type: string) => {
+  currentMedia.value = mediaUrl
+  mediaType.value = type
+  showMediaModal.value = true
+}
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('id-ID', {
@@ -932,10 +1648,397 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// PDF Export Function - Professional Format
+const exportToPDF = async () => {
+  if (!viewIncidentData.value) return
+
+  const pdf = new jsPDF()
+  const pageWidth = pdf.internal.pageSize.getWidth()
+  const pageHeight = pdf.internal.pageSize.getHeight()
+  const margin = 20
+  let yPosition = margin
+
+  // Helper functions
+  const addText = (text: string, x: number, y: number, options: any = {}) => {
+    pdf.setFontSize(options.fontSize || 10)
+    pdf.setFont(options.font || 'helvetica', options.style || 'normal')
+    if (options.color) pdf.setTextColor(options.color[0], options.color[1], options.color[2])
+    if (options.align === 'center') {
+      pdf.text(text, pageWidth / 2, y, { align: 'center' })
+    } else if (options.align === 'right') {
+      pdf.text(text, pageWidth - margin, y, { align: 'right' })
+    } else {
+      pdf.text(text, x, y)
+    }
+    if (options.color) pdf.setTextColor(0, 0, 0) // Reset to black
+  }
+
+  const addLine = (x1: number, y1: number, x2: number, y2: number) => {
+    pdf.line(x1, y1, x2, y2)
+  }
+
+  const addColoredRect = (x: number, y: number, width: number, height: number, color: [number, number, number]) => {
+    pdf.setFillColor(color[0], color[1], color[2])
+    pdf.rect(x, y, width, height, 'F')
+  }
+
+  const checkPageBreak = (requiredHeight: number) => {
+    if (yPosition + requiredHeight > pageHeight - margin) {
+      pdf.addPage()
+      yPosition = margin
+      return true
+    }
+    return false
+  }
+
+  // Load image as base64
+  const loadImageAsBase64 = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'))
+          return
+        }
+
+        // Calculate dimensions to fit in PDF (max width 150px, maintain aspect ratio)
+        const maxWidth = 150
+        const aspectRatio = img.width / img.height
+        const width = Math.min(maxWidth, img.width)
+        const height = width / aspectRatio
+
+        canvas.width = width
+        canvas.height = height
+
+        ctx.drawImage(img, 0, 0, width, height)
+        const base64 = canvas.toDataURL('image/jpeg', 0.8)
+        resolve(base64)
+      }
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = url
+    })
+  }
+
+  try {
+    // Header with colored background
+    addColoredRect(0, 0, pageWidth, 30, [41, 128, 185]) // Blue header
+    pdf.setTextColor(255, 255, 255) // White text
+    pdf.setFontSize(20)
+    pdf.setFont('helvetica', 'bold')
+    addText('LAPORAN UNSAFE ACTION/CONDITION', pageWidth / 2, 18, { fontSize: 20, align: 'center' })
+    pdf.setTextColor(0, 0, 0) // Reset to black
+    yPosition = 40
+
+    // Separator line
+    addLine(margin, yPosition, pageWidth - margin, yPosition)
+    yPosition += 10
+
+    // Incident Details Section with colored header
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [52, 152, 219]) // Light blue
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    addText('DETAIL KEJADIAN', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(10)
+
+    // Create a table-like structure with alternating colors
+    const details = [
+      ['Tanggal Kejadian', viewIncidentData.value.tanggal_kejadian || '-'],
+      ['Waktu Kejadian', viewIncidentData.value.waktu_kejadian || '-'],
+      ['Lokasi Kejadian', viewIncidentData.value.lokasi_kejadian || '-'],
+      ['Unit Kerja', viewIncidentData.value.unit_kerja || '-'],
+      ['Jenis Kejadian', viewIncidentData.value.jenis_kejadian === 'unsafe_action' ? 'Unsafe Action' : 'Unsafe Condition'],
+      ['Kategori', viewIncidentData.value.kategori || '-'],
+      ['Sub Kategori', viewIncidentData.value.sub_kategori || '-'],
+      ['Prioritas', viewIncidentData.value.prioritas || '-'],
+      ['Status', viewIncidentData.value.status || '-']
+    ]
+
+    let isAlternate = false
+    details.forEach(([label, value]) => {
+      checkPageBreak(8)
+      if (isAlternate) {
+        addColoredRect(margin, yPosition - 2, pageWidth - 2 * margin, 6, [245, 245, 245]) // Light gray background
+      }
+      addText(`${label}:`, margin, yPosition)
+      addText(value, margin + 50, yPosition)
+      yPosition += 6
+      isAlternate = !isAlternate
+    })
+
+    yPosition += 5
+
+    // Description Section with colored header
+    checkPageBreak(20)
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [46, 204, 113]) // Green
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFont('helvetica', 'bold')
+    addText('DESKRIPSI KEJADIAN', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    const description = viewIncidentData.value.deskripsi_kejadian || '-'
+    const descLines = pdf.splitTextToSize(description, pageWidth - 2 * margin)
+    descLines.forEach((line: string) => {
+      checkPageBreak(6)
+      addText(line, margin, yPosition)
+      yPosition += 6
+    })
+
+    yPosition += 5
+
+    // Photos Section
+    if (viewIncidentData.value.foto_kejadian && viewIncidentData.value.foto_kejadian.length > 0) {
+      checkPageBreak(30)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [155, 89, 182]) // Purple
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('FOTO KEJADIAN', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      for (let i = 0; i < viewIncidentData.value.foto_kejadian.length; i++) {
+        const photoUrl = viewIncidentData.value.foto_kejadian[i]
+        try {
+          const base64Image = await loadImageAsBase64(photoUrl)
+          checkPageBreak(80)
+
+          // Add image
+          pdf.addImage(base64Image, 'JPEG', margin, yPosition, 150, 100)
+          yPosition += 110
+
+          // Add caption
+          pdf.setFontSize(8)
+          pdf.setFont('helvetica', 'italic')
+          addText(`Foto ${i + 1}`, margin, yPosition)
+          yPosition += 10
+        } catch (error) {
+          console.warn(`Failed to load image ${i + 1}:`, error)
+          checkPageBreak(15)
+          addText(`Foto ${i + 1}: Gagal memuat gambar`, margin, yPosition)
+          yPosition += 10
+        }
+      }
+      yPosition += 5
+    }
+
+    // Cause and Risk Section with colored header
+    if (viewIncidentData.value.penyebab_diduga || viewIncidentData.value.potensi_risiko) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [230, 126, 34]) // Orange
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('PENYEBAB & RISIKO', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+
+      if (viewIncidentData.value.penyebab_diduga) {
+        checkPageBreak(15)
+        addText('Penyebab Diduga:', margin, yPosition)
+        yPosition += 6
+        const causeLines = pdf.splitTextToSize(viewIncidentData.value.penyebab_diduga, pageWidth - 2 * margin - 10)
+        causeLines.forEach((line: string) => {
+          checkPageBreak(6)
+          addText(line, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+
+      if (viewIncidentData.value.potensi_risiko) {
+        checkPageBreak(15)
+        addText('Potensi Risiko:', margin, yPosition)
+        yPosition += 6
+        const riskLines = pdf.splitTextToSize(viewIncidentData.value.potensi_risiko, pageWidth - 2 * margin - 10)
+        riskLines.forEach((line: string) => {
+          checkPageBreak(6)
+          addText(line, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+    }
+
+    // Reporter Information with colored header
+    checkPageBreak(20)
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [52, 73, 94]) // Dark gray
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFont('helvetica', 'bold')
+    addText('INFORMASI PELAPOR', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    const reporterInfo = [
+      ['Nama Pelapor', viewIncidentData.value.pelapor_nama || '-'],
+      ['Jabatan', viewIncidentData.value.pelapor_jabatan || '-'],
+      ['Kontak', viewIncidentData.value.pelapor_kontak || '-']
+    ]
+
+    reporterInfo.forEach(([label, value]) => {
+      checkPageBreak(6)
+      addText(`${label}:`, margin, yPosition)
+      addText(value, margin + 50, yPosition)
+      yPosition += 6
+    })
+
+    yPosition += 5
+
+    // Immediate Actions with colored header
+    if (viewIncidentData.value.tindakan_segera) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [231, 76, 60]) // Red
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('TINDAKAN SEGERA', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+      const actionLines = pdf.splitTextToSize(viewIncidentData.value.tindakan_segera, pageWidth - 2 * margin)
+      actionLines.forEach((line: string) => {
+        checkPageBreak(6)
+        addText(line, margin, yPosition)
+        yPosition += 6
+      })
+      yPosition += 5
+    }
+
+    // Safety Status with colored header
+    checkPageBreak(15)
+    addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [149, 165, 166]) // Light gray
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFont('helvetica', 'bold')
+    addText('STATUS KESELAMATAN', margin + 5, yPosition + 2)
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 15
+
+    pdf.setFont('helvetica', 'normal')
+    addText(`Area Diamankan: ${viewIncidentData.value.area_diamankan ? 'Ya' : 'Tidak'}`, margin, yPosition)
+    yPosition += 6
+
+    if (viewIncidentData.value.korban_ada) {
+      addText(`Jumlah Korban: ${viewIncidentData.value.korban_jumlah || 0}`, margin, yPosition)
+      yPosition += 6
+    }
+
+    yPosition += 5
+
+    // Investigation Section with colored header
+    if (viewIncidentData.value.investigasi_dilakukan) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [44, 62, 80]) // Dark blue
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('HASIL INVESTIGASI', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+
+      if (viewIncidentData.value.temuan_investigasi) {
+        checkPageBreak(15)
+        addText('Temuan Investigasi:', margin, yPosition)
+        yPosition += 6
+        const findingLines = pdf.splitTextToSize(viewIncidentData.value.temuan_investigasi, pageWidth - 2 * margin - 10)
+        findingLines.forEach((line: string) => {
+          checkPageBreak(6)
+          addText(line, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+
+      if (viewIncidentData.value.rekomendasi_koreksi && viewIncidentData.value.rekomendasi_koreksi.length > 0) {
+        checkPageBreak(15)
+        addText('Rekomendasi Koreksi:', margin, yPosition)
+        yPosition += 6
+        viewIncidentData.value.rekomendasi_koreksi.forEach((rek: string, index: number) => {
+          checkPageBreak(8)
+          addText(`${index + 1}. ${rek}`, margin + 10, yPosition)
+          yPosition += 6
+        })
+        yPosition += 3
+      }
+
+      if (viewIncidentData.value.target_penyelesaian) {
+        checkPageBreak(12)
+        addText(`Target Penyelesaian: ${viewIncidentData.value.target_penyelesaian}`, margin, yPosition)
+        yPosition += 6
+      }
+
+      if (viewIncidentData.value.aktual_penyelesaian) {
+        checkPageBreak(6)
+        addText(`Aktual Penyelesaian: ${viewIncidentData.value.aktual_penyelesaian}`, margin, yPosition)
+        yPosition += 6
+      }
+    }
+
+    // GPS Information with colored header
+    if (viewIncidentData.value.latitude && viewIncidentData.value.longitude) {
+      checkPageBreak(20)
+      addColoredRect(margin, yPosition - 5, pageWidth - 2 * margin, 12, [39, 174, 96]) // Green
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      addText('INFORMASI GPS', margin + 5, yPosition + 2)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 15
+
+      pdf.setFont('helvetica', 'normal')
+      addText(`Latitude: ${viewIncidentData.value.latitude}`, margin, yPosition)
+      yPosition += 6
+      addText(`Longitude: ${viewIncidentData.value.longitude}`, margin, yPosition)
+      yPosition += 6
+      if (viewIncidentData.value.gps_accuracy) {
+        addText(`Akurasi: ${viewIncidentData.value.gps_accuracy}m`, margin, yPosition)
+        yPosition += 6
+      }
+    }
+
+    // Footer with colored background
+    checkPageBreak(20)
+    yPosition = pageHeight - 30
+
+    addColoredRect(0, yPosition - 5, pageWidth, 25, [44, 62, 80]) // Dark blue footer
+    pdf.setTextColor(255, 255, 255)
+    addLine(margin, yPosition, pageWidth - margin, yPosition)
+    yPosition += 8
+
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'italic')
+    addText(`Dibuat pada: ${formatDate(viewIncidentData.value.created_at)}`, margin, yPosition)
+    addText(`Terakhir diupdate: ${formatDate(viewIncidentData.value.updated_at)}`, pageWidth - margin, yPosition, { align: 'right' })
+
+    yPosition += 4
+    addText(`ID Laporan: ${viewIncidentData.value.id}`, margin, yPosition)
+    pdf.setTextColor(0, 0, 0)
+
+    // Save the PDF
+    const filename = `laporan-unsafe-${viewIncidentData.value.jenis_kejadian}-${viewIncidentData.value.id}.pdf`
+    pdf.save(filename)
+    console.log('✅ PDF berhasil diekspor dengan format profesional dan foto')
+
+  } catch (error) {
+    console.error('❌ Error exporting PDF:', error)
+    alert('Gagal mengekspor PDF. Silakan coba lagi.')
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   await loadIncidents()
   await loadStats()
+  await loadUnits()
 })
 
 // Watchers

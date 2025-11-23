@@ -148,13 +148,13 @@ export class UnsafeActionConditionService {
     const filePath = `unsafe-action-condition-photos/${fileName}`
 
     const { error: uploadError } = await supabase.storage
-      .from('safety-files')
+      .from('unsafe-action-condition-files')
       .upload(filePath, file)
 
     if (uploadError) throw uploadError
 
     const { data } = supabase.storage
-      .from('safety-files')
+      .from('unsafe-action-condition-files')
       .getPublicUrl(filePath)
 
     return data.publicUrl
@@ -166,13 +166,13 @@ export class UnsafeActionConditionService {
     const filePath = `unsafe-action-condition-videos/${fileName}`
 
     const { error: uploadError } = await supabase.storage
-      .from('safety-files')
+      .from('unsafe-action-condition-files')
       .upload(filePath, file)
 
     if (uploadError) throw uploadError
 
     const { data } = supabase.storage
-      .from('safety-files')
+      .from('unsafe-action-condition-files')
       .getPublicUrl(filePath)
 
     return data.publicUrl
@@ -184,13 +184,13 @@ export class UnsafeActionConditionService {
     const filePath = `unsafe-action-condition-audio/${fileName}`
 
     const { error: uploadError } = await supabase.storage
-      .from('safety-files')
+      .from('unsafe-action-condition-files')
       .upload(filePath, file)
 
     if (uploadError) throw uploadError
 
     const { data } = supabase.storage
-      .from('safety-files')
+      .from('unsafe-action-condition-files')
       .getPublicUrl(filePath)
 
     return data.publicUrl
