@@ -211,8 +211,7 @@ class SafetyForumService {
       let query = supabase
         .from('safety_forum')
         .select(`
-          *,
-          unit:units(id, nama)
+          *
         `)
         .order('tanggal_forum', { ascending: false })
 
@@ -256,8 +255,7 @@ class SafetyForumService {
       const { data, error } = await supabase
         .from('safety_forum')
         .select(`
-          *,
-          unit:units(id, nama)
+          *
         `)
         .eq('id', id)
         .single()
@@ -293,8 +291,7 @@ class SafetyForumService {
       const { data, error } = await supabase
         .from('safety_forum')
         .select(`
-          *,
-          unit:units(id, nama)
+          *
         `)
         .eq('unit_id', unitId)
         .order('tanggal_forum', { ascending: false })
@@ -313,8 +310,7 @@ class SafetyForumService {
       const { data, error } = await supabase
         .from('safety_forum')
         .select(`
-          *,
-          unit:units(id, nama)
+          *
         `)
         .gte('tanggal_forum', startDate)
         .lte('tanggal_forum', endDate)
@@ -334,8 +330,7 @@ class SafetyForumService {
       const { data, error } = await supabase
         .from('safety_forum')
         .select(`
-          *,
-          unit:units(id, nama)
+          *
         `)
         .eq('status', status)
         .order('tanggal_forum', { ascending: false })
