@@ -41,14 +41,52 @@ BEGIN
 
 END $$;
 
--- Update any existing NULL values
+-- Update any existing NULL values safely
 UPDATE safety_briefing SET
     catatan = COALESCE(catatan, ''),
-    jumlah_peserta = COALESCE(jumlah_peserta, 0),
-    foto_dokumentasi = COALESCE(foto_dokumentasi, ARRAY[]::TEXT[])
+    jumlah_peserta = COALESCE(jumlah_peserta, 0)
 WHERE catatan IS NULL
-   OR jumlah_peserta IS NULL
-   OR foto_dokumentasi IS NULL;
+   OR jumlah_peserta IS NULL;
+
+-- Handle foto_dokumentasi based on its actual type
+DO $$
+DECLARE
+    col_type TEXT;
+BEGIN
+    -- Check the actual type of foto_dokumentasi column
+    SELECT data_type INTO col_type
+    FROM information_schema.columns
+    WHERE table_name = 'safety_briefing' AND column_name = 'foto_dokumentasi';
+
+    RAISE NOTICE 'foto_dokumentasi column type: %', col_type;
+
+    -- Handle based on type
+    IF col_type = 'ARRAY' THEN
+        -- It's already text array
+        UPDATE safety_briefing SET
+            foto_dokumentasi = COALESCE(foto_dokumentasi, ARRAY[]::TEXT[])
+        WHERE foto_dokumentasi IS NULL;
+        RAISE NOTICE 'Initialized foto_dokumentasi as text array';
+    ELSIF col_type = 'jsonb' THEN
+        -- It's jsonb, API expects text array, so convert jsonb array to text array
+        -- First ensure it's an array, then convert
+        UPDATE safety_briefing SET
+            foto_dokumentasi = CASE
+                WHEN foto_dokumentasi IS NULL THEN ARRAY[]::TEXT[]
+                WHEN jsonb_typeof(foto_dokumentasi) = 'array' THEN
+                    -- Convert jsonb array to text array
+                    ARRAY(SELECT jsonb_array_elements_text(foto_dokumentasi))
+                ELSE ARRAY[]::TEXT[]
+            END;
+        RAISE NOTICE 'Converted foto_dokumentasi from jsonb to text array';
+
+        -- Now change column type to text array
+        ALTER TABLE safety_briefing ALTER COLUMN foto_dokumentasi TYPE TEXT[];
+        RAISE NOTICE 'Changed foto_dokumentasi column type to text[]';
+    ELSE
+        RAISE NOTICE 'foto_dokumentasi type % not handled, skipping initialization', col_type;
+    END IF;
+END $$;
 
 -- Verify the fixes
 SELECT
