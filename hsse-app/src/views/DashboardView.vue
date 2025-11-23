@@ -356,13 +356,18 @@ const openMonthlyTable = async (module: string, moduleName: string) => {
 
 const loadMonthlyData = async () => {
   try {
+    console.log('Dashboard: Loading units for monthly table...')
     // Load units
     const { data: unitsData } = await supabase
       .from('units')
       .select('*')
       .order('nama_unit')
-    
+
+    console.log('Dashboard: Units loaded:', unitsData?.length || 0, 'units')
+    console.log('Dashboard: First unit sample:', unitsData?.[0])
+
     units.value = unitsData || []
+    console.log('Dashboard: Units assigned:', units.value.length, 'units')
     
     // Parse selected month
     const [yearStr, monthStr] = selectedMonth.value.split('-')
@@ -438,7 +443,7 @@ const loadMonthlyData = async () => {
     
     // Build checklist data
     monthlyData.value = units.value.map(unit => {
-      const data: any = { unit_id: unit.id, unit_name: unit.nama }
+      const data: any = { unit_id: unit.id, unit_name: unit.nama_unit }
       
       // Initialize all days as false (use actual days in month)
       for (let day = 1; day <= daysInSelectedMonth; day++) {
