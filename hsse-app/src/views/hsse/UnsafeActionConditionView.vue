@@ -835,9 +835,19 @@ const handleFileUpload = async (type: string, event: any) => {
 }
 
 const handlePhotoUpload = async (file: File) => {
-  // Compress image if too large
-  const compressedFile = await compressImage(file)
-  const url = await UnsafeActionConditionService.uploadPhoto(compressedFile, 'temp')
+  // Check file size - only compress if > 1MB (1,048,576 bytes)
+  const maxSizeInBytes = 1 * 1024 * 1024 // 1MB
+  let fileToUpload = file
+
+  if (file.size > maxSizeInBytes) {
+    console.log(`📸 File size ${(file.size / (1024 * 1024)).toFixed(2)}MB > 1MB, compressing...`)
+    fileToUpload = await compressImage(file)
+    console.log(`✅ Compressed to ${(fileToUpload.size / (1024 * 1024)).toFixed(2)}MB`)
+  } else {
+    console.log(`📸 File size ${(file.size / (1024 * 1024)).toFixed(2)}MB <= 1MB, uploading as-is`)
+  }
+
+  const url = await UnsafeActionConditionService.uploadPhoto(fileToUpload, 'temp')
 
   if (!formData.foto_kejadian) formData.foto_kejadian = []
   ;(formData.foto_kejadian as string[]).push(url)
