@@ -248,7 +248,7 @@
                   </div>
                   <div>
                     <label class="text-sm font-medium text-gray-600">Unit</label>
-                    <p class="text-gray-900">{{ selectedForum.unit?.nama || '-' }}</p>
+                    <p class="text-gray-900">{{ selectedForum.unit?.nama_unit || '-' }}</p>
                   </div>
                   <div>
                     <label class="text-sm font-medium text-gray-600">Jenis Forum</label>
