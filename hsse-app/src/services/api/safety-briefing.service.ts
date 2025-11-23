@@ -22,14 +22,15 @@ export interface SafetyBriefing {
   petugas_id?: string
   topik: string
   materi?: string
+  jumlah_peserta: number
+  foto_dokumentasi: string[]
   status: 'draft' | 'approved' | 'rejected'
+  catatan?: string
+  approved_by?: string
+  approved_at?: string
   created_by?: string
   created_at: string
   updated_at: string
-  // Mapped properties for frontend compatibility
-  topik_briefing?: string
-  materi_briefing?: string
-  foto_briefing?: any
   // Relations
   unit?: {
     id: string
@@ -49,12 +50,12 @@ export interface CreateSafetyBriefingDto {
   waktu_selesai?: string
   unit_id?: string
   petugas_id?: string
-  topik?: string
-  topik_briefing?: string
+  topik: string
   materi?: string
-  materi_briefing?: string
+  jumlah_peserta: number
   foto_dokumentasi?: string[]
-  status?: 'draft' | 'approved' | 'rejected'
+  status: 'draft' | 'approved' | 'rejected'
+  catatan?: string
 }
 
 export interface UpdateSafetyBriefingDto extends Partial<CreateSafetyBriefingDto> {}
@@ -98,8 +99,10 @@ class SafetyBriefingService {
         petugas_id,
         topik,
         materi,
-        foto_briefing,
+        jumlah_peserta,
+        foto_dokumentasi,
         status,
+        catatan,
         created_by,
         created_at,
         updated_at
@@ -133,10 +136,10 @@ class SafetyBriefingService {
     const processedData = await Promise.all((data || []).map(async (briefing) => {
       const briefingWithRelations = {
         ...briefing,
-        // Map database columns to frontend properties
-        topik_briefing: briefing.topik,
-        materi_briefing: briefing.materi,
-        foto_dokumentasi: briefing.foto_briefing || []
+        // Ensure all required properties are present with correct types
+        jumlah_peserta: briefing.jumlah_peserta || 0,
+        foto_dokumentasi: briefing.foto_dokumentasi || [],
+        catatan: briefing.catatan || ''
       } as SafetyBriefing
 
       // Get unit data
@@ -200,7 +203,10 @@ class SafetyBriefingService {
         petugas_id,
         topik,
         materi,
+        jumlah_peserta,
+        foto_dokumentasi,
         status,
+        catatan,
         created_by,
         created_at,
         updated_at
@@ -262,24 +268,17 @@ class SafetyBriefingService {
       .from(this.tableName)
       .select(`
         id,
-        nomor_briefing,
         tanggal,
         waktu_mulai,
         waktu_selesai,
         unit_id,
-        area_briefing,
-        topik_briefing,
-        peserta,
+        petugas_id,
+        topik,
+        materi,
         jumlah_peserta,
-        materi_briefing,
-        poin_poin_pembahasan,
-        kesimpulan,
-        rekomendasi,
-        tindak_lanjut,
-        foto_briefing,
-        dokumen_pendukung,
+        foto_dokumentasi,
         status,
-        jenis_briefing,
+        catatan,
         created_by,
         created_at,
         updated_at,
@@ -295,10 +294,10 @@ class SafetyBriefingService {
     const processedData = await Promise.all((data || []).map(async (briefing) => {
       const briefingWithRelations = {
         ...briefing,
-        // Map database columns to frontend properties
-        topik_briefing: briefing.topik,
-        materi_briefing: briefing.materi,
-        foto_dokumentasi: briefing.foto_briefing || []
+        // Ensure all required properties are present
+        jumlah_peserta: briefing.jumlah_peserta || 0,
+        foto_dokumentasi: briefing.foto_dokumentasi || [],
+        catatan: briefing.catatan || ''
       } as SafetyBriefing
 
       if (briefing.unit_id) {
@@ -325,7 +324,7 @@ class SafetyBriefingService {
   async getByDateRange(startDate: string, endDate: string): Promise<SafetyBriefing[]> {
     const { data, error } = await supabase
       .from(this.tableName)
-      .select('id, tanggal, waktu_mulai, waktu_selesai, unit_id, petugas_id, topik, materi, status, created_by, created_at, updated_at')
+      .select('id, tanggal, waktu_mulai, waktu_selesai, unit_id, petugas_id, topik, materi, jumlah_peserta, foto_dokumentasi, status, catatan, created_by, created_at, updated_at')
       .gte('tanggal', startDate)
       .lte('tanggal', endDate)
       .order('tanggal', { ascending: false })
@@ -336,8 +335,10 @@ class SafetyBriefingService {
     const processedData = await Promise.all((data || []).map(async (briefing) => {
       const briefingWithRelations = {
         ...briefing,
-        topik_briefing: briefing.topik,
-        materi_briefing: briefing.materi
+        // Ensure all required properties are present
+        jumlah_peserta: briefing.jumlah_peserta || 0,
+        foto_dokumentasi: briefing.foto_dokumentasi || [],
+        catatan: briefing.catatan || ''
       } as SafetyBriefing
 
       // Get unit data
@@ -369,7 +370,7 @@ class SafetyBriefingService {
   async getByStatus(status: 'draft' | 'approved' | 'rejected'): Promise<SafetyBriefing[]> {
     const { data, error } = await supabase
       .from(this.tableName)
-      .select('id, tanggal, waktu_mulai, waktu_selesai, unit_id, petugas_id, topik, materi, status, created_by, created_at, updated_at')
+      .select('id, tanggal, waktu_mulai, waktu_selesai, unit_id, petugas_id, topik, materi, jumlah_peserta, foto_dokumentasi, status, catatan, created_by, created_at, updated_at')
       .eq('status', status)
       .order('tanggal', { ascending: false })
 
@@ -379,8 +380,10 @@ class SafetyBriefingService {
     const processedData = await Promise.all((data || []).map(async (briefing) => {
       const briefingWithRelations = {
         ...briefing,
-        topik_briefing: briefing.topik,
-        materi_briefing: briefing.materi
+        // Ensure all required properties are present
+        jumlah_peserta: briefing.jumlah_peserta || 0,
+        foto_dokumentasi: briefing.foto_dokumentasi || [],
+        catatan: briefing.catatan || ''
       } as SafetyBriefing
 
       // Get unit data
@@ -471,10 +474,12 @@ class SafetyBriefingService {
       waktu_selesai: dto.waktu_selesai,
       unit_id: dto.unit_id,
       petugas_id: dto.petugas_id || (await this.getDemoPetugasId()),
-      topik: dto.topik_briefing || dto.topik,
-      materi: dto.materi_briefing || dto.materi,
-      foto_briefing: (dto as any).foto_dokumentasi || [],
-      status: dto.status || 'draft',
+      topik: dto.topik,
+      materi: dto.materi,
+      jumlah_peserta: dto.jumlah_peserta,
+      foto_dokumentasi: dto.foto_dokumentasi || [],
+      status: dto.status,
+      catatan: dto.catatan,
       created_by: dto.petugas_id || (await this.getDemoPetugasId())
     }
 
@@ -536,10 +541,12 @@ class SafetyBriefingService {
     if (dto.waktu_selesai !== undefined) dbData.waktu_selesai = dto.waktu_selesai
     if (dto.unit_id) dbData.unit_id = dto.unit_id
     if (dto.petugas_id) dbData.petugas_id = dto.petugas_id
-    if (dto.topik_briefing) dbData.topik = dto.topik_briefing
-    if (dto.materi_briefing) dbData.materi = dto.materi_briefing
-    if ((dto as any).foto_dokumentasi !== undefined) dbData.foto_briefing = (dto as any).foto_dokumentasi
+    if (dto.topik) dbData.topik = dto.topik
+    if (dto.materi !== undefined) dbData.materi = dto.materi
+    if (dto.jumlah_peserta !== undefined) dbData.jumlah_peserta = dto.jumlah_peserta
+    if (dto.foto_dokumentasi !== undefined) dbData.foto_dokumentasi = dto.foto_dokumentasi
     if (dto.status) dbData.status = dto.status
+    if (dto.catatan !== undefined) dbData.catatan = dto.catatan
 
     const { data, error } = await supabase
       .from(this.tableName)
@@ -584,10 +591,10 @@ class SafetyBriefingService {
     // First, get the record to delete associated photos
     const briefing = await this.getById(id)
     
-    if (briefing?.foto_briefing && briefing.foto_briefing.length > 0) {
+    if (briefing?.foto_dokumentasi && briefing.foto_dokumentasi.length > 0) {
       // Delete all photos from storage
       await Promise.all(
-        briefing.foto_briefing.map((url: string) => this.deletePhoto(url))
+        briefing.foto_dokumentasi.map((url: string) => this.deletePhoto(url))
       )
     }
 
