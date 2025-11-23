@@ -3,8 +3,11 @@
 -- Run this SQL in Supabase SQL Editor
 -- =====================================================
 
+-- Drop table if exists to start fresh
+DROP TABLE IF EXISTS safety_forum CASCADE;
+
 -- Create safety_forum table
-CREATE TABLE IF NOT EXISTS safety_forum (
+CREATE TABLE safety_forum (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Data Dasar Forum
