@@ -128,6 +128,14 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   
+  // PWA Standalone routes (no layout)
+  {
+    path: '/pwa/unsafe-action-condition',
+    name: 'pwa-unsafe-action-condition',
+    component: () => import('@/views/PWAUnsafeActionConditionView.vue'),
+    meta: { title: 'Unsafe Action/Condition', requiresAuth: true }
+  },
+  
   // 404
   {
     path: '/:pathMatch(.*)*',
