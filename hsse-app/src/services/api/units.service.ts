@@ -45,40 +45,64 @@ class UnitsService {
   private tableName = 'units'
 
   async getAll(): Promise<Unit[]> {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select(`
-        *,
-        wilayah:wilayah_id (
-          id,
-          nama,
-          kode_wilayah
-        ),
-        area:area_id (
-          id,
-          nama_area,
-          kode_area
-        )
-      `)
-      .order('nama_unit', { ascending: true })
+    try {
+      // First, try with joins (if related tables exist)
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select(`
+          *,
+          wilayah:wilayah_id (
+            id,
+            nama,
+            kode_wilayah
+          ),
+          area:area_id (
+            id,
+            nama_area,
+            kode_area
+          )
+        `)
+        .order('nama_unit', { ascending: true })
 
-    if (error) throw error
-    
-    // Map the database column names to the expected interface names
-    return (data || []).map(unit => ({
-      ...unit,
-      kode: unit.kode_unit,
-      nama: unit.nama_unit,
-      wilayah: unit.wilayah ? {
-        ...unit.wilayah,
-        kode: unit.wilayah.kode_wilayah
-      } : undefined,
-      area: unit.area ? {
-        ...unit.area,
-        nama: unit.area.nama_area,
-        kode: unit.area.kode_area
-      } : undefined
-    }))
+      if (error) {
+        // If join fails, fallback to simple query without relations
+        console.warn('Units join query failed, falling back to simple query:', error.message)
+        const { data: simpleData, error: simpleError } = await supabase
+          .from(this.tableName)
+          .select('*')
+          .order('nama_unit', { ascending: true })
+
+        if (simpleError) throw simpleError
+
+        // Map without relations
+        return (simpleData || []).map(unit => ({
+          ...unit,
+          kode: unit.kode_unit,
+          nama: unit.nama_unit,
+          wilayah: undefined,
+          area: undefined
+        }))
+      }
+
+      // Map the database column names to the expected interface names
+      return (data || []).map(unit => ({
+        ...unit,
+        kode: unit.kode_unit,
+        nama: unit.nama_unit,
+        wilayah: unit.wilayah ? {
+          ...unit.wilayah,
+          kode: unit.wilayah.kode_wilayah
+        } : undefined,
+        area: unit.area ? {
+          ...unit.area,
+          nama: unit.area.nama_area,
+          kode: unit.area.kode_area
+        } : undefined
+      }))
+    } catch (error) {
+      console.error('Error in getAll():', error)
+      throw error
+    }
   }
 
   async getActive(): Promise<Unit[]> {
@@ -152,83 +176,137 @@ class UnitsService {
   }
 
   async getByWilayah(wilayahId: string): Promise<Unit[]> {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select(`
-        *,
-        wilayah:wilayah_id (
-          id,
-          nama,
-          kode_wilayah
-        ),
-        area:area_id (
-          id,
-          nama_area,
-          kode_area
-        )
-      `)
-      .eq('wilayah_id', wilayahId)
-      .eq('aktif', true)
-      .order('nama_unit', { ascending: true })
+    try {
+      // First, try with joins
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select(`
+          *,
+          wilayah:wilayah_id (
+            id,
+            nama,
+            kode_wilayah
+          ),
+          area:area_id (
+            id,
+            nama_area,
+            kode_area
+          )
+        `)
+        .eq('wilayah_id', wilayahId)
+        .eq('aktif', true)
+        .order('nama_unit', { ascending: true })
 
-    if (error) throw error
-    
-    // Map the database column names to the expected interface names
-    return (data || []).map(unit => ({
-      ...unit,
-      kode: unit.kode_unit,
-      nama: unit.nama_unit,
-      wilayah: unit.wilayah ? {
-        ...unit.wilayah,
-        kode: unit.wilayah.kode_wilayah
-      } : undefined,
-      area: unit.area ? {
-        ...unit.area,
-        nama: unit.area.nama_area,
-        kode: unit.area.kode_area
-      } : undefined
-    }))
+      if (error) {
+        // Fallback to simple query
+        console.warn('Units getByWilayah join query failed, falling back to simple query:', error.message)
+        const { data: simpleData, error: simpleError } = await supabase
+          .from(this.tableName)
+          .select('*')
+          .eq('wilayah_id', wilayahId)
+          .eq('aktif', true)
+          .order('nama_unit', { ascending: true })
+
+        if (simpleError) throw simpleError
+
+        // Map without relations
+        return (simpleData || []).map(unit => ({
+          ...unit,
+          kode: unit.kode_unit,
+          nama: unit.nama_unit,
+          wilayah: undefined,
+          area: undefined
+        }))
+      }
+
+      // Map the database column names to the expected interface names
+      return (data || []).map(unit => ({
+        ...unit,
+        kode: unit.kode_unit,
+        nama: unit.nama_unit,
+        wilayah: unit.wilayah ? {
+          ...unit.wilayah,
+          kode: unit.wilayah.kode_wilayah
+        } : undefined,
+        area: unit.area ? {
+          ...unit.area,
+          nama: unit.area.nama_area,
+          kode: unit.area.kode_area
+        } : undefined
+      }))
+    } catch (error) {
+      console.error('Error in getByWilayah():', error)
+      throw error
+    }
   }
 
   async getById(id: string): Promise<Unit | null> {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select(`
-        *,
-        wilayah:wilayah_id (
-          id,
-          nama,
-          kode_wilayah
-        ),
-        area:area_id (
-          id,
-          nama_area,
-          kode_area
-        )
-      `)
-      .eq('id', id)
-      .single()
+    try {
+      // First, try with joins
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select(`
+          *,
+          wilayah:wilayah_id (
+            id,
+            nama,
+            kode_wilayah
+          ),
+          area:area_id (
+            id,
+            nama_area,
+            kode_area
+          )
+        `)
+        .eq('id', id)
+        .single()
 
-    if (error) throw error
-    
-    // Map the database column names to the expected interface names
-    if (data) {
-      return {
-        ...data,
-        kode: data.kode_unit,
-        nama: data.nama_unit,
-        wilayah: data.wilayah ? {
-          ...data.wilayah,
-          kode: data.wilayah.kode_wilayah
-        } : undefined,
-        area: data.area ? {
-          ...data.area,
-          nama: data.area.nama_area,
-          kode: data.area.kode_area
-        } : undefined
+      if (error) {
+        // Fallback to simple query
+        console.warn('Units getById join query failed, falling back to simple query:', error.message)
+        const { data: simpleData, error: simpleError } = await supabase
+          .from(this.tableName)
+          .select('*')
+          .eq('id', id)
+          .single()
+
+        if (simpleError) throw simpleError
+
+        // Map without relations
+        if (simpleData) {
+          return {
+            ...simpleData,
+            kode: simpleData.kode_unit,
+            nama: simpleData.nama_unit,
+            wilayah: undefined,
+            area: undefined
+          }
+        }
+        return null
       }
+
+      // Map the database column names to the expected interface names
+      if (data) {
+        return {
+          ...data,
+          kode: data.kode_unit,
+          nama: data.nama_unit,
+          wilayah: data.wilayah ? {
+            ...data.wilayah,
+            kode: data.wilayah.kode_wilayah
+          } : undefined,
+          area: data.area ? {
+            ...data.area,
+            nama: data.area.nama_area,
+            kode: data.area.kode_area
+          } : undefined
+        }
+      }
+      return null
+    } catch (error) {
+      console.error('Error in getById():', error)
+      throw error
     }
-    return null
   }
 
   async create(unit: CreateUnitDto): Promise<Unit> {
