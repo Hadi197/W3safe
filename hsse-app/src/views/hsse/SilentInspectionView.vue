@@ -790,7 +790,7 @@ const editItem = async (item: SilentInspection) => {
   editId.value = item.id
   form.value = {
     tanggal: item.tanggal,
-    waktu_mulai: item.waktu_mulai,
+    waktu_mulai: item.waktu_mulai || '',
     waktu_selesai: item.waktu_selesai,
     unit_id: item.unit_id,
     area_inspeksi: item.area_inspeksi,

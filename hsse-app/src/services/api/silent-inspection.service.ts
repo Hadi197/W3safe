@@ -61,6 +61,7 @@ export interface SilentInspection {
   dokumen_pendukung?: any
   catatan_inspector?: string
   catatan_verifier?: string
+  catatan?: string
   verified_by?: string
   created_by?: string
   // Relations
@@ -109,6 +110,13 @@ export interface CreateSilentInspectionDto {
   status_tindak_lanjut?: string
   status?: string
   catatan?: string
+  // Additional properties used in service
+  triwulan?: number
+  tahun?: number
+  wilayah_id?: string
+  fokus_inspeksi?: any
+  skor_total?: number
+  temuan?: any
 }
 
 export interface UpdateSilentInspectionDto {
