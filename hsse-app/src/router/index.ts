@@ -112,6 +112,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/hsse/SafetyDrillView.vue'),
         meta: { title: 'Safety Drill' }
       },
+      {
+        path: 'unsafe-action-condition',
+        name: 'unsafe-action-condition',
+        component: () => import('@/views/hsse/UnsafeActionConditionView.vue'),
+        meta: { title: 'Unsafe Action/Condition' }
+      },
       // Profile
       {
         path: 'profile',
