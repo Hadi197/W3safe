@@ -128,7 +128,7 @@
                   <div class="text-xs text-gray-500">Kategori: {{ forum.kategori_forum || '-' }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ forum.unit?.nama || '-' }}</div>
+                  <div class="text-sm text-gray-900">{{ forum.unit?.nama_unit || '-' }}</div>
                   <div class="text-xs text-gray-500">{{ forum.lokasi }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
