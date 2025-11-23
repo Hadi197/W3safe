@@ -8,17 +8,27 @@ ALTER TABLE safety_briefing ADD COLUMN IF NOT EXISTS catatan TEXT;
 -- If foto_dokumentasi doesn't exist but foto_briefing does, rename it
 DO $$
 BEGIN
-    -- Check if foto_dokumentasi column exists
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'safety_briefing' AND column_name = 'foto_dokumentasi'
-    ) AND EXISTS (
+    -- Step 1: Handle foto_briefing -> foto_dokumentasi conversion
+    IF EXISTS (
         SELECT 1 FROM information_schema.columns
         WHERE table_name = 'safety_briefing' AND column_name = 'foto_briefing'
     ) THEN
-        -- Rename foto_briefing to foto_dokumentasi
-        ALTER TABLE safety_briefing RENAME COLUMN foto_briefing TO foto_dokumentasi;
-        RAISE NOTICE 'Renamed foto_briefing to foto_dokumentasi';
+        -- Convert jsonb array to text array first, then rename
+        -- Create a temporary text array column
+        ALTER TABLE safety_briefing ADD COLUMN temp_foto_dokumentasi TEXT[];
+
+        -- Convert jsonb data to text array
+        UPDATE safety_briefing SET temp_foto_dokumentasi = CASE
+            WHEN foto_briefing IS NULL THEN ARRAY[]::TEXT[]
+            WHEN jsonb_typeof(foto_briefing) = 'array' THEN
+                ARRAY(SELECT jsonb_array_elements_text(foto_briefing))
+            ELSE ARRAY[]::TEXT[]
+        END;
+
+        -- Drop old column and rename new one
+        ALTER TABLE safety_briefing DROP COLUMN foto_briefing;
+        ALTER TABLE safety_briefing RENAME COLUMN temp_foto_dokumentasi TO foto_dokumentasi;
+        RAISE NOTICE 'Converted foto_briefing (jsonb) to foto_dokumentasi (text[])';
     END IF;
 
     -- Ensure catatan column exists
@@ -48,45 +58,11 @@ UPDATE safety_briefing SET
 WHERE catatan IS NULL
    OR jumlah_peserta IS NULL;
 
--- Handle foto_dokumentasi based on its actual type
-DO $$
-DECLARE
-    col_type TEXT;
-BEGIN
-    -- Check the actual type of foto_dokumentasi column
-    SELECT data_type INTO col_type
-    FROM information_schema.columns
-    WHERE table_name = 'safety_briefing' AND column_name = 'foto_dokumentasi';
-
-    RAISE NOTICE 'foto_dokumentasi column type: %', col_type;
-
-    -- Handle based on type
-    IF col_type = 'ARRAY' THEN
-        -- It's already text array
-        UPDATE safety_briefing SET
-            foto_dokumentasi = COALESCE(foto_dokumentasi, ARRAY[]::TEXT[])
-        WHERE foto_dokumentasi IS NULL;
-        RAISE NOTICE 'Initialized foto_dokumentasi as text array';
-    ELSIF col_type = 'jsonb' THEN
-        -- It's jsonb, API expects text array, so convert jsonb array to text array
-        -- First ensure it's an array, then convert
-        UPDATE safety_briefing SET
-            foto_dokumentasi = CASE
-                WHEN foto_dokumentasi IS NULL THEN ARRAY[]::TEXT[]
-                WHEN jsonb_typeof(foto_dokumentasi) = 'array' THEN
-                    -- Convert jsonb array to text array
-                    ARRAY(SELECT jsonb_array_elements_text(foto_dokumentasi))
-                ELSE ARRAY[]::TEXT[]
-            END;
-        RAISE NOTICE 'Converted foto_dokumentasi from jsonb to text array';
-
-        -- Now change column type to text array
-        ALTER TABLE safety_briefing ALTER COLUMN foto_dokumentasi TYPE TEXT[];
-        RAISE NOTICE 'Changed foto_dokumentasi column type to text[]';
-    ELSE
-        RAISE NOTICE 'foto_dokumentasi type % not handled, skipping initialization', col_type;
-    END IF;
-END $$;
+-- Initialize foto_dokumentasi with empty arrays where needed
+UPDATE safety_briefing SET
+    foto_dokumentasi = COALESCE(foto_dokumentasi, ARRAY[]::TEXT[])
+WHERE foto_dokumentasi IS NULL;
+RAISE NOTICE 'Initialized NULL foto_dokumentasi values with empty arrays';
 
 -- Verify the fixes
 SELECT
