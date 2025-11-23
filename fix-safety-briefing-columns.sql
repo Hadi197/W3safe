@@ -62,7 +62,6 @@ WHERE catatan IS NULL
 UPDATE safety_briefing SET
     foto_dokumentasi = COALESCE(foto_dokumentasi, ARRAY[]::TEXT[])
 WHERE foto_dokumentasi IS NULL;
-RAISE NOTICE 'Initialized NULL foto_dokumentasi values with empty arrays';
 
 -- Verify the fixes
 SELECT
