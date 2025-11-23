@@ -597,7 +597,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { UnsafeActionConditionService } from '@/services/hsse/unsafe-action-condition.service'
 
 // Reactive data
