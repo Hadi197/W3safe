@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../api/supabase'
 import type { Database } from '@/types/database'
 
 type UnsafeActionCondition = Database['public']['Tables']['unsafe_action_condition']['Row']

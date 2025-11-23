@@ -601,7 +601,7 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { UnsafeActionConditionService } from '@/services/hsse/unsafe-action-condition.service'
 
 // Reactive data
-const incidents = ref([])
+const incidents = ref<any[]>([])
 const stats = reactive({
   total_incidents: 0,
   by_type: { unsafe_action: 0, unsafe_condition: 0 },
@@ -683,18 +683,18 @@ const loadStats = async () => {
   }
 }
 
-const viewIncident = (incident) => {
+const viewIncident = (incident: any) => {
   // TODO: Implement view modal
   console.log('View incident:', incident)
 }
 
-const editIncident = (incident) => {
+const editIncident = (incident: any) => {
   selectedIncident.value = incident
   Object.assign(formData, incident)
   showForm.value = true
 }
 
-const deleteIncident = async (id) => {
+const deleteIncident = async (id: string) => {
   if (!confirm('Apakah Anda yakin ingin menghapus laporan ini?')) return
 
   try {
@@ -711,9 +711,9 @@ const saveIncident = async () => {
   saving.value = true
   try {
     if (selectedIncident.value) {
-      await UnsafeActionConditionService.update(selectedIncident.value.id, formData)
+      await UnsafeActionConditionService.update((selectedIncident.value as any).id, formData as any)
     } else {
-      await UnsafeActionConditionService.create(formData)
+      await UnsafeActionConditionService.create(formData as any)
     }
 
     showForm.value = false
@@ -780,6 +780,11 @@ const capturePhoto = async () => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
 
+    if (!ctx) {
+      alert('Canvas context not available')
+      return
+    }
+
     // Wait for video to be ready
     video.onloadedmetadata = () => {
       canvas.width = video.videoWidth
@@ -805,7 +810,7 @@ const capturePhoto = async () => {
   }
 }
 
-const selectFile = (type) => {
+const selectFile = (type: string) => {
   if (type === 'photo') {
     photoInput.value.click()
   } else if (type === 'video') {
@@ -813,7 +818,7 @@ const selectFile = (type) => {
   }
 }
 
-const handleFileUpload = async (type, event) => {
+const handleFileUpload = async (type: string, event: any) => {
   const file = event.target.files[0]
   if (!file) return
 
@@ -829,27 +834,32 @@ const handleFileUpload = async (type, event) => {
   }
 }
 
-const handlePhotoUpload = async (file) => {
+const handlePhotoUpload = async (file: File) => {
   // Compress image if too large
   const compressedFile = await compressImage(file)
   const url = await UnsafeActionConditionService.uploadPhoto(compressedFile, 'temp')
 
   if (!formData.foto_kejadian) formData.foto_kejadian = []
-  formData.foto_kejadian.push(url)
+  ;(formData.foto_kejadian as string[]).push(url)
 }
 
-const handleVideoUpload = async (file) => {
+const handleVideoUpload = async (file: File) => {
   const url = await UnsafeActionConditionService.uploadVideo(file, 'temp')
 
   if (!formData.video_kejadian) formData.video_kejadian = []
-  formData.video_kejadian.push(url)
+  ;(formData.video_kejadian as string[]).push(url)
 }
 
-const compressImage = (file) => {
-  return new Promise((resolve) => {
+const compressImage = (file: File) => {
+  return new Promise<File>((resolve) => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     const img = new Image()
+
+    if (!ctx) {
+      resolve(file) // Return original file if canvas not available
+      return
+    }
 
     img.onload = () => {
       // Calculate new dimensions (max 1920px width/height)
@@ -873,18 +883,24 @@ const compressImage = (file) => {
 
       ctx.drawImage(img, 0, 0, width, height)
 
-      canvas.toBlob(resolve, 'image/jpeg', 0.8)
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(new File([blob], `compressed_${Date.now()}.jpg`, { type: 'image/jpeg' }))
+        } else {
+          resolve(file)
+        }
+      }, 'image/jpeg', 0.8)
     }
 
     img.src = URL.createObjectURL(file)
   })
 }
 
-const removeMedia = (field, index) => {
-  formData[field].splice(index, 1)
+const removeMedia = (field: string, index: number) => {
+  ;(formData as any)[field].splice(index, 1)
 }
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('id-ID', {
     day: '2-digit',
