@@ -360,7 +360,7 @@ const loadMonthlyData = async () => {
     const { data: unitsData } = await supabase
       .from('units')
       .select('*')
-      .order('nama')
+      .order('nama_unit')
     
     units.value = unitsData || []
     
