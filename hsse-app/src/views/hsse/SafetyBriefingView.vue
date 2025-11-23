@@ -101,8 +101,8 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <button 
-                  v-if="item.foto_dokumentasi && item.foto_dokumentasi.length > 0" 
+                <button
+                  v-if="item.foto_dokumentasi && item.foto_dokumentasi.length > 0"
                   @click="viewPhotos(item)"
                   class="text-primary-600 hover:text-primary-900 font-medium"
                 >
@@ -729,10 +729,15 @@ const handleSubmit = async () => {
 
     // Upload new photos if any
     if (selectedFiles.value.length > 0) {
-      photoUrls = await safetyBriefingService.uploadPhotos(
-        selectedFiles.value,
-        currentItemId.value || undefined
-      )
+      try {
+        photoUrls = await safetyBriefingService.uploadPhotos(
+          selectedFiles.value,
+          currentItemId.value || undefined
+        )
+      } catch (photoError) {
+        console.warn('Photo upload failed, continuing without photos:', photoError)
+        alert('Peringatan: Upload foto gagal, data akan disimpan tanpa foto')
+      }
     }
 
     // Combine with existing photos (for edit mode)

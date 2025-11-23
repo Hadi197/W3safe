@@ -228,7 +228,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units(id, kode_unit, nama_unit)
       `, { count: 'exact' })
       .order('tanggal_walkthrough', { ascending: false })
 
@@ -273,7 +273,14 @@ class ManagementWalkthroughService {
     if (error) throw error
 
     return {
-      data: data || [],
+      data: (data || []).map(item => ({
+        ...item,
+        unit: item.unit ? {
+          ...item.unit,
+          kode: item.unit.kode_unit,
+          nama: item.unit.nama_unit
+        } : null
+      })),
       count: count || 0,
       page,
       pageSize,
@@ -289,13 +296,20 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units(id, kode_unit, nama_unit)
       `)
       .eq('id', id)
       .single()
 
     if (error) throw error
-    return data
+    return data ? {
+      ...data,
+      unit: data.unit ? {
+        ...data.unit,
+        kode: data.unit.kode_unit,
+        nama: data.unit.nama_unit
+      } : null
+    } : null
   }
 
   /**
@@ -448,14 +462,21 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units(id, kode_unit, nama_unit)
       `)
       .eq('perlu_follow_up', true)
       .in('status_follow_up', ['belum', 'terjadwal'])
       .order('tanggal_follow_up', { ascending: true })
 
     if (error) throw error
-    return data || []
+    return (data || []).map(item => ({
+      ...item,
+      unit: item.unit ? {
+        ...item.unit,
+        kode: item.unit.kode_unit,
+        nama: item.unit.nama_unit
+      } : null
+    }))
   }
 
   /**
@@ -466,14 +487,21 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units(id, kode_unit, nama_unit)
       `)
       .gt('temuan_kritis', 0)
       .neq('status', 'completed')
       .order('tanggal_walkthrough', { ascending: false })
 
     if (error) throw error
-    return data || []
+    return (data || []).map(item => ({
+      ...item,
+      unit: item.unit ? {
+        ...item.unit,
+        kode: item.unit.kode_unit,
+        nama: item.unit.nama_unit
+      } : null
+    }))
   }
 }
 

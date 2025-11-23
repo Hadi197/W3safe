@@ -31,10 +31,16 @@ class WilayahService {
     const { data, error } = await supabase
       .from(this.tableName)
       .select('*')
-      .order('nama', { ascending: true })
+      .order('nama_wilayah', { ascending: true })
 
     if (error) throw error
-    return data || []
+    
+    // Map kode_wilayah to kode and nama_wilayah to nama for frontend compatibility
+    return (data || []).map(wilayah => ({
+      ...wilayah,
+      kode: wilayah.kode_wilayah,
+      nama: wilayah.nama_wilayah
+    }))
   }
 
   async getActive(): Promise<Wilayah[]> {
@@ -42,10 +48,16 @@ class WilayahService {
       .from(this.tableName)
       .select('*')
       .eq('aktif', true)
-      .order('nama', { ascending: true })
+      .order('nama_wilayah', { ascending: true })
 
     if (error) throw error
-    return data || []
+    
+    // Map kode_wilayah to kode and nama_wilayah to nama for frontend compatibility
+    return (data || []).map(wilayah => ({
+      ...wilayah,
+      kode: wilayah.kode_wilayah,
+      nama: wilayah.nama_wilayah
+    }))
   }
 
   async getById(id: string): Promise<Wilayah | null> {

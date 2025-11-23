@@ -22,15 +22,25 @@ export interface SafetyBriefing {
   petugas_id?: string
   topik: string
   materi?: string
-  jumlah_peserta?: number
-  daftar_peserta?: string[]
-  foto_dokumentasi?: string[]
   status: 'draft' | 'approved' | 'rejected'
-  catatan?: string
-  created_at?: string
-  updated_at?: string
-  unit?: { id: string; nama: string; kode: string }
-  petugas?: { id: string; nama: string; nip: string }
+  created_by?: string
+  created_at: string
+  updated_at: string
+  // Mapped properties for frontend compatibility
+  topik_briefing?: string
+  materi_briefing?: string
+  foto_briefing?: any
+  // Relations
+  unit?: {
+    id: string
+    nama: string
+    kode: string
+  }
+  petugas?: {
+    id: string
+    nama: string
+    nip: string
+  }
 }
 
 export interface CreateSafetyBriefingDto {
@@ -39,13 +49,12 @@ export interface CreateSafetyBriefingDto {
   waktu_selesai?: string
   unit_id?: string
   petugas_id?: string
-  topik: string
+  topik?: string
+  topik_briefing?: string
   materi?: string
-  jumlah_peserta?: number
-  daftar_peserta?: string[]
+  materi_briefing?: string
   foto_dokumentasi?: string[]
   status?: 'draft' | 'approved' | 'rejected'
-  catatan?: string
 }
 
 export interface UpdateSafetyBriefingDto extends Partial<CreateSafetyBriefingDto> {}
@@ -58,18 +67,8 @@ class SafetyBriefingService {
    * Get all safety briefing records (backward compatible)
    */
   async getAll(): Promise<SafetyBriefing[]> {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
-      `)
-      .order('tanggal', { ascending: false })
-      .order('waktu_mulai', { ascending: false })
-
-    if (error) throw error
-    return data || []
+    const result = await this.getPaginated({ page: 1, pageSize: 1000 })
+    return result.data
   }
 
   /**
@@ -91,12 +90,21 @@ class SafetyBriefingService {
     let query = supabase
       .from(this.tableName)
       .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
+        id,
+        tanggal,
+        waktu_mulai,
+        waktu_selesai,
+        unit_id,
+        petugas_id,
+        topik,
+        materi,
+        foto_briefing,
+        status,
+        created_by,
+        created_at,
+        updated_at
       `, { count: 'exact' })
 
-    // Apply filters
     if (filters?.searchQuery) {
       query = query.ilike('topik', `%${filters.searchQuery}%`)
     }
@@ -121,8 +129,55 @@ class SafetyBriefingService {
 
     if (error) throw error
 
+    // Get unit data separately
+    const processedData = await Promise.all((data || []).map(async (briefing) => {
+      const briefingWithRelations = {
+        ...briefing,
+        // Map database columns to frontend properties
+        topik_briefing: briefing.topik,
+        materi_briefing: briefing.materi,
+        foto_dokumentasi: briefing.foto_briefing || []
+      } as SafetyBriefing
+
+      // Get unit data
+      if (briefing.unit_id) {
+        const { data: unit } = await supabase
+          .from('units')
+          .select('id, nama_unit, kode_unit')
+          .eq('id', briefing.unit_id)
+          .single()
+
+        if (unit) {
+          briefingWithRelations.unit = {
+            id: unit.id,
+            nama: unit.nama_unit,
+            kode: unit.kode_unit
+          }
+        }
+      }
+
+      // Get petugas data
+      if (briefing.petugas_id) {
+        const { data: petugas } = await supabase
+          .from('pegawai')
+          .select('id, nama_lengkap, nip')
+          .eq('id', briefing.petugas_id)
+          .single()
+
+        if (petugas) {
+          briefingWithRelations.petugas = {
+            id: petugas.id,
+            nama: petugas.nama_lengkap,
+            nip: petugas.nip
+          }
+        }
+      }
+
+      return briefingWithRelations
+    }))
+
     return {
-      data: data || [],
+      data: processedData,
       count: count || 0,
       page,
       pageSize,
@@ -137,15 +192,66 @@ class SafetyBriefingService {
     const { data, error } = await supabase
       .from(this.tableName)
       .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
+        id,
+        tanggal,
+        waktu_mulai,
+        waktu_selesai,
+        unit_id,
+        petugas_id,
+        topik,
+        materi,
+        status,
+        created_by,
+        created_at,
+        updated_at
       `)
       .eq('id', id)
       .single()
 
     if (error) throw error
-    return data
+
+    // Get unit and petugas data separately
+    const briefingWithRelations = {
+      ...data,
+      // Map database columns to frontend properties
+      topik_briefing: data.topik,
+      materi_briefing: data.materi,
+      foto_briefing: data.materi // placeholder
+    } as SafetyBriefing
+
+    if (data.unit_id) {
+      const { data: unit } = await supabase
+        .from('units')
+        .select('id, nama_unit, kode_unit')
+        .eq('id', data.unit_id)
+        .single()
+
+      if (unit) {
+        briefingWithRelations.unit = {
+          id: unit.id,
+          nama: unit.nama_unit,
+          kode: unit.kode_unit
+        }
+      }
+    }
+
+    if (data.petugas_id) {
+      const { data: petugas } = await supabase
+        .from('pegawai')
+        .select('id, nama_lengkap, nip')
+        .eq('id', data.petugas_id)
+        .single()
+
+      if (petugas) {
+        briefingWithRelations.petugas = {
+          id: petugas.id,
+          nama: petugas.nama_lengkap,
+          nip: petugas.nip
+        }
+      }
+    }
+
+    return briefingWithRelations
   }
 
   /**
@@ -155,15 +261,62 @@ class SafetyBriefingService {
     const { data, error } = await supabase
       .from(this.tableName)
       .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
+        id,
+        nomor_briefing,
+        tanggal,
+        waktu_mulai,
+        waktu_selesai,
+        unit_id,
+        area_briefing,
+        topik_briefing,
+        peserta,
+        jumlah_peserta,
+        materi_briefing,
+        poin_poin_pembahasan,
+        kesimpulan,
+        rekomendasi,
+        tindak_lanjut,
+        foto_briefing,
+        dokumen_pendukung,
+        status,
+        jenis_briefing,
+        created_by,
+        created_at,
+        updated_at,
+        approved_by,
+        approved_at
       `)
       .eq('unit_id', unitId)
       .order('tanggal', { ascending: false })
 
     if (error) throw error
-    return data || []
+
+    // Get unit data for each briefing
+    const processedData = await Promise.all((data || []).map(async (briefing) => {
+      const briefingWithRelations = {
+        ...briefing,
+        // Map database columns to frontend properties
+        topik_briefing: briefing.topik,
+        materi_briefing: briefing.materi,
+        foto_dokumentasi: briefing.foto_briefing || []
+      } as SafetyBriefing
+
+      if (briefing.unit_id) {
+        const { data: unit } = await supabase
+          .from('units')
+          .select('id, nama, kode')
+          .eq('id', briefing.unit_id)
+          .single()
+
+        if (unit) {
+          briefingWithRelations.unit = unit
+        }
+      }
+
+      return briefingWithRelations
+    }))
+
+    return processedData
   }
 
   /**
@@ -172,17 +325,42 @@ class SafetyBriefingService {
   async getByDateRange(startDate: string, endDate: string): Promise<SafetyBriefing[]> {
     const { data, error } = await supabase
       .from(this.tableName)
-      .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
-      `)
+      .select('id, tanggal, waktu_mulai, waktu_selesai, unit_id, petugas_id, topik, materi, status, created_by, created_at, updated_at')
       .gte('tanggal', startDate)
       .lte('tanggal', endDate)
       .order('tanggal', { ascending: false })
 
     if (error) throw error
-    return data || []
+
+    // Load unit and petugas data separately
+    const processedData = await Promise.all((data || []).map(async (briefing) => {
+      const briefingWithRelations = {
+        ...briefing,
+        topik_briefing: briefing.topik,
+        materi_briefing: briefing.materi
+      } as SafetyBriefing
+
+      // Get unit data
+      if (briefing.unit_id) {
+        const { data: unit } = await supabase
+          .from('units')
+          .select('id, nama_unit, kode_unit')
+          .eq('id', briefing.unit_id)
+          .single()
+
+        if (unit) {
+          briefingWithRelations.unit = {
+            id: unit.id,
+            nama: unit.nama_unit,
+            kode: unit.kode_unit
+          }
+        }
+      }
+
+      return briefingWithRelations
+    }))
+
+    return processedData
   }
 
   /**
@@ -191,16 +369,41 @@ class SafetyBriefingService {
   async getByStatus(status: 'draft' | 'approved' | 'rejected'): Promise<SafetyBriefing[]> {
     const { data, error } = await supabase
       .from(this.tableName)
-      .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
-      `)
+      .select('id, tanggal, waktu_mulai, waktu_selesai, unit_id, petugas_id, topik, materi, status, created_by, created_at, updated_at')
       .eq('status', status)
       .order('tanggal', { ascending: false })
 
     if (error) throw error
-    return data || []
+
+    // Load unit data separately
+    const processedData = await Promise.all((data || []).map(async (briefing) => {
+      const briefingWithRelations = {
+        ...briefing,
+        topik_briefing: briefing.topik,
+        materi_briefing: briefing.materi
+      } as SafetyBriefing
+
+      // Get unit data
+      if (briefing.unit_id) {
+        const { data: unit } = await supabase
+          .from('units')
+          .select('id, nama_unit, kode_unit')
+          .eq('id', briefing.unit_id)
+          .single()
+
+        if (unit) {
+          briefingWithRelations.unit = {
+            id: unit.id,
+            nama: unit.nama_unit,
+            kode: unit.kode_unit
+          }
+        }
+      }
+
+      return briefingWithRelations
+    }))
+
+    return processedData
   }
 
   /**
@@ -261,40 +464,117 @@ class SafetyBriefingService {
    * Create new safety briefing
    */
   async create(dto: CreateSafetyBriefingDto): Promise<SafetyBriefing> {
+    // Map frontend properties to database columns
+    const dbData = {
+      tanggal: dto.tanggal,
+      waktu_mulai: dto.waktu_mulai,
+      waktu_selesai: dto.waktu_selesai,
+      unit_id: dto.unit_id,
+      petugas_id: dto.petugas_id || (await this.getDemoPetugasId()),
+      topik: dto.topik_briefing || dto.topik,
+      materi: dto.materi_briefing || dto.materi,
+      foto_briefing: (dto as any).foto_dokumentasi || [],
+      status: dto.status || 'draft',
+      created_by: dto.petugas_id || (await this.getDemoPetugasId())
+    }
+
     const { data, error } = await supabase
       .from(this.tableName)
-      .insert({
-        ...dto,
-        status: dto.status || 'draft'
-      })
-      .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
-      `)
+      .insert(dbData)
+      .select()
       .single()
 
     if (error) throw error
-    return data
+
+    // Get unit data separately to avoid join issues
+    let unitData = undefined
+    if (data.unit_id) {
+      const { data: unit } = await supabase
+        .from('units')
+        .select('id, nama_unit, kode_unit')
+        .eq('id', data.unit_id)
+        .single()
+
+      if (unit) {
+        unitData = {
+          id: unit.id,
+          nama: unit.nama_unit,
+          kode: unit.kode_unit
+        }
+      }
+    }
+
+    // Map response to frontend format
+    return {
+      ...data,
+      topik_briefing: data.topik,
+      materi_briefing: data.materi,
+      unit: unitData
+    }
+  }
+
+  // Helper method to get demo petugas ID
+  private async getDemoPetugasId(): Promise<string> {
+    const { data } = await supabase
+      .from('pegawai')
+      .select('id')
+      .eq('nip', 'DEMO001')
+      .single()
+
+    return data?.id || ''
   }
 
   /**
    * Update safety briefing
    */
   async update(id: string, dto: UpdateSafetyBriefingDto): Promise<SafetyBriefing> {
+    // Map frontend properties to database columns
+    const dbData: any = {}
+
+    if (dto.tanggal) dbData.tanggal = dto.tanggal
+    if (dto.waktu_mulai) dbData.waktu_mulai = dto.waktu_mulai
+    if (dto.waktu_selesai !== undefined) dbData.waktu_selesai = dto.waktu_selesai
+    if (dto.unit_id) dbData.unit_id = dto.unit_id
+    if (dto.petugas_id) dbData.petugas_id = dto.petugas_id
+    if (dto.topik_briefing) dbData.topik = dto.topik_briefing
+    if (dto.materi_briefing) dbData.materi = dto.materi_briefing
+    if ((dto as any).foto_dokumentasi !== undefined) dbData.foto_briefing = (dto as any).foto_dokumentasi
+    if (dto.status) dbData.status = dto.status
+
     const { data, error } = await supabase
       .from(this.tableName)
-      .update(dto)
+      .update(dbData)
       .eq('id', id)
-      .select(`
-        *,
-        unit:unit_id (id, nama, kode),
-        petugas:petugas_id (id, nama, nip)
-      `)
+      .select()
       .single()
 
     if (error) throw error
-    return data
+
+    // Get unit data separately to avoid join issues
+    let unitData = undefined
+    if (data.unit_id) {
+      const { data: unit } = await supabase
+        .from('units')
+        .select('id, nama_unit, kode_unit')
+        .eq('id', data.unit_id)
+        .single()
+
+      if (unit) {
+        unitData = {
+          id: unit.id,
+          nama: unit.nama_unit,
+          kode: unit.kode_unit
+        }
+      }
+    }
+
+    // Map response to frontend format
+    return {
+      ...data,
+      topik_briefing: data.topik,
+      materi_briefing: data.materi,
+      unit: unitData
+    }
   }
 
   /**
@@ -304,10 +584,10 @@ class SafetyBriefingService {
     // First, get the record to delete associated photos
     const briefing = await this.getById(id)
     
-    if (briefing?.foto_dokumentasi && briefing.foto_dokumentasi.length > 0) {
+    if (briefing?.foto_briefing && briefing.foto_briefing.length > 0) {
       // Delete all photos from storage
       await Promise.all(
-        briefing.foto_dokumentasi.map(url => this.deletePhoto(url))
+        briefing.foto_briefing.map((url: string) => this.deletePhoto(url))
       )
     }
 

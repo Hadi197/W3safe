@@ -122,14 +122,22 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <button 
+
+                <button
                   v-if="item.foto_kondisi_unsafe?.length || item.foto_perilaku_unsafe?.length"
-                  @click="viewPhotos(item)" 
-                  class="text-primary-600 hover:text-primary-800"
+                  @click="viewPhotos(item)"
+                  class="text-primary-600 hover:text-primary-800 flex items-center gap-1"
+                  title="Lihat Foto"
                 >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   {{ (item.foto_kondisi_unsafe?.length || 0) + (item.foto_perilaku_unsafe?.length || 0) }} foto
                 </button>
-                <span v-else class="text-gray-400">-</span>
+                <span v-else class="text-gray-400">
+                  - {{ item.foto_kondisi_unsafe?.length || 0 }}-{{ item.foto_perilaku_unsafe?.length || 0 }} -
+                </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex gap-2 justify-end">
@@ -669,7 +677,7 @@ const pageNumbers = computed(() => {
 const loadData = async () => {
   try {
     loading.value = true
-    
+
     // Build filters
     const filters: any = {}
     if (searchQuery.value) filters.search = searchQuery.value
@@ -689,6 +697,7 @@ const loadData = async () => {
     ])
     
     items.value = result.data
+
     totalRecords.value = result.count
     totalPages.value = result.totalPages
     units.value = unitsData
@@ -908,18 +917,34 @@ const handleSubmit = async () => {
 
     // Upload new photos kondisi
     if (newPhotosKondisi.value.length > 0) {
-      const tempId = inspectionId || 'temp_' + Date.now()
-      const files = newPhotosKondisi.value.map(p => p.file)
-      const uploadedUrls = await silentInspectionService.uploadPhotos(files, tempId)
-      form.value.foto_kondisi_unsafe = [...(form.value.foto_kondisi_unsafe || []), ...uploadedUrls]
+      try {
+        const tempId = inspectionId || 'temp_' + Date.now()
+        const files = newPhotosKondisi.value.map(p => p.file)
+        console.log(`📤 Uploading ${files.length} kondisi unsafe photos...`)
+        const uploadedUrls = await silentInspectionService.uploadPhotos(files, tempId)
+        form.value.foto_kondisi_unsafe = [...(form.value.foto_kondisi_unsafe || []), ...uploadedUrls]
+        console.log('✅ Kondisi unsafe photos uploaded successfully')
+      } catch (photoError) {
+        console.warn('❌ Photo upload failed for kondisi unsafe:', photoError)
+        const errorMessage = photoError instanceof Error ? photoError.message : 'Unknown error'
+        alert('Peringatan: Upload foto kondisi unsafe gagal, data akan disimpan tanpa foto.\n\nError: ' + errorMessage)
+      }
     }
 
     // Upload new photos perilaku
     if (newPhotosPerilaku.value.length > 0) {
-      const tempId = inspectionId || 'temp_' + Date.now()
-      const files = newPhotosPerilaku.value.map(p => p.file)
-      const uploadedUrls = await silentInspectionService.uploadPhotos(files, tempId)
-      form.value.foto_perilaku_unsafe = [...(form.value.foto_perilaku_unsafe || []), ...uploadedUrls]
+      try {
+        const tempId = inspectionId || 'temp_' + Date.now()
+        const files = newPhotosPerilaku.value.map(p => p.file)
+        console.log(`📤 Uploading ${files.length} perilaku unsafe photos...`)
+        const uploadedUrls = await silentInspectionService.uploadPhotos(files, tempId)
+        form.value.foto_perilaku_unsafe = [...(form.value.foto_perilaku_unsafe || []), ...uploadedUrls]
+        console.log('✅ Perilaku unsafe photos uploaded successfully')
+      } catch (photoError) {
+        console.warn('❌ Photo upload failed for perilaku unsafe:', photoError)
+        const errorMessage = photoError instanceof Error ? photoError.message : 'Unknown error'
+        alert('Peringatan: Upload foto perilaku unsafe gagal, data akan disimpan tanpa foto.\n\nError: ' + errorMessage)
+      }
     }
 
     if (isEdit.value && inspectionId) {
@@ -958,9 +983,9 @@ const viewPhotos = (item: SilentInspection) => {
     ...(item.foto_kondisi_unsafe || []),
     ...(item.foto_perilaku_unsafe || [])
   ]
-  
+
   if (allPhotos.length === 0) return
-  
+
   currentPhotos.value = allPhotos
   currentPhotoIndex.value = 0
   showPhotoModal.value = true
