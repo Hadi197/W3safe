@@ -1596,11 +1596,26 @@ const handleSubmit = async () => {
     
     // Remove unit object if exists (same issue as safety forum)
     delete dataToSave.unit
-    
+
     // Convert empty string UUID fields to null
     if (dataToSave.unit_id === '') dataToSave.unit_id = null
     if (dataToSave.created_by === '') dataToSave.created_by = null
     if (dataToSave.approved_by === '') dataToSave.approved_by = null
+
+    // Convert empty kondisi fields to null (to avoid check constraint violations)
+    // Database accepts null for these optional fields, but not empty strings or invalid values
+    if (!dataToSave.kondisi_housekeeping || dataToSave.kondisi_housekeeping === '') {
+      dataToSave.kondisi_housekeeping = null
+    }
+    if (!dataToSave.kondisi_pencahayaan || dataToSave.kondisi_pencahayaan === '') {
+      dataToSave.kondisi_pencahayaan = null
+    }
+    if (!dataToSave.kondisi_ventilasi || dataToSave.kondisi_ventilasi === '') {
+      dataToSave.kondisi_ventilasi = null
+    }
+    if (!dataToSave.kondisi_akses_jalan || dataToSave.kondisi_akses_jalan === '') {
+      dataToSave.kondisi_akses_jalan = null
+    }
     
     if (formMode.value === 'create') {
       await managementWalkthroughService.create(dataToSave)
