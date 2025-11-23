@@ -1135,6 +1135,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useImageCompression } from '@/composables/useImageCompression'
 import { safetyForumService, type SafetyForumDTO } from '@/services/api/safety-forum.service'
 import { unitsService } from '@/services/api/units.service'
+import { supabase } from '@/services/api/supabase'
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
@@ -1274,10 +1275,31 @@ const loadForums = async () => {
 
 const loadUnits = async () => {
   try {
+    console.log('Loading units...')
     const data = await unitsService.getAll()
+    console.log('Units loaded:', data?.length || 0, 'units')
+    console.log('First unit sample:', data?.[0])
     units.value = data || []
+    console.log('Units assigned to ref:', units.value.length, 'units')
   } catch (error) {
     console.error('Error loading units:', error)
+    // Fallback: try simple query
+    try {
+      console.log('Trying fallback units query...')
+      const { data: fallbackData } = await supabase
+        .from('units')
+        .select('id, nama_unit, kode_unit')
+        .eq('aktif', true)
+        .order('nama_unit')
+      units.value = (fallbackData || []).map(u => ({
+        id: u.id,
+        nama: u.nama_unit,
+        kode: u.kode_unit
+      }))
+      console.log('Fallback units loaded:', units.value.length, 'units')
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError)
+    }
   }
 }
 
