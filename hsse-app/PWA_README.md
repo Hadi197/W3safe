@@ -11,17 +11,39 @@ Progressive Web App (PWA) telah berhasil dibuat untuk menu Unsafe Action/Conditi
 ## 📱 Penggunaan di HP (Ponsel)
 
 ### Android (Chrome/Samsung Internet)
-1. Buka browser dan akses URL PWA
-2. Ketuk ikon "Install" atau "Add to Home Screen" yang muncul
-3. Aplikasi akan ter-install seperti app native
-4. Buka dari home screen seperti aplikasi biasa
+1. **Buka browser** dan akses: `http://localhost:4173/pwa/unsafe-action-condition`
+2. **Install prompt** akan muncul otomatis setelah beberapa kunjungan
+3. **Atau klik tombol "Install App"** yang muncul di kanan bawah
+4. **Aplikasi akan ter-install** seperti app native di home screen
 
 ### iOS (Safari)
-1. Buka Safari dan akses URL PWA
-2. Ketuk ikon "Share" (panah ke atas)
-3. Pilih "Add to Home Screen"
-4. Berikan nama dan ketuk "Add"
-5. Aplikasi akan muncul di home screen
+1. **Buka Safari** dan akses URL PWA
+2. **Ketuk ikon Share** (panah ke atas)
+3. **Pilih "Add to Home Screen"**
+4. **Beri nama** dan ketuk "Add"
+5. **Aplikasi muncul** di home screen
+
+### **Mengapa Tidak Selalu Otomatis Install?**
+
+PWA install prompt **TIDAK SELALU** muncul otomatis karena:
+
+#### **🔍 Kriteria Browser untuk Menampilkan Prompt:**
+- ✅ **HTTPS** (wajib untuk production)
+- ✅ **Service Worker** terdaftar
+- ✅ **Web App Manifest** valid
+- ✅ **User engagement** (beberapa kunjungan/interaksi)
+- ✅ **Tidak sudah terinstall**
+
+#### **📊 Kapan Prompt Muncul:**
+- Setelah user berinteraksi dengan web (klik, scroll, dll)
+- Minimal 30 detik engagement
+- Tidak muncul di setiap kunjungan
+- Browser memutuskan kapan menampilkan
+
+#### **🎯 Solusi Manual:**
+- **Tombol Install** sudah tersedia di kanan bawah
+- **Browser menu**: "Add to Home Screen" / "Install App"
+- **Address bar**: Icon install di Chrome
 
 ### Fitur Mobile
 - **Touch-friendly**: Semua tombol dan form dioptimasi untuk sentuhan
@@ -49,6 +71,21 @@ Progressive Web App (PWA) telah berhasil dibuat untuk menu Unsafe Action/Conditi
 ## 🚀 Build & Deploy:
 
 Aplikasi telah di-build dan di-push ke GitHub. PWA assets akan ter-generate otomatis saat build.
+
+### **⚠️ Production Requirements:**
+- **HTTPS wajib** - PWA hanya bekerja di HTTPS (kecuali localhost)
+- **Service Worker** harus terdaftar dengan benar
+- **Web App Manifest** harus accessible
+- **Domain valid** untuk install prompt
+
+### **🌐 Deploy ke Production:**
+```bash
+# Build untuk production
+npm run build
+
+# Deploy dist/ folder ke hosting dengan HTTPS
+# Contoh: Vercel, Netlify, Firebase Hosting, dll.
+```
 
 ## 📱 Tips Penggunaan di HP:
 
