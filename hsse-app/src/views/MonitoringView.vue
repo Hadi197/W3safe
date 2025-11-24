@@ -346,10 +346,6 @@
               <label class="text-sm font-medium text-gray-500">Unit</label>
               <p class="text-gray-900 mt-1">{{ selectedActivity.unit_name }}</p>
             </div>
-            <div>
-              <label class="text-sm font-medium text-gray-500">ID Record</label>
-              <p class="text-gray-900 mt-1 font-mono text-sm">{{ selectedActivity.record_id }}</p>
-            </div>
           </div>
           
           <div>
@@ -382,7 +378,6 @@ interface Activity {
   user_name: string
   unit_id: string
   unit_name: string
-  record_id: string
   description: string
   metadata?: any
 }
@@ -490,29 +485,74 @@ const paginatedActivities = computed(() => {
 const loadActivities = async () => {
   loading.value = true
   try {
-    // TODO: Replace with actual API call to monitoring table
-    // This is a mock implementation
-    const mockActivities: Activity[] = [
-      {
-        id: '1',
-        created_at: new Date().toISOString(),
-        module: 'safety_patrol',
-        activity_type: 'create',
-        user_id: 'user1',
-        user_name: 'John Doe',
-        unit_id: 'unit1',
-        unit_name: 'Unit A',
-        record_id: 'patrol-001',
-        description: 'Membuat laporan safety patrol baru di Area Produksi',
-        metadata: { area: 'Produksi', temuan: 3 }
-      },
-      // Add more mock data as needed
-    ]
+    const allActivities: Activity[] = []
     
-    activities.value = mockActivities
+    // Load from all HSSE tables
+    const tables = [
+      { name: 'safety_briefing', label: 'Safety Briefing', titleField: 'topik' },
+      { name: 'silent_inspection', label: 'Silent Inspection', titleField: 'hasil_inspeksi' },
+      { name: 'safety_patrol', label: 'Safety Patrol', titleField: 'lokasi_patrol' },
+      { name: 'safety_forum', label: 'Safety Forum', titleField: 'topik' },
+      { name: 'management_walkthrough', label: 'Management Walkthrough', titleField: 'area_inspeksi' },
+      { name: 'safety_drill', label: 'Safety Drill', titleField: 'jenis_drill' },
+      { name: 'safety_induction', label: 'Safety Induction', titleField: 'materi_induction' }
+    ]
+
+    for (const table of tables) {
+      const { data, error } = await supabase
+        .from(table.name)
+        .select(`
+          id,
+          created_at,
+          updated_at,
+          tanggal,
+          unit_id,
+          created_by,
+          ${table.titleField},
+          unit:units!unit_id(id, nama, kode)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(100)
+
+      if (!error && data) {
+        data.forEach((record: any) => {
+          // Create activity
+          allActivities.push({
+            id: record.id,
+            created_at: record.created_at,
+            module: table.name,
+            activity_type: 'create',
+            user_id: record.created_by || 'system',
+            user_name: 'User',
+            unit_id: record.unit_id || '',
+            unit_name: record.unit?.nama || '-',
+            description: record[table.titleField] || `${table.label} pada ${formatDate(record.tanggal)}`
+          })
+          
+          // If updated, add update activity
+          if (record.updated_at && record.updated_at !== record.created_at) {
+            allActivities.push({
+              id: `${record.id}-update`,
+              created_at: record.updated_at,
+              module: table.name,
+              activity_type: 'update',
+              user_id: record.created_by || 'system',
+              user_name: 'User',
+              unit_id: record.unit_id || '',
+              unit_name: record.unit?.nama || '-',
+              description: record[table.titleField] || `${table.label} diupdate`
+            })
+          }
+        })
+      }
+    }
+
+    // Sort by created_at desc
+    activities.value = allActivities.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
   } catch (error) {
     console.error('Error loading activities:', error)
-    alert('Gagal memuat data aktivitas')
   } finally {
     loading.value = false
   }
@@ -522,7 +562,8 @@ const loadUnits = async () => {
   try {
     const { data, error } = await supabase
       .from('units')
-      .select('*')
+      .select('id, nama, kode')
+      .eq('aktif', true)
       .order('nama')
 
     if (error) throw error

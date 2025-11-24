@@ -561,6 +561,8 @@ const fetchData = async () => {
     }
 
     const response: PaginatedResponse<SafetyBriefing> = await safetyBriefingService.getPaginated(params, filters)
+    console.log('Safety Briefing Response:', response.data)
+    console.log('First item unit:', response.data[0]?.unit)
     items.value = response.data
     totalRecords.value = response.count
     totalPages.value = response.totalPages
