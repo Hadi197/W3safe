@@ -1,7 +1,30 @@
 <template>
   <div class="min-h-screen flex bg-gray-50">
+    <!-- Mobile Overlay -->
+    <div
+      v-if="sidebarOpen"
+      @click="sidebarOpen = false"
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="w-72 h-screen bg-gradient-to-b from-primary-900 to-primary-800 text-white shadow-2xl fixed left-0 top-0 z-30">
+    <aside
+      :class="[
+        'h-screen bg-gradient-to-b from-primary-900 to-primary-800 text-white shadow-2xl fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out',
+        'w-72',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      ]"
+    >
+      <!-- Close button for mobile -->
+      <button
+        @click="sidebarOpen = false"
+        class="absolute top-4 right-4 text-white md:hidden"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
       <!-- Logo Section -->
       <div class="p-6 border-b border-primary-700">
         <div class="flex items-center space-x-3">
@@ -176,11 +199,21 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-h-screen ml-72 pt-20">
+    <div class="flex-1 flex flex-col min-h-screen md:ml-72 pt-20">
       <!-- Page Header -->
       <header class="bg-white shadow-sm">
         <div class="flex items-center justify-between px-6 py-4">
-          <h2 class="text-2xl font-bold text-gray-800">{{ pageTitle }}</h2>
+          <!-- Mobile Menu Button -->
+          <button
+            @click="sidebarOpen = true"
+            class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <h2 class="text-xl md:text-2xl font-bold text-gray-800">{{ pageTitle }}</h2>
           
           <div class="flex items-center space-x-4">
             <!-- User Menu -->
@@ -231,7 +264,7 @@
       </header>
       
       <!-- Page Content -->
-      <main class="flex-1 p-8 overflow-auto">
+      <main class="flex-1 p-4 md:p-8 overflow-auto">
         <router-view />
       </main>
     </div>
@@ -246,6 +279,7 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 const showUserMenu = ref(false)
+const sidebarOpen = ref(false)
 
 const userName = computed(() => authStore.user?.email?.split('@')[0] || 'User')
 const userInitials = computed(() => {
