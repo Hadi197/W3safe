@@ -291,7 +291,7 @@
                     {{ briefing.petugas?.nama_lengkap || '-' }}
                   </td>
                   <td class="px-4 py-3 border border-gray-300 text-sm text-gray-900">
-                    {{ briefing.unit?.nama_unit || '-' }}
+                    {{ briefing.unit?.nama || '-' }}
                   </td>
                   <td class="px-4 py-3 border border-gray-300 text-center text-sm text-gray-900">
                     {{ briefing.jumlah_peserta || 0 }}
@@ -500,7 +500,7 @@ const loadMonthlyData = async () => {
     const { data: unitsData } = await supabase
       .from('units')
       .select('*')
-      .order('nama_unit')
+      .order('nama')
 
     console.log('Dashboard: Units loaded:', unitsData?.length || 0, 'units')
     console.log('Dashboard: First unit sample:', unitsData?.[0])
@@ -582,7 +582,7 @@ const loadMonthlyData = async () => {
     
     // Build checklist data
     monthlyData.value = units.value.map(unit => {
-      const data: any = { unit_id: unit.id, unit_name: unit.nama_unit }
+      const data: any = { unit_id: unit.id, unit_name: unit.nama }
       
       // Initialize all days as false (use actual days in month)
       for (let day = 1; day <= daysInSelectedMonth; day++) {
@@ -663,7 +663,7 @@ const loadSafetyBriefingData = async () => {
       if (unitIds.length > 0) {
         const { data: unitsData } = await supabase
           .from('units')
-          .select('id, kode_unit, nama_unit')
+          .select('id, kode, nama')
           .in('id', unitIds)
         
         unitsMap = new Map(unitsData?.map(u => [u.id, u]) || [])
@@ -760,10 +760,10 @@ const loadRecentActivities = async () => {
       try {
         const { data: unit, error } = await supabase
           .from('units')
-          .select('nama_unit')
+          .select('nama')
           .eq('id', unitId)
           .single()
-        return error ? 'Unit Tidak Diketahui' : (unit?.nama_unit || 'Unit Tidak Diketahui')
+        return error ? 'Unit Tidak Diketahui' : (unit?.nama || 'Unit Tidak Diketahui')
       } catch {
         return 'Unit Tidak Diketahui'
       }

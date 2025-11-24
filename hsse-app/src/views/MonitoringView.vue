@@ -523,7 +523,7 @@ const loadUnits = async () => {
     const { data, error } = await supabase
       .from('units')
       .select('*')
-      .order('nama_unit')
+      .order('nama')
 
     if (error) throw error
     units.value = data || []

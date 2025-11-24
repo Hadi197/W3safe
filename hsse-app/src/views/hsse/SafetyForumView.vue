@@ -128,7 +128,7 @@
                   <div class="text-xs text-gray-500">Kategori: {{ forum.kategori_forum || '-' }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ forum.unit?.nama_unit || '-' }}</div>
+                  <div class="text-sm text-gray-900">{{ forum.unit?.nama || '-' }}</div>
                   <div class="text-xs text-gray-500">{{ forum.lokasi }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -248,7 +248,7 @@
                   </div>
                   <div>
                     <label class="text-sm font-medium text-gray-600">Unit</label>
-                    <p class="text-gray-900">{{ selectedForum.unit?.nama_unit || '-' }}</p>
+                    <p class="text-gray-900">{{ selectedForum.unit?.nama || '-' }}</p>
                   </div>
                   <div>
                     <label class="text-sm font-medium text-gray-600">Jenis Forum</label>
@@ -1288,13 +1288,13 @@ const loadUnits = async () => {
       console.log('Trying fallback units query...')
       const { data: fallbackData } = await supabase
         .from('units')
-        .select('id, nama_unit, kode_unit')
+        .select('id, nama, kode')
         .eq('aktif', true)
-        .order('nama_unit')
+        .order('nama')
       units.value = (fallbackData || []).map(u => ({
         id: u.id,
-        nama: u.nama_unit,
-        kode: u.kode_unit
+        nama: u.nama,
+        kode: u.kode
       }))
       console.log('Fallback units loaded:', units.value.length, 'units')
     } catch (fallbackError) {

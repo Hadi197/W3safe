@@ -363,9 +363,9 @@
                   <option 
                     v-for="unit in units" 
                     :key="unit.id" 
-                    :value="unit.nama_unit"
+                    :value="unit.nama"
                   >
-                    {{ unit.nama_unit }}
+                    {{ unit.nama }}
                   </option>
                 </select>
               </div>
