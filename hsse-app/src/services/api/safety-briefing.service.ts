@@ -611,7 +611,7 @@ class SafetyBriefingService {
    */
   async updateStatus(
     id: string, 
-    status: 'draft' | 'approved' | 'rejected'
+    status: 'draft' | 'submitted' | 'approved'
   ): Promise<SafetyBriefing> {
     return await this.update(id, { status })
   }
