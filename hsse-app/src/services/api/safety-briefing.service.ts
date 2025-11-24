@@ -80,7 +80,7 @@ class SafetyBriefingService {
     filters?: {
       searchQuery?: string
       unitId?: string
-      status?: 'draft' | 'approved' | 'rejected'
+      status?: 'draft' | 'submitted' | 'approved'
       month?: string
     }
   ): Promise<PaginatedResponse<SafetyBriefing>> {
