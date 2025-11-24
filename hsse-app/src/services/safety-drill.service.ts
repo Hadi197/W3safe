@@ -172,11 +172,11 @@ export interface SafetyDrill {
   hasil_debriefing?: string
   
   // Dokumentasi
-  foto_dokumentasi?: string[]
-  video_dokumentasi?: string[]
+  foto_drill?: string[]
+  video_drill?: string[]
   dokumen_pendukung?: string[]
-  form_evaluasi_url?: string
-  laporan_url?: string
+  laporan_drill?: string
+
   
   // External
   pihak_eksternal_terlibat?: boolean

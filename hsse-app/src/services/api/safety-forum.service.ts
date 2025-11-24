@@ -212,7 +212,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit, kode_unit)
+          unit:units(id, nama, kode)
         `)
         .order('tanggal_forum', { ascending: false })
 
@@ -257,7 +257,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit, kode_unit)
+          unit:units(id, nama, kode)
         `)
         .eq('id', id)
         .single()
@@ -294,7 +294,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit, kode_unit)
+          unit:units(id, nama, kode)
         `)
         .eq('unit_id', unitId)
         .order('tanggal_forum', { ascending: false })
@@ -314,7 +314,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit, kode_unit)
+          unit:units(id, nama, kode)
         `)
         .gte('tanggal_forum', startDate)
         .lte('tanggal_forum', endDate)
@@ -335,7 +335,7 @@ class SafetyForumService {
         .from('safety_forum')
         .select(`
           *,
-          unit:units(id, nama_unit, kode_unit)
+          unit:units(id, nama, kode)
         `)
         .eq('status', status)
         .order('tanggal_forum', { ascending: false })

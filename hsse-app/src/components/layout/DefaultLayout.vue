@@ -199,41 +199,41 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-h-screen md:ml-72 pt-20">
+    <div class="flex-1 flex flex-col min-h-screen md:ml-72">
       <!-- Page Header -->
-      <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4">
+      <header class="bg-primary-600 shadow-none md:shadow-sm md:bg-white">
+        <div class="flex items-center justify-between px-4 md:px-6 py-3 md:py-4">
           <!-- Mobile Menu Button -->
           <button
             @click="sidebarOpen = true"
-            class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            class="md:hidden p-2 rounded-lg hover:bg-primary-700 md:hover:bg-gray-100 transition-colors flex-shrink-0"
           >
-            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 text-white md:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
 
-          <h2 class="text-xl md:text-2xl font-bold text-gray-800">{{ pageTitle }}</h2>
-          
-          <div class="flex items-center space-x-4">
+          <h2 class="text-sm md:text-lg lg:text-xl font-bold text-white md:text-gray-800 truncate flex-1 text-center md:text-left mx-2 md:mx-0">{{ pageTitle }}</h2>
+
+          <div class="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
             <!-- User Menu -->
             <div class="relative">
               <button
                 @click="showUserMenu = !showUserMenu"
-                class="flex items-center space-x-3 hover:bg-gray-50 rounded-xl px-4 py-2 transition-colors"
+                class="flex items-center space-x-3 hover:bg-primary-700 md:hover:bg-gray-50 rounded-xl px-4 py-2 transition-colors"
               >
-                <div class="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+                <div class="w-10 h-10 bg-white/20 md:bg-gradient-to-br md:from-primary-600 md:to-primary-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
                   {{ userInitials }}
                 </div>
                 <div class="text-left hidden md:block">
-                  <p class="text-sm font-semibold text-gray-800">{{ userName }}</p>
-                  <p class="text-xs text-gray-500">Administrator</p>
+                  <p class="text-sm font-semibold text-white md:text-gray-800">{{ userName }}</p>
+                  <p class="text-xs text-primary-200 md:text-gray-500">Administrator</p>
                 </div>
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-white md:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               <div
                 v-if="showUserMenu"
                 class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-100"
@@ -262,9 +262,9 @@
           </div>
         </div>
       </header>
-      
+
       <!-- Page Content -->
-      <main class="flex-1 p-4 md:p-8 overflow-auto">
+      <main class="flex-1 p-4 md:p-8 overflow-auto bg-gray-50 md:bg-white">
         <router-view />
       </main>
     </div>

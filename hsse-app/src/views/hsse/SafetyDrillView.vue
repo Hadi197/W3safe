@@ -346,10 +346,10 @@ const handlePhotoUpload = async (event: Event) => {
     
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string
-      if (!formData.value.foto_dokumentasi) {
-        formData.value.foto_dokumentasi = []
+      if (!formData.value.foto_drill) {
+        formData.value.foto_drill = []
       }
-      formData.value.foto_dokumentasi.push(dataUrl)
+      formData.value.foto_drill.push(dataUrl)
     }
     
     reader.readAsDataURL(compressedFile)
@@ -358,7 +358,7 @@ const handlePhotoUpload = async (event: Event) => {
 }
 
 const removePhoto = (index: number) => {
-  formData.value.foto_dokumentasi?.splice(index, 1)
+  formData.value.foto_drill?.splice(index, 1)
 }
 
 const viewImage = (url: string) => {
@@ -401,10 +401,10 @@ const handleVideoUpload = (event: Event) => {
     
     reader.onload = (e) => {
       const result = e.target?.result as string
-      if (!formData.value.video_dokumentasi) {
-        formData.value.video_dokumentasi = []
+      if (!formData.value.video_drill) {
+        formData.value.video_drill = []
       }
-      formData.value.video_dokumentasi.push(result)
+      formData.value.video_drill.push(result)
     }
     
     reader.readAsDataURL(file)
@@ -413,7 +413,7 @@ const handleVideoUpload = (event: Event) => {
 }
 
 const removeVideo = (index: number) => {
-  formData.value.video_dokumentasi?.splice(index, 1)
+  formData.value.video_drill?.splice(index, 1)
 }
 
 // Formatters
@@ -1049,10 +1049,10 @@ onMounted(() => {
           </div>
 
           <!-- Section 9: Dokumentasi -->
-          <div v-if="selectedDrill?.foto_dokumentasi && selectedDrill.foto_dokumentasi.length > 0">
+          <div v-if="selectedDrill?.foto_drill && selectedDrill.foto_drill.length > 0">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Foto Dokumentasi</h3>
             <div class="grid grid-cols-4 gap-3">
-              <div v-for="(foto, idx) in selectedDrill.foto_dokumentasi" :key="idx" class="cursor-pointer" @click="viewImage(foto)">
+              <div v-for="(foto, idx) in selectedDrill.foto_drill" :key="idx" class="cursor-pointer" @click="viewImage(foto)">
                 <img 
                   :src="foto" 
                   alt="Dokumentasi" 
@@ -1570,8 +1570,8 @@ onMounted(() => {
                   </div>
                   <p class="text-xs text-gray-500 mt-1">📸 Ambil foto langsung atau pilih dari galeri. Foto akan dikompres otomatis jika >1MB</p>
                 </div>
-                <div v-if="formData.foto_dokumentasi && formData.foto_dokumentasi.length > 0" class="grid grid-cols-4 gap-3">
-                  <div v-for="(foto, idx) in formData.foto_dokumentasi" :key="idx" class="relative group">
+                <div v-if="formData.foto_drill && formData.foto_drill.length > 0" class="grid grid-cols-4 gap-3">
+                  <div v-for="(foto, idx) in formData.foto_drill" :key="idx" class="relative group">
                     <img 
                       :src="foto" 
                       alt="Foto" 
@@ -1599,8 +1599,8 @@ onMounted(() => {
                     <input type="file" accept="video/*" @change="handleVideoUpload" class="hidden" />
                   </label>
                 </div>
-                <div v-if="formData.video_dokumentasi && formData.video_dokumentasi.length > 0" class="space-y-2">
-                  <div v-for="(video, idx) in formData.video_dokumentasi" :key="idx" class="flex items-center justify-between border p-3 rounded-lg bg-gray-50">
+                <div v-if="formData.video_drill && formData.video_drill.length > 0" class="space-y-2">
+                  <div v-for="(video, idx) in formData.video_drill" :key="idx" class="flex items-center justify-between border p-3 rounded-lg bg-gray-50">
                     <span class="text-sm text-gray-700">🎥 Video {{ idx + 1 }}</span>
                     <button type="button" @click="removeVideo(idx)" class="text-red-600 hover:text-red-800 text-sm">🗑️ Hapus</button>
                   </div>

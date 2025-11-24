@@ -37,8 +37,8 @@ class MasterPelabuhanService {
         *,
         wilayah:wilayah_id (
           id,
-          nama_wilayah,
-          kode_wilayah
+          nama,
+          kode
         ),
         area:area_id (
           id,
@@ -47,31 +47,21 @@ class MasterPelabuhanService {
         ),
         unit:unit_id (
           id,
-          kode_unit,
-          nama_unit,
+          kode,
+          nama,
           aktif
         )
       `)
 
     if (error) throw error
 
-    // Map the database column names to the expected interface names
+    // Map areas column names to match interface
     const mappedData = (data || []).map(item => ({
       ...item,
-      wilayah: item.wilayah ? {
-        ...item.wilayah,
-        nama: item.wilayah.nama_wilayah,
-        kode: item.wilayah.kode_wilayah
-      } : null,
       area: item.area ? {
         ...item.area,
         nama: item.area.nama_area,
         kode: item.area.kode_area
-      } : null,
-      unit: item.unit ? {
-        ...item.unit,
-        kode: item.unit.kode_unit,
-        nama: item.unit.nama_unit
       } : null
     }))
 
@@ -94,8 +84,8 @@ class MasterPelabuhanService {
         *,
         wilayah:wilayah_id (
           id,
-          nama_wilayah,
-          kode_wilayah
+          nama,
+          kode
         ),
         area:area_id (
           id,
@@ -104,8 +94,8 @@ class MasterPelabuhanService {
         ),
         unit:unit_id (
           id,
-          kode_unit,
-          nama_unit,
+          kode,
+          nama,
           aktif
         )
       `)
@@ -113,23 +103,13 @@ class MasterPelabuhanService {
 
     if (error) throw error
 
-    // Map the database column names to the expected interface names
+    // Map areas column names to match interface
     const mappedData = (data || []).map(item => ({
       ...item,
-      wilayah: item.wilayah ? {
-        ...item.wilayah,
-        nama: item.wilayah.nama_wilayah,
-        kode: item.wilayah.kode_wilayah
-      } : null,
       area: item.area ? {
         ...item.area,
         nama: item.area.nama_area,
         kode: item.area.kode_area
-      } : null,
-      unit: item.unit ? {
-        ...item.unit,
-        kode: item.unit.kode_unit,
-        nama: item.unit.nama_unit
       } : null
     }))
 

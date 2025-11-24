@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, isSupabaseConfigured } from './supabase'
 
 export interface Unit {
   id: string
@@ -54,15 +54,10 @@ class UnitsService {
           wilayah:wilayah_id (
             id,
             nama,
-            kode_wilayah
-          ),
-          area:area_id (
-            id,
-            nama_area,
-            kode_area
+            kode
           )
         `)
-        .order('nama_unit', { ascending: true })
+        .order('nama', { ascending: true })
 
       if (error) {
         // If join fails, fallback to simple query without relations
@@ -70,34 +65,22 @@ class UnitsService {
         const { data: simpleData, error: simpleError } = await supabase
           .from(this.tableName)
           .select('*')
-          .order('nama_unit', { ascending: true })
+          .order('nama', { ascending: true })
 
         if (simpleError) throw simpleError
 
         // Map without relations
         return (simpleData || []).map(unit => ({
           ...unit,
-          kode: unit.kode_unit,
-          nama: unit.nama_unit,
           wilayah: undefined,
-          area: undefined
+          
         }))
       }
 
-      // Map the database column names to the expected interface names
+      // Return data as-is since column names match
       return (data || []).map(unit => ({
         ...unit,
-        kode: unit.kode_unit,
-        nama: unit.nama_unit,
-        wilayah: unit.wilayah ? {
-          ...unit.wilayah,
-          kode: unit.wilayah.kode_wilayah
-        } : undefined,
-        area: unit.area ? {
-          ...unit.area,
-          nama: unit.area.nama_area,
-          kode: unit.area.kode_area
-        } : undefined
+        wilayah: unit.wilayah || undefined
       }))
     } catch (error) {
       console.error('Error in getAll():', error)
@@ -110,8 +93,8 @@ class UnitsService {
       .from(this.tableName)
       .select(`
         id,
-        kode_unit,
-        nama_unit,
+        kode,
+        nama,
         tipe,
         wilayah_id,
         area_id,
@@ -121,16 +104,12 @@ class UnitsService {
       `)
       .eq('aktif', true)
       .eq('tipe', 'unit')
-      .order('nama_unit', { ascending: true })
+      .order('nama', { ascending: true })
 
     if (error) throw error
 
-    // Map database column names to interface names
-    const mappedData = (data || []).map(unit => ({
-      ...unit,
-      kode: unit.kode_unit,
-      nama: unit.nama_unit
-    }))
+    // Data is already in correct format, no mapping needed
+    const mappedData = data || []
 
     // Get wilayah and area data separately to avoid complex joins
     const processedData = await Promise.all(mappedData.map(async (unit) => {
@@ -195,7 +174,7 @@ class UnitsService {
         `)
         .eq('wilayah_id', wilayahId)
         .eq('aktif', true)
-        .order('nama_unit', { ascending: true })
+        .order('nama', { ascending: true })
 
       if (error) {
         // Fallback to simple query
@@ -205,25 +184,21 @@ class UnitsService {
           .select('*')
           .eq('wilayah_id', wilayahId)
           .eq('aktif', true)
-          .order('nama_unit', { ascending: true })
+          .order('nama', { ascending: true })
 
         if (simpleError) throw simpleError
 
         // Map without relations
         return (simpleData || []).map(unit => ({
           ...unit,
-          kode: unit.kode_unit,
-          nama: unit.nama_unit,
           wilayah: undefined,
-          area: undefined
+          
         }))
       }
 
       // Map the database column names to the expected interface names
       return (data || []).map(unit => ({
         ...unit,
-        kode: unit.kode_unit,
-        nama: unit.nama_unit,
         wilayah: unit.wilayah ? {
           ...unit.wilayah,
           kode: unit.wilayah.kode_wilayah
@@ -276,10 +251,8 @@ class UnitsService {
         if (simpleData) {
           return {
             ...simpleData,
-            kode: simpleData.kode_unit,
-            nama: simpleData.nama_unit,
             wilayah: undefined,
-            area: undefined
+            
           }
         }
         return null
@@ -289,8 +262,6 @@ class UnitsService {
       if (data) {
         return {
           ...data,
-          kode: data.kode_unit,
-          nama: data.nama_unit,
           wilayah: data.wilayah ? {
             ...data.wilayah,
             kode: data.wilayah.kode_wilayah
@@ -310,19 +281,9 @@ class UnitsService {
   }
 
   async create(unit: CreateUnitDto): Promise<Unit> {
-    // Map frontend field names to database column names
-    const dbUnit = {
-      ...unit,
-      kode_unit: unit.kode,
-      nama_unit: unit.nama,
-      // Remove the frontend field names to avoid conflicts
-      kode: undefined,
-      nama: undefined
-    }
-
     const { data, error } = await supabase
       .from(this.tableName)
-      .insert(dbUnit)
+      .insert(unit)
       .select(`
         *,
         wilayah:wilayah_id (
@@ -343,8 +304,6 @@ class UnitsService {
     // Map the database column names to the expected interface names
     return {
       ...data,
-      kode: data.kode_unit,
-      nama: data.nama_unit,
       wilayah: data.wilayah ? {
         ...data.wilayah,
         kode: data.wilayah.kode_wilayah
@@ -358,20 +317,10 @@ class UnitsService {
   }
 
   async update(id: string, unit: UpdateUnitDto): Promise<Unit> {
-    // Map frontend field names to database column names
-    const dbUnit = {
-      ...unit,
-      ...(unit.kode !== undefined && { kode_unit: unit.kode }),
-      ...(unit.nama !== undefined && { nama_unit: unit.nama }),
-      // Remove the frontend field names to avoid conflicts
-      kode: undefined,
-      nama: undefined
-    }
-
     // First, perform the update
     const { error: updateError } = await supabase
       .from(this.tableName)
-      .update(dbUnit)
+      .update(unit)
       .eq('id', id)
 
     if (updateError) throw updateError

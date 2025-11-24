@@ -251,6 +251,14 @@ const handleSubmit = async () => {
     if (dataToSave.created_by === '') (dataToSave as any).created_by = null
     if (dataToSave.reviewed_by === '') (dataToSave as any).reviewed_by = null
     
+    // Convert stop_work_area string to array if needed
+    if (dataToSave.stop_work_area && typeof dataToSave.stop_work_area === 'string') {
+      (dataToSave as any).stop_work_area = [dataToSave.stop_work_area]
+    }
+    
+    // Debug: Log data being sent
+    console.log('📤 Data to save:', JSON.stringify(dataToSave, null, 2))
+    
     if (formMode.value === 'create') {
       await safetyPatrolService.create(dataToSave)
       alert('Patrol berhasil dibuat')

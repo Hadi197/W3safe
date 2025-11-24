@@ -24,7 +24,7 @@ export interface SafetyBriefing {
   materi?: string
   jumlah_peserta: number
   foto_dokumentasi: string[]
-  status: 'draft' | 'approved' | 'rejected'
+  status: 'draft' | 'submitted' | 'approved'
   catatan?: string
   approved_by?: string
   approved_at?: string
@@ -54,7 +54,7 @@ export interface CreateSafetyBriefingDto {
   materi?: string
   jumlah_peserta: number
   foto_dokumentasi?: string[]
-  status: 'draft' | 'approved' | 'rejected'
+  status: 'draft' | 'submitted' | 'approved'
   catatan?: string
 }
 
@@ -146,15 +146,15 @@ class SafetyBriefingService {
       if (briefing.unit_id) {
         const { data: unit } = await supabase
           .from('units')
-          .select('id, nama_unit, kode_unit')
+          .select('id, nama, kode')
           .eq('id', briefing.unit_id)
           .single()
 
         if (unit) {
           briefingWithRelations.unit = {
             id: unit.id,
-            nama: unit.nama_unit,
-            kode: unit.kode_unit
+            nama: unit.nama,
+            kode: unit.kode
           }
         }
       }
@@ -228,15 +228,15 @@ class SafetyBriefingService {
     if (data.unit_id) {
       const { data: unit } = await supabase
         .from('units')
-        .select('id, nama_unit, kode_unit')
+        .select('id, nama, kode')
         .eq('id', data.unit_id)
         .single()
 
       if (unit) {
         briefingWithRelations.unit = {
           id: unit.id,
-          nama: unit.nama_unit,
-          kode: unit.kode_unit
+          nama: unit.nama,
+          kode: unit.kode
         }
       }
     }
@@ -345,15 +345,15 @@ class SafetyBriefingService {
       if (briefing.unit_id) {
         const { data: unit } = await supabase
           .from('units')
-          .select('id, nama_unit, kode_unit')
+          .select('id, nama, kode')
           .eq('id', briefing.unit_id)
           .single()
 
         if (unit) {
           briefingWithRelations.unit = {
             id: unit.id,
-            nama: unit.nama_unit,
-            kode: unit.kode_unit
+            nama: unit.nama,
+            kode: unit.kode
           }
         }
       }
@@ -367,7 +367,7 @@ class SafetyBriefingService {
   /**
    * Get safety briefing by status
    */
-  async getByStatus(status: 'draft' | 'approved' | 'rejected'): Promise<SafetyBriefing[]> {
+  async getByStatus(status: 'draft' | 'submitted' | 'approved'): Promise<SafetyBriefing[]> {
     const { data, error } = await supabase
       .from(this.tableName)
       .select('id, tanggal, waktu_mulai, waktu_selesai, unit_id, petugas_id, topik, materi, jumlah_peserta, foto_dokumentasi, status, catatan, created_by, created_at, updated_at')
@@ -390,15 +390,15 @@ class SafetyBriefingService {
       if (briefing.unit_id) {
         const { data: unit } = await supabase
           .from('units')
-          .select('id, nama_unit, kode_unit')
+          .select('id, nama, kode')
           .eq('id', briefing.unit_id)
           .single()
 
         if (unit) {
           briefingWithRelations.unit = {
             id: unit.id,
-            nama: unit.nama_unit,
-            kode: unit.kode_unit
+            nama: unit.nama,
+            kode: unit.kode
           }
         }
       }
@@ -496,15 +496,15 @@ class SafetyBriefingService {
     if (data.unit_id) {
       const { data: unit } = await supabase
         .from('units')
-        .select('id, nama_unit, kode_unit')
+        .select('id, nama, kode')
         .eq('id', data.unit_id)
         .single()
 
       if (unit) {
         unitData = {
           id: unit.id,
-          nama: unit.nama_unit,
-          kode: unit.kode_unit
+          nama: unit.nama,
+          kode: unit.kode
         }
       }
     }
@@ -562,15 +562,15 @@ class SafetyBriefingService {
     if (data.unit_id) {
       const { data: unit } = await supabase
         .from('units')
-        .select('id, nama_unit, kode_unit')
+        .select('id, nama, kode')
         .eq('id', data.unit_id)
         .single()
 
       if (unit) {
         unitData = {
           id: unit.id,
-          nama: unit.nama_unit,
-          kode: unit.kode_unit
+          nama: unit.nama,
+          kode: unit.kode
         }
       }
     }

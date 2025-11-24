@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, isSupabaseConfigured } from './supabase'
 
 export interface PaginationParams {
   page: number
@@ -124,11 +124,13 @@ export interface UpdateSilentInspectionDto {
   waktu_mulai?: string
   waktu_selesai?: string
   unit_id?: string
+  wilayah_id?: string
   area_inspeksi?: string
   inspector_id?: string
   anggota_tim?: string[]
   kategori_bahaya?: string
   checklist_items?: any
+  fokus_inspeksi?: any
   jumlah_temuan?: number
   temuan_critical?: number
   temuan_major?: number
@@ -137,6 +139,8 @@ export interface UpdateSilentInspectionDto {
   foto_kondisi_unsafe?: string[]
   foto_perilaku_unsafe?: string[]
   skor_kepatuhan?: number
+  skor_total?: number
+  temuan?: string
   tingkat_risiko?: string
   kondisi_housekeeping?: string
   penggunaan_apd?: string
@@ -285,8 +289,6 @@ class SilentInspectionService {
         inspector_id,
         area_inspeksi,
         checklist,
-        skor_total,
-        temuan,
         rekomendasi,
         status,
         approved_by,
@@ -353,11 +355,11 @@ class SilentInspectionService {
       waktu_selesai: '17:00:00', // Default time
       jenis_inspeksi: 'silent',
       fokus_inspeksi: item.checklist || [],
-      jumlah_temuan: item.temuan ? JSON.parse(item.temuan || '[]').length : 0,
+      jumlah_temuan: (item.temuan_critical || 0) + (item.temuan_major || 0) + (item.temuan_minor || 0),
       kategori_bahaya: 'General',
       foto_kondisi_unsafe: item.foto_kondisi_unsafe || [],
       foto_perilaku_unsafe: item.foto_perilaku_unsafe || [],
-      skor_kepatuhan: item.skor_total || 0,
+      skor_kepatuhan: 0,
       tingkat_risiko: this.calculateRiskLevel(item),
       kondisi_housekeeping: 'Baik',
       penggunaan_apd: 'Baik',
@@ -371,15 +373,15 @@ class SilentInspectionService {
       if (item.unit_id) {
         const { data: unit } = await supabase
           .from('units')
-          .select('id, nama_unit, kode_unit')
+          .select('id, nama, kode')
           .eq('id', item.unit_id)
           .single()
 
         if (unit) {
           itemWithRelations.unit = {
             id: unit.id,
-            nama: unit.nama_unit,
-            kode: unit.kode_unit
+            nama: unit.nama,
+            kode: unit.kode
           }
         }
       }
@@ -418,7 +420,7 @@ class SilentInspectionService {
       .from(this.tableName)
       .select(`
         id, tanggal, triwulan, tahun, unit_id, wilayah_id, inspector_id,
-        area_inspeksi, checklist, skor_total, temuan, rekomendasi,
+        area_inspeksi, checklist, rekomendasi,
         status, approved_by, approved_at,
         created_at, updated_at,
         foto_kondisi_unsafe, foto_perilaku_unsafe,
@@ -436,15 +438,15 @@ class SilentInspectionService {
     if (data.unit_id) {
       const { data: unit } = await supabase
         .from('units')
-        .select('id, nama_unit, kode_unit')
+        .select('id, nama, kode')
         .eq('id', data.unit_id)
         .single()
 
       if (unit) {
         unitData = {
           id: unit.id,
-          nama: unit.nama_unit,
-          kode: unit.kode_unit
+          nama: unit.nama,
+          kode: unit.kode
         }
       }
     }
@@ -473,12 +475,12 @@ class SilentInspectionService {
       waktu_selesai: '17:00:00',
       jenis_inspeksi: 'silent',
       fokus_inspeksi: data.checklist || [],
-      jumlah_temuan: data.temuan ? JSON.parse(data.temuan || '[]').length : 0,
+      jumlah_temuan: (data.temuan_critical || 0) + (data.temuan_major || 0) + (data.temuan_minor || 0),
       kategori_bahaya: 'General',
       foto_kondisi_unsafe: data.foto_kondisi_unsafe || [],
       foto_perilaku_unsafe: data.foto_perilaku_unsafe || [],
-      skor_kepatuhan: data.skor_total || 0,
-      tingkat_risiko: data.skor_total && data.skor_total < 70 ? 'Tinggi' : 'Rendah',
+      skor_kepatuhan: 0,
+      tingkat_risiko: 'Rendah',
       kondisi_housekeeping: 'Baik',
       penggunaan_apd: 'Baik',
       tindakan_korektif: data.rekomendasi || '',
@@ -663,9 +665,11 @@ class SilentInspectionService {
       wilayah_id: dto.wilayah_id,
       inspector_id: inspectorId,
       area_inspeksi: dto.area_inspeksi,
-      checklist: dto.checklist_items || dto.fokus_inspeksi,
-      skor_total: dto.skor_kepatuhan || dto.skor_total,
-      temuan: dto.temuan || JSON.stringify([]),
+      checklist: dto.checklist_items || dto.fokus_inspeksi || [],
+      jumlah_temuan: (dto.temuan_critical || 0) + (dto.temuan_major || 0) + (dto.temuan_minor || 0),
+      temuan_critical: dto.temuan_critical || 0,
+      temuan_major: dto.temuan_major || 0,
+      temuan_minor: dto.temuan_minor || 0,
       rekomendasi: dto.rekomendasi || dto.tindakan_korektif,
       status: dto.status || 'draft',
       created_by: inspectorId
@@ -686,15 +690,15 @@ class SilentInspectionService {
     if (data.unit_id) {
       const { data: unit } = await supabase
         .from('units')
-        .select('id, nama_unit, kode_unit')
+        .select('id, nama, kode')
         .eq('id', data.unit_id)
         .single()
 
       if (unit) {
         unitData = {
           id: unit.id,
-          nama: unit.nama_unit,
-          kode: unit.kode_unit
+          nama: unit.nama,
+          kode: unit.kode
         }
       }
     }
@@ -722,12 +726,12 @@ class SilentInspectionService {
       waktu_selesai: '17:00:00',
       jenis_inspeksi: 'silent',
       fokus_inspeksi: data.checklist || [],
-      jumlah_temuan: data.temuan ? JSON.parse(data.temuan || '[]').length : 0,
+      jumlah_temuan: (data.temuan_critical || 0) + (data.temuan_major || 0) + (data.temuan_minor || 0),
       kategori_bahaya: 'General',
       foto_kondisi_unsafe: data.foto_kondisi_unsafe || [],
       foto_perilaku_unsafe: data.foto_perilaku_unsafe || [],
-      skor_kepatuhan: data.skor_total || 0,
-      tingkat_risiko: data.skor_total && data.skor_total < 70 ? 'Tinggi' : 'Rendah',
+      skor_kepatuhan: 0,
+      tingkat_risiko: 'Rendah',
       kondisi_housekeeping: 'Baik',
       penggunaan_apd: 'Baik',
       tindakan_korektif: data.rekomendasi || '',
@@ -740,9 +744,42 @@ class SilentInspectionService {
   }
 
   async update(id: string, dto: UpdateSilentInspectionDto): Promise<SilentInspection> {
+    // Calculate triwulan correctly (1-4)
+    const tanggal = dto.tanggal ? new Date(dto.tanggal) : new Date()
+    const bulan = tanggal.getMonth() + 1 // getMonth() returns 0-11, so add 1
+    const triwulan = Math.ceil(bulan / 3) // This gives 1, 2, 3, or 4
+
+    // Map frontend DTO to database columns (only include defined fields)
+    const dbData: any = {}
+
+    if (dto.tanggal !== undefined) {
+      dbData.tanggal = dto.tanggal
+      // Recalculate triwulan and tahun when tanggal changes
+      const tanggal = new Date(dto.tanggal)
+      dbData.triwulan = Math.ceil((tanggal.getMonth() + 1) / 3)
+      dbData.tahun = tanggal.getFullYear()
+    }
+
+    if (dto.unit_id !== undefined) dbData.unit_id = dto.unit_id
+    if (dto.wilayah_id !== undefined) dbData.wilayah_id = dto.wilayah_id
+    if (dto.area_inspeksi !== undefined) dbData.area_inspeksi = dto.area_inspeksi
+    if (dto.checklist_items !== undefined || dto.fokus_inspeksi !== undefined) {
+      dbData.checklist = dto.checklist_items || dto.fokus_inspeksi || []
+    }
+    if (dto.jumlah_temuan !== undefined) dbData.jumlah_temuan = dto.jumlah_temuan
+    if (dto.temuan_critical !== undefined) dbData.temuan_critical = dto.temuan_critical
+    if (dto.temuan_major !== undefined) dbData.temuan_major = dto.temuan_major
+    if (dto.temuan_minor !== undefined) dbData.temuan_minor = dto.temuan_minor
+    if (dto.rekomendasi !== undefined || dto.tindakan_korektif !== undefined) {
+      dbData.rekomendasi = dto.rekomendasi || dto.tindakan_korektif
+    }
+    if (dto.foto_kondisi_unsafe !== undefined) dbData.foto_kondisi_unsafe = dto.foto_kondisi_unsafe
+    if (dto.foto_perilaku_unsafe !== undefined) dbData.foto_perilaku_unsafe = dto.foto_perilaku_unsafe
+    if (dto.status !== undefined) dbData.status = dto.status
+
     const { data, error } = await supabase
       .from(this.tableName)
-      .update(dto)
+      .update(dbData)
       .eq('id', id)
       .select()
       .single()
@@ -756,15 +793,15 @@ class SilentInspectionService {
     if (data.unit_id) {
       const { data: unit } = await supabase
         .from('units')
-        .select('id, nama_unit, kode_unit')
+        .select('id, nama, kode')
         .eq('id', data.unit_id)
         .single()
 
       if (unit) {
         unitData = {
           id: unit.id,
-          nama: unit.nama_unit,
-          kode: unit.kode_unit
+          nama: unit.nama,
+          kode: unit.kode
         }
       }
     }
@@ -792,12 +829,12 @@ class SilentInspectionService {
       waktu_selesai: '17:00:00',
       jenis_inspeksi: 'silent',
       fokus_inspeksi: data.checklist || [],
-      jumlah_temuan: data.temuan ? JSON.parse(data.temuan || '[]').length : 0,
+      jumlah_temuan: (data.temuan_critical || 0) + (data.temuan_major || 0) + (data.temuan_minor || 0),
       kategori_bahaya: 'General',
       foto_kondisi_unsafe: data.foto_kondisi_unsafe || [],
       foto_perilaku_unsafe: data.foto_perilaku_unsafe || [],
-      skor_kepatuhan: data.skor_total || 0,
-      tingkat_risiko: data.skor_total && data.skor_total < 70 ? 'Tinggi' : 'Rendah',
+      skor_kepatuhan: 0,
+      tingkat_risiko: 'Rendah',
       kondisi_housekeeping: 'Baik',
       penggunaan_apd: 'Baik',
       tindakan_korektif: data.rekomendasi || '',

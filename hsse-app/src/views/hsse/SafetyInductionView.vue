@@ -207,7 +207,7 @@ const handleSubmit = async () => {
     loadStats()
   } catch (error) {
     console.error('Error saving induction:', error)
-    alert('Gagal menyimpan induction')
+    alert('Gagal menyimpan induction: ' + (error as any)?.message || JSON.stringify(error))
   } finally {
     loading.value = false
   }

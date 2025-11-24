@@ -1,14 +1,14 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-gray-800">Safety Forum</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Safety Forum</h1>
         <p class="text-gray-600 mt-1">Manajemen Forum Keselamatan Kerja & Notulensi</p>
       </div>
       <button
         @click="openFormModal()"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md flex items-center gap-2 transition-all"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-3 md:py-3 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all w-full sm:w-auto min-h-[44px] touch-manipulation"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -18,8 +18,8 @@
     </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Cari Agenda/Nomor</label>
             <input
@@ -1627,6 +1627,14 @@ const saveForm = async () => {
       !formData.value.unit_id || !formData.value.lokasi || 
       !formData.value.jenis_forum || !formData.value.agenda_utama) {
     alert('Mohon lengkapi field yang wajib diisi (bertanda *)')
+    return
+  }
+
+  // Validate unit_id is a valid UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(formData.value.unit_id)) {
+    console.error('Invalid unit_id:', formData.value.unit_id)
+    alert('Unit tidak valid. Mohon pilih unit dari dropdown yang tersedia.')
     return
   }
 

@@ -1252,7 +1252,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { managementWalkthroughService, type ManagementWalkthrough } from '@/services/management-walkthrough.service'
 import { unitsService } from '@/services/api/units.service'
 import { useImageCompression } from '@/composables/useImageCompression'
@@ -1282,7 +1282,7 @@ const stats = ref({
 })
 const followUpCount = ref(0)
 
-const filters = ref({
+const filters = reactive({
   search: '',
   unit_id: '',
   jenis: '',
@@ -1364,7 +1364,7 @@ const loadWalkthroughs = async (page = currentPage.value) => {
   try {
     loading.value = true
     currentPage.value = page
-    const response = await managementWalkthroughService.getPaginated(filters.value, {
+    const response = await managementWalkthroughService.getPaginated(filters, {
       page: currentPage.value,
       pageSize: pageSize.value
     })

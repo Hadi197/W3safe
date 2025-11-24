@@ -9,35 +9,45 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     vue(),
-    vueDevTools(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-      manifest: {
-        name: 'HSSE Unsafe Action/Condition',
-        short_name: 'Unsafe Action',
-        description: 'HSSE Application for Unsafe Action and Condition Reporting',
-        start_url: '/pwa/unsafe-action-condition',
-        display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#4F46E5',
-        lang: 'id',
-        scope: '/',
-        icons: [
-          {
-            src: 'pwa-192x192.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml'
-          },
-          {
-            src: 'pwa-192x192.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml'
-          }
-        ]
-      }
-    })
+    // vueDevTools(),
+    // VitePWA({
+    //   registerType: 'autoUpdate',
+    //   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+    //   manifest: {
+    //     name: 'HSSE Unsafe Action/Condition',
+    //     short_name: 'Unsafe Action',
+    //     description: 'HSSE Application for Unsafe Action and Condition Reporting',
+    //     start_url: '/pwa/unsafe-action-condition',
+    //     display: 'standalone',
+    //     background_color: '#ffffff',
+    //     theme_color: '#4F46E5',
+    //     lang: 'id',
+    //     scope: '/',
+    //     icons: [
+    //       {
+    //         src: 'pwa-192x192.svg',
+    //         sizes: '192x192',
+    //         type: 'image/svg+xml'
+    //       },
+    //       {
+    //         src: 'pwa-192x192.svg',
+    //         sizes: '512x512',
+    //         type: 'image/svg+xml'
+    //       }
+    //     ]
+    //   }
+    // })
   ],
+  server: {
+    port: 5173,
+    strictPort: true,
+    host: '0.0.0.0',
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

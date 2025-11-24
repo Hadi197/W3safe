@@ -228,7 +228,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode_unit, nama_unit)
+        unit:units(id, kode, nama)
       `, { count: 'exact' })
       .order('tanggal_walkthrough', { ascending: false })
 
@@ -277,8 +277,8 @@ class ManagementWalkthroughService {
         ...item,
         unit: item.unit ? {
           ...item.unit,
-          kode: item.unit.kode_unit,
-          nama: item.unit.nama_unit
+          kode: item.unit.kode,
+          nama: item.unit.nama
         } : null
       })),
       count: count || 0,
@@ -296,7 +296,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode_unit, nama_unit)
+        unit:units(id, kode, nama)
       `)
       .eq('id', id)
       .single()
@@ -306,8 +306,8 @@ class ManagementWalkthroughService {
       ...data,
       unit: data.unit ? {
         ...data.unit,
-        kode: data.unit.kode_unit,
-        nama: data.unit.nama_unit
+        kode: data.unit.kode,
+        nama: data.unit.nama
       } : null
     } : null
   }
@@ -462,7 +462,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode_unit, nama_unit)
+        unit:units(id, kode, nama)
       `)
       .eq('perlu_follow_up', true)
       .in('status_follow_up', ['belum', 'terjadwal'])
@@ -473,8 +473,8 @@ class ManagementWalkthroughService {
       ...item,
       unit: item.unit ? {
         ...item.unit,
-        kode: item.unit.kode_unit,
-        nama: item.unit.nama_unit
+        kode: item.unit.kode,
+        nama: item.unit.nama
       } : null
     }))
   }
@@ -487,7 +487,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode_unit, nama_unit)
+        unit:units(id, kode, nama)
       `)
       .gt('temuan_kritis', 0)
       .neq('status', 'completed')
@@ -498,8 +498,8 @@ class ManagementWalkthroughService {
       ...item,
       unit: item.unit ? {
         ...item.unit,
-        kode: item.unit.kode_unit,
-        nama: item.unit.nama_unit
+        kode: item.unit.kode,
+        nama: item.unit.nama
       } : null
     }))
   }

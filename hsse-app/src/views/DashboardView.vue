@@ -1,11 +1,17 @@
 <template>
   <div class="space-y-6">
     <!-- Page Header with Welcome Message -->
-    <div class="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl shadow-xl p-8 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-4xl font-bold mb-2">Selamat Datang di W3Safe! 👋</h1>
-          <p class="text-primary-100 text-lg">{{ currentGreeting }}, mari pantau implementasi keselamatan kerja hari ini</p>
+    <div class="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl shadow-xl p-4 md:p-6 lg:p-8 text-white">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div class="mb-4 lg:mb-0">
+          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Selamat Datang di W3Safe! 👋</h1>
+          <p class="text-primary-100 text-sm md:text-base lg:text-lg">{{ currentGreeting }}, mari pantau implementasi keselamatan kerja hari ini</p>
+        </div>
+        <div class="block lg:hidden self-start">
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p class="text-xs text-primary-100">Tanggal</p>
+            <p class="text-lg md:text-xl font-bold">{{ currentDate }}</p>
+          </div>
         </div>
         <div class="hidden lg:block">
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
@@ -17,17 +23,17 @@
     </div>
 
     <!-- Statistics Cards with Gradients -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       <!-- Safety Briefing Card -->
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-blue-100 text-sm font-medium">Safety Briefing</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.safetyBriefing }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-blue-100 text-xs md:text-sm font-medium truncate">Safety Briefing</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.safetyBriefing }}</p>
             <p class="text-blue-100 text-xs mt-1">Total Bulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
@@ -35,15 +41,15 @@
       </div>
 
       <!-- Silent Inspection Card -->
-      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-purple-100 text-sm font-medium">Silent Inspection</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.silentInspection }}</p>
-            <p class="text-purple-100 text-xs mt-1">Total Bulan Ini</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-purple-100 text-xs md:text-sm font-medium truncate">Silent Inspection</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.silentInspection }}</p>
+            <p class="text-purple-100 text-xs mt-1">Total Triwulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -51,15 +57,15 @@
       </div>
 
       <!-- Safety Patrol Card -->
-      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-green-100 text-sm font-medium">Safety Patrol</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.safetyPatrol }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-green-100 text-xs md:text-sm font-medium truncate">Safety Patrol</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.safetyPatrol }}</p>
             <p class="text-green-100 text-xs mt-1">Total Bulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </div>
@@ -67,15 +73,15 @@
       </div>
 
       <!-- Safety Forum Card -->
-      <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-orange-100 text-sm font-medium">Safety Forum</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.safetyForum }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-orange-100 text-xs md:text-sm font-medium truncate">Safety Forum</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.safetyForum }}</p>
             <p class="text-orange-100 text-xs mt-1">Total Bulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
             </svg>
           </div>
@@ -83,15 +89,15 @@
       </div>
 
       <!-- Management Walkthrough Card -->
-      <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-teal-100 text-sm font-medium">Management Walkthrough</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.managementWalkthrough }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-teal-100 text-xs md:text-sm font-medium truncate">Management Walkthrough</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.managementWalkthrough }}</p>
             <p class="text-teal-100 text-xs mt-1">Total Bulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
@@ -99,15 +105,15 @@
       </div>
 
       <!-- Safety Induction Card -->
-      <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-indigo-100 text-sm font-medium">Safety Induction</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.safetyInduction }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-indigo-100 text-xs md:text-sm font-medium truncate">Safety Induction</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.safetyInduction }}</p>
             <p class="text-indigo-100 text-xs mt-1">Total Bulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
@@ -115,15 +121,15 @@
       </div>
 
       <!-- Safety Drill Card -->
-      <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-red-100 text-sm font-medium">Safety Drill</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.safetyDrill }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-red-100 text-xs md:text-sm font-medium truncate">Safety Drill</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.safetyDrill }}</p>
             <p class="text-red-100 text-xs mt-1">Total Bulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
             </svg>
@@ -132,15 +138,15 @@
       </div>
 
       <!-- Unsafe Action/Condition Card -->
-      <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl shadow-lg p-6 text-white hover:shadow-xl transition-all duration-300">
+      <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl shadow-lg p-4 md:p-6 text-white hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-yellow-100 text-sm font-medium">Unsafe Action/Condition</p>
-            <p class="text-3xl font-bold mt-2">{{ stats.unsafeActionCondition }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-yellow-100 text-xs md:text-sm font-medium truncate">Unsafe Action/Condition</p>
+            <p class="text-2xl md:text-3xl font-bold mt-1 md:mt-2">{{ stats.unsafeActionCondition }}</p>
             <p class="text-yellow-100 text-xs mt-1">Total Bulan Ini</p>
           </div>
-          <div class="bg-white/20 rounded-full p-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/20 rounded-full p-2 md:p-3 ml-3 flex-shrink-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
@@ -149,49 +155,49 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
       <!-- Trend Chart - Takes 2 columns -->
-      <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-gray-900">📈 Trend Aktivitas Keselamatan</h3>
-          <select class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+      <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-4 md:p-6 hover:shadow-xl transition-shadow duration-300">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6">
+          <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-2 sm:mb-0">📈 Trend Aktivitas Keselamatan</h3>
+          <select class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full sm:w-auto">
             <option>6 Bulan Terakhir</option>
             <option>3 Bulan Terakhir</option>
             <option>1 Tahun</option>
           </select>
         </div>
-        <div class="h-80">
+        <div class="h-64 md:h-80">
           <Line :data="trendChartData" :options="trendChartOptions" />
         </div>
       </div>
 
       <!-- Pie Chart - Takes 1 column -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-        <h3 class="text-xl font-bold text-gray-900 mb-6">🎯 Temuan by Kategori</h3>
-        <div class="h-80 flex items-center justify-center">
+      <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 hover:shadow-xl transition-shadow duration-300">
+        <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">🎯 Temuan by Kategori</h3>
+        <div class="h-64 md:h-80 flex items-center justify-center">
           <Doughnut :data="categoryChartData" :options="categoryChartOptions" />
         </div>
       </div>
     </div>
 
     <!-- Recent Activities -->
-    <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-      <h3 class="text-xl font-bold text-gray-900 mb-6">🕒 Aktivitas Terbaru</h3>
-      <div class="space-y-4">
-        <div 
-          v-for="activity in recentActivities" 
+    <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 hover:shadow-xl transition-shadow duration-300">
+      <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">🕒 Aktivitas Terbaru</h3>
+      <div class="space-y-3 md:space-y-4">
+        <div
+          v-for="activity in recentActivities"
           :key="activity.id"
-          class="flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200 cursor-pointer border border-gray-100"
+          class="flex items-start space-x-3 md:space-x-4 p-3 md:p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200 cursor-pointer border border-gray-100"
         >
-          <div :class="`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${activity.color}`">
-            <span class="text-xl">{{ activity.icon }}</span>
+          <div :class="`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${activity.color}`">
+            <span class="text-lg md:text-xl">{{ activity.icon }}</span>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-900">{{ activity.title }}</p>
-            <p class="text-sm text-gray-500 mt-1">{{ activity.description }}</p>
+            <p class="text-xs md:text-sm text-gray-500 mt-1">{{ activity.description }}</p>
             <p class="text-xs text-gray-400 mt-1">{{ activity.time }}</p>
           </div>
-          <span :class="`px-3 py-1 rounded-full text-xs font-medium ${activity.badgeColor}`">
+          <span :class="`px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-medium ${activity.badgeColor}`">
             {{ activity.status }}
           </span>
         </div>
@@ -199,34 +205,34 @@
     </div>
 
     <!-- Monthly Table Modal -->
-    <div v-if="showMonthlyTableModal" @click.stop="showMonthlyTableModal = false" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div @click.stop class="bg-white rounded-lg shadow-2xl w-full max-w-[95vw] h-[90vh] flex flex-col">
+    <div v-if="showMonthlyTableModal" @click.stop="showMonthlyTableModal = false" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
+      <div @click.stop class="bg-white rounded-lg shadow-2xl w-full max-w-[98vw] md:max-w-[95vw] h-[95vh] md:h-[90vh] flex flex-col">
         <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
-          <div class="flex items-center justify-between mb-3">
+        <div class="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+          <div class="flex items-center justify-between mb-2 md:mb-3">
             <div>
-              <h2 class="text-2xl font-bold">{{ selectedModuleName }}</h2>
-              <p class="text-blue-100 text-sm mt-1">Data Aktivitas Bulanan per Unit</p>
+              <h2 class="text-lg md:text-2xl font-bold">{{ selectedModuleName }}</h2>
+              <p class="text-blue-100 text-xs md:text-sm mt-1">Data Aktivitas Bulanan per Unit</p>
             </div>
-            <button 
+            <button
               @click.stop="showMonthlyTableModal = false"
               class="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
             >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
           <!-- Month Filter -->
-          <div class="flex items-center gap-3">
-            <label class="text-white text-sm font-medium">Filter Bulan:</label>
-            <input 
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 md:gap-3">
+            <label class="text-white text-xs md:text-sm font-medium">Filter Bulan:</label>
+            <input
               v-model="selectedMonth"
               @change="selectedModule === 'safety_briefing' ? loadSafetyBriefingData() : loadMonthlyData()"
-              type="month" 
-              class="px-3 py-2 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-white"
+              type="month"
+              class="px-3 py-2 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-white flex-1 sm:flex-none"
             />
-            <span class="text-blue-100 text-sm ml-2">
+            <span class="text-blue-100 text-xs md:text-sm">
               <span v-if="selectedModule === 'safety_briefing'">
                 Total: {{ safetyBriefingData.length }} Safety Briefing
               </span>
@@ -238,7 +244,7 @@
         </div>
 
         <!-- Modal Content -->
-        <div class="flex-1 overflow-auto p-6">
+        <div class="flex-1 overflow-auto p-4 md:p-6">
           <!-- Safety Briefing Detailed Table -->
           <div v-if="selectedModule === 'safety_briefing'" class="overflow-x-auto">
             <div v-if="safetyBriefingData.length === 0" class="text-center py-12">
@@ -364,27 +370,27 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex items-center justify-between">
-          <div class="flex items-center gap-6 text-sm">
+        <div class="px-4 md:px-6 py-3 md:py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-6 text-xs md:text-sm">
             <!-- Safety Briefing Footer -->
             <div v-if="selectedModule === 'safety_briefing'" class="flex items-center gap-4">
               <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <span class="text-gray-600">Total Safety Briefing: {{ safetyBriefingData.length }}</span>
               </div>
             </div>
             <!-- Other Modules Footer -->
-            <div v-else class="flex items-center gap-6 text-sm">
+            <div v-else class="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-6">
               <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 md:w-5 md:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
                 <span class="text-gray-600">Sudah Input Data</span>
               </div>
               <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 <span class="text-gray-600">Belum Input Data</span>
@@ -393,7 +399,7 @@
           </div>
           <button
             @click="showMonthlyTableModal = false"
-            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            class="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
           >
             Tutup
           </button>
@@ -1045,7 +1051,7 @@ const loadTrendData = async () => {
 
       // Query Temuan count for this month
       const { count: temuanCount } = await supabase
-        .from('temuan')
+        .from('unsafe_action_condition')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', startOfMonth.toISOString())
         .lte('created_at', endOfMonth.toISOString())

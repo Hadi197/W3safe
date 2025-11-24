@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Silent Inspection</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Silent Inspection</h1>
         <p class="text-gray-600 mt-1">Kelola inspeksi keselamatan diam-diam di lokasi kerja</p>
       </div>
-      <button @click="openModal" class="btn-primary">
+      <button @click="openModal" class="btn-primary flex items-center justify-center w-full sm:w-auto">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -16,7 +16,7 @@
 
     <!-- Filters -->
     <div class="card p-4">
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div>
           <label class="label">Cari</label>
           <input 
@@ -51,8 +51,7 @@
           <select v-model="filterStatus" class="input-field" @change="applyFilters">
             <option value="">Semua Status</option>
             <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="verified">Verified</option>
+            <option value="approved">Approved</option>
             <option value="closed">Closed</option>
           </select>
         </div>
@@ -278,7 +277,7 @@
               </div>
               <div>
                 <label class="label">Total Temuan</label>
-                <input v-model.number="form.jumlah_temuan" type="number" min="0" class="input-field bg-gray-50" readonly />
+                <input :value="computedJumlahTemuan" type="number" min="0" class="input-field bg-gray-50" readonly />
               </div>
               <div class="md:col-span-2">
                 <label class="label">Deskripsi Temuan</label>
@@ -368,8 +367,7 @@
                 <label class="label">Status Laporan</label>
                 <select v-model="form.status" class="input-field">
                   <option value="draft">Draft</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="verified">Verified</option>
+                  <option value="approved">Approved</option>
                   <option value="closed">Closed</option>
                 </select>
               </div>
@@ -410,14 +408,15 @@
 
             <!-- Preview Foto Kondisi Baru -->
             <div v-if="newPhotosKondisi.length > 0" class="mt-4">
-              <h4 class="font-semibold mb-2">Preview ({{ newPhotosKondisi.length }} foto)</h4>
+              <h4 class="font-semibold mb-2">Preview Kondisi Unsafe ({{ newPhotosKondisi.length }} foto)</h4>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div v-for="(photo, index) in newPhotosKondisi" :key="index" class="relative">
-                  <img :src="photo.preview" class="w-full h-32 object-cover rounded-lg border" />
+                  <img :src="photo.preview" class="w-full h-32 object-cover rounded-lg border" :alt="`Preview ${index + 1}`" />
                   <button 
                     type="button"
                     @click="removeFileKondisi(index)" 
                     class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    title="Hapus foto"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -481,14 +480,15 @@
 
             <!-- Preview Foto Perilaku Baru -->
             <div v-if="newPhotosPerilaku.length > 0" class="mt-4">
-              <h4 class="font-semibold mb-2">Preview ({{ newPhotosPerilaku.length }} foto)</h4>
+              <h4 class="font-semibold mb-2">Preview Perilaku Unsafe ({{ newPhotosPerilaku.length }} foto)</h4>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div v-for="(photo, index) in newPhotosPerilaku" :key="index" class="relative">
-                  <img :src="photo.preview" class="w-full h-32 object-cover rounded-lg border" />
+                  <img :src="photo.preview" class="w-full h-32 object-cover rounded-lg border" :alt="`Preview ${index + 1}`" />
                   <button 
                     type="button"
                     @click="removeFilePerilaku(index)" 
                     class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    title="Hapus foto"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -538,41 +538,47 @@
 
     <!-- Photo Viewer Modal -->
     <div v-if="showPhotoModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50" @click="closePhotoModal">
-      <button @click="closePhotoModal" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      <div class="relative w-full h-full flex items-center justify-center">
+        <!-- Close Button -->
+        <button @click="closePhotoModal" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-      <button v-if="currentPhotoIndex > 0" @click.stop="prevPhoto" class="absolute left-4 text-white hover:text-gray-300">
-        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+        <!-- Previous Button -->
+        <button v-if="currentPhotoIndex > 0" @click.stop="prevPhoto" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-3 z-10">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
 
-      <div class="max-w-6xl max-h-[85vh] px-16" @click.stop>
-        <img :src="currentPhotos[currentPhotoIndex]" class="max-w-full max-h-[85vh] object-contain" />
-        <div class="text-white text-center mt-4">
-          {{ currentPhotoIndex + 1 }} / {{ currentPhotos.length }}
+        <!-- Photo Content -->
+        <div class="relative max-w-6xl w-full px-16" @click.stop>
+          <img :src="currentPhotos[currentPhotoIndex]" class="max-w-full max-h-[85vh] object-contain" />
+          <div class="text-white text-center mt-4">
+            {{ currentPhotoIndex + 1 }} / {{ currentPhotos.length }}
+          </div>
+
+          <!-- Thumbnail Strip -->
+          <div class="flex justify-center gap-2 mt-4 overflow-x-auto pb-2">
+            <img
+              v-for="(photo, index) in currentPhotos"
+              :key="index"
+              :src="photo"
+              @click="currentPhotoIndex = index"
+              :class="['w-16 h-16 object-cover rounded cursor-pointer border-2', index === currentPhotoIndex ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100']"
+            />
+          </div>
         </div>
 
-        <!-- Thumbnail Strip -->
-        <div class="flex justify-center gap-2 mt-4 overflow-x-auto pb-2">
-          <img 
-            v-for="(photo, index) in currentPhotos" 
-            :key="index"
-            :src="photo"
-            @click="currentPhotoIndex = index"
-            :class="['w-16 h-16 object-cover rounded cursor-pointer border-2', index === currentPhotoIndex ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100']"
-          />
-        </div>
+        <!-- Next Button -->
+        <button v-if="currentPhotoIndex < currentPhotos.length - 1" @click.stop="nextPhoto" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-3 z-10">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
-
-      <button v-if="currentPhotoIndex < currentPhotos.length - 1" @click.stop="nextPhoto" class="absolute right-4 text-white hover:text-gray-300">
-        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
     </div>
   </div>
 </template>
@@ -616,6 +622,7 @@ const form = ref<CreateSilentInspectionDto>({
   unit_id: '',
   area_inspeksi: '',
   kategori_bahaya: '',
+  checklist_items: [],
   jumlah_temuan: 0,
   temuan_critical: 0,
   temuan_major: 0,
@@ -643,9 +650,14 @@ const showPhotoModal = ref(false)
 const currentPhotos = ref<string[]>([])
 const currentPhotoIndex = ref(0)
 
-// Watch temuan untuk auto calculate total
+// Watch temuan untuk auto calculate total (update form value for saving)
 watch([() => form.value.temuan_critical, () => form.value.temuan_major, () => form.value.temuan_minor], () => {
-  form.value.jumlah_temuan = (form.value.temuan_critical || 0) + (form.value.temuan_major || 0) + (form.value.temuan_minor || 0)
+  form.value.jumlah_temuan = computedJumlahTemuan.value
+})
+
+// Computed property for jumlah_temuan (alternative approach)
+const computedJumlahTemuan = computed(() => {
+  return (form.value.temuan_critical || 0) + (form.value.temuan_major || 0) + (form.value.temuan_minor || 0)
 })
 
 // Computed
@@ -755,13 +767,16 @@ const closeModal = () => {
 }
 
 const resetForm = () => {
+  isEdit.value = false
+  editId.value = null
   form.value = {
     tanggal: format(new Date(), 'yyyy-MM-dd'),
-    waktu_mulai: '',
+    waktu_mulai: format(new Date(), 'HH:mm'),
     waktu_selesai: '',
     unit_id: '',
     area_inspeksi: '',
     kategori_bahaya: '',
+    checklist_items: [],
     jumlah_temuan: 0,
     temuan_critical: 0,
     temuan_major: 0,
@@ -795,7 +810,8 @@ const editItem = async (item: SilentInspection) => {
     unit_id: item.unit_id,
     area_inspeksi: item.area_inspeksi,
     kategori_bahaya: item.kategori_bahaya,
-    jumlah_temuan: item.jumlah_temuan,
+    checklist_items: item.checklist || [],
+    jumlah_temuan: (item.temuan_critical || 0) + (item.temuan_major || 0) + (item.temuan_minor || 0), // Will be overridden by computed
     temuan_critical: item.temuan_critical,
     temuan_major: item.temuan_major,
     temuan_minor: item.temuan_minor,
@@ -822,23 +838,44 @@ const handleFileSelectKondisi = async (event: Event) => {
   if (!target.files) return
 
   const files = Array.from(target.files)
+  console.log('📸 Processing', files.length, 'files for kondisi unsafe')
+  
   for (const file of files) {
-    // Auto-compress if >1MB
-    const result = await compressSingleImage(file)
-    const compressedFile = result.file
-    
-    if (result.wasCompressed) {
-      console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
-    }
+    try {
+      console.log('📸 Processing file:', file.name, 'Size:', file.size)
+      
+      // Auto-compress if >1MB
+      const result = await compressSingleImage(file)
+      const compressedFile = result.file
+      
+      if (result.wasCompressed) {
+        console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
+      }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
+      // Create preview using Promise
+      const preview = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          resolve(e.target?.result as string)
+        }
+        reader.onerror = (e) => {
+          reject(new Error('Failed to read file'))
+        }
+        reader.readAsDataURL(compressedFile)
+      })
+
+      console.log('📸 Preview created for:', file.name)
+      
       newPhotosKondisi.value.push({
         file: compressedFile,
-        preview: e.target?.result as string
+        preview: preview
       })
+      
+      console.log('📸 Added to newPhotosKondisi, total:', newPhotosKondisi.value.length)
+      
+    } catch (error) {
+      console.error('❌ Error processing file:', file.name, error)
     }
-    reader.readAsDataURL(compressedFile)
   }
 
   target.value = ''
@@ -849,23 +886,44 @@ const handleFileSelectPerilaku = async (event: Event) => {
   if (!target.files) return
 
   const files = Array.from(target.files)
+  console.log('📸 Processing', files.length, 'files for perilaku unsafe')
+  
   for (const file of files) {
-    // Auto-compress if >1MB
-    const result = await compressSingleImage(file)
-    const compressedFile = result.file
-    
-    if (result.wasCompressed) {
-      console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
-    }
+    try {
+      console.log('📸 Processing file:', file.name, 'Size:', file.size)
+      
+      // Auto-compress if >1MB
+      const result = await compressSingleImage(file)
+      const compressedFile = result.file
+      
+      if (result.wasCompressed) {
+        console.log(`📸 ${file.name}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% lebih kecil)`)
+      }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
+      // Create preview using Promise
+      const preview = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          resolve(e.target?.result as string)
+        }
+        reader.onerror = (e) => {
+          reject(new Error('Failed to read file'))
+        }
+        reader.readAsDataURL(compressedFile)
+      })
+
+      console.log('📸 Preview created for:', file.name)
+      
       newPhotosPerilaku.value.push({
         file: compressedFile,
-        preview: e.target?.result as string
+        preview: preview
       })
+      
+      console.log('📸 Added to newPhotosPerilaku, total:', newPhotosPerilaku.value.length)
+      
+    } catch (error) {
+      console.error('❌ Error processing file:', file.name, error)
     }
-    reader.readAsDataURL(compressedFile)
   }
 
   target.value = ''
@@ -913,16 +971,58 @@ const handleSubmit = async () => {
   try {
     submitting.value = true
 
+    // Basic validation
+    if (!form.value.tanggal) {
+      alert('Tanggal harus diisi')
+      return
+    }
+    if (!form.value.waktu_mulai) {
+      alert('Waktu mulai harus diisi')
+      return
+    }
+    if (!form.value.unit_id) {
+      alert('Unit harus dipilih')
+      return
+    }
+    if (!form.value.area_inspeksi?.trim()) {
+      alert('Area inspeksi harus diisi')
+      return
+    }
+
+    // Ensure jumlah_temuan is set correctly before saving
+    form.value.jumlah_temuan = computedJumlahTemuan.value
+
     let inspectionId = editId.value
 
-    // Upload new photos kondisi
-    if (newPhotosKondisi.value.length > 0) {
+    // For input mode (creating new record), we need to create the record first
+    // then upload photos with the real ID
+    if (!isEdit.value) {
+      console.log('➕ Creating new inspection first...')
+
+      // Create the inspection record without photos first
+      const tempForm = { ...form.value }
+      tempForm.foto_kondisi_unsafe = []
+      tempForm.foto_perilaku_unsafe = []
+      console.log('📝 Creating inspection with temuan fields:', {
+        temuan_critical: tempForm.temuan_critical,
+        temuan_major: tempForm.temuan_major,
+        temuan_minor: tempForm.temuan_minor,
+        jumlah_temuan: tempForm.jumlah_temuan
+      })
+
+      const createdInspection = await silentInspectionService.create(tempForm)
+      inspectionId = createdInspection.id
+      console.log('✅ Inspection created with ID:', inspectionId)
+    }
+
+    // Upload new photos kondisi with real inspection ID
+    if (newPhotosKondisi.value.length > 0 && inspectionId) {
       try {
-        const tempId = inspectionId || 'temp_' + Date.now()
         const files = newPhotosKondisi.value.map(p => p.file)
-        console.log(`📤 Uploading ${files.length} kondisi unsafe photos...`)
-        const uploadedUrls = await silentInspectionService.uploadPhotos(files, tempId)
+        console.log(`📤 Uploading ${files.length} kondisi unsafe photos for inspection: ${inspectionId}`)
+        const uploadedUrls = await silentInspectionService.uploadPhotos(files, inspectionId)
         form.value.foto_kondisi_unsafe = [...(form.value.foto_kondisi_unsafe || []), ...uploadedUrls]
+        newPhotosKondisi.value = [] // Clear after successful upload
         console.log('✅ Kondisi unsafe photos uploaded successfully')
       } catch (photoError) {
         console.warn('❌ Photo upload failed for kondisi unsafe:', photoError)
@@ -931,14 +1031,14 @@ const handleSubmit = async () => {
       }
     }
 
-    // Upload new photos perilaku
-    if (newPhotosPerilaku.value.length > 0) {
+    // Upload new photos perilaku with real inspection ID
+    if (newPhotosPerilaku.value.length > 0 && inspectionId) {
       try {
-        const tempId = inspectionId || 'temp_' + Date.now()
         const files = newPhotosPerilaku.value.map(p => p.file)
-        console.log(`📤 Uploading ${files.length} perilaku unsafe photos...`)
-        const uploadedUrls = await silentInspectionService.uploadPhotos(files, tempId)
+        console.log(`📤 Uploading ${files.length} perilaku unsafe photos for inspection: ${inspectionId}`)
+        const uploadedUrls = await silentInspectionService.uploadPhotos(files, inspectionId)
         form.value.foto_perilaku_unsafe = [...(form.value.foto_perilaku_unsafe || []), ...uploadedUrls]
+        newPhotosPerilaku.value = [] // Clear after successful upload
         console.log('✅ Perilaku unsafe photos uploaded successfully')
       } catch (photoError) {
         console.warn('❌ Photo upload failed for perilaku unsafe:', photoError)
@@ -947,19 +1047,33 @@ const handleSubmit = async () => {
       }
     }
 
-    if (isEdit.value && inspectionId) {
+    // For input mode, we already created the record, so we need to update it with photo URLs
+    // For edit mode, update the existing record with any new photos
+    if (inspectionId) {
+      console.log('🔄 Updating inspection with photo URLs and temuan fields:', inspectionId, {
+        temuan_critical: form.value.temuan_critical,
+        temuan_major: form.value.temuan_major,
+        temuan_minor: form.value.temuan_minor,
+        jumlah_temuan: form.value.jumlah_temuan,
+        foto_kondisi_count: form.value.foto_kondisi_unsafe?.length || 0,
+        foto_perilaku_count: form.value.foto_perilaku_unsafe?.length || 0
+      })
       await silentInspectionService.update(inspectionId, form.value)
+      console.log('✅ Inspection updated with photos')
+    }
+
+    if (isEdit.value) {
       alert('Data berhasil diupdate')
     } else {
-      await silentInspectionService.create(form.value)
       alert('Data berhasil disimpan')
     }
 
     closeModal()
     await loadData()
   } catch (error) {
-    console.error('Error saving data:', error)
-    alert('Gagal menyimpan data')
+    console.error('❌ Error saving data:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    alert('Gagal menyimpan data: ' + errorMessage)
   } finally {
     submitting.value = false
   }
@@ -1049,8 +1163,7 @@ const getRiskLabel = (risk?: string) => {
 const getStatusClass = (status: string) => {
   switch (status) {
     case 'draft': return 'bg-gray-100 text-gray-800'
-    case 'submitted': return 'bg-blue-100 text-blue-800'
-    case 'verified': return 'bg-green-100 text-green-800'
+    case 'approved': return 'bg-green-100 text-green-800'
     case 'closed': return 'bg-purple-100 text-purple-800'
     default: return 'bg-gray-100 text-gray-800'
   }
@@ -1059,8 +1172,7 @@ const getStatusClass = (status: string) => {
 const getStatusLabel = (status: string) => {
   switch (status) {
     case 'draft': return 'Draft'
-    case 'submitted': return 'Submitted'
-    case 'verified': return 'Verified'
+    case 'approved': return 'Approved'
     case 'closed': return 'Closed'
     default: return status
   }

@@ -3,12 +3,27 @@
 @tailwind utilities;
 
 @layer base {
-  body {
+  html, body {
     @apply bg-gray-50 text-gray-900;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
     /* Prevent zoom on input focus on iOS */
     -webkit-text-size-adjust: 100%;
     /* Prevent horizontal scroll */
     overflow-x: hidden;
+    /* Make it feel more native */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #app {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
   }
 
   /* Improve touch targets on mobile */
@@ -16,6 +31,9 @@
     button, a, input, select, textarea {
       min-height: 44px;
       min-width: 44px;
+      /* Enable text selection for inputs */
+      -webkit-user-select: text;
+      user-select: text;
     }
   }
 
@@ -40,7 +58,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-primary-600 text-white px-4 py-3 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] touch-manipulation;
   }
   
   .btn-secondary {

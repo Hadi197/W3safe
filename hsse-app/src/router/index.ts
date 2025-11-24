@@ -149,43 +149,50 @@ const router = createRouter({
   routes
 })
 
-// Navigation guards
-router.beforeEach(async (to, from, next) => {
-  // Check if Supabase is configured
-  if (!isSupabaseConfigured && to.path !== '/setup') {
-    next('/setup')
-    return
-  }
-  
-  // If configured and on setup page, redirect to login
-  if (isSupabaseConfigured && to.path === '/setup') {
-    next('/login')
-    return
-  }
-  
-  // Skip auth checks for public routes
-  if (to.meta.public) {
-    next()
-    return
-  }
-  
-  const authStore = useAuthStore()
-  
-  // Initialize auth state if not already done
-  if (!authStore.session && !authStore.loading) {
-    await authStore.initialize()
-  }
-  
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
-  
-  if (requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-  } else if (requiresGuest && authStore.isAuthenticated) {
-    next('/dashboard')
-  } else {
-    next()
-  }
-})
+// Export function to setup navigation guards (must be called after Pinia is initialized)
+export function setupRouterGuards() {
+  router.beforeEach(async (to, from, next) => {
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured && to.path !== '/setup') {
+      next('/setup')
+      return
+    }
+    
+    // If configured and on setup page, redirect to login
+    if (isSupabaseConfigured && to.path === '/setup') {
+      next('/login')
+      return
+    }
+    
+    // Skip auth checks for public routes
+    if (to.meta.public) {
+      next()
+      return
+    }
+    
+    try {
+      const authStore = useAuthStore()
+      
+      // Initialize auth state if not already done
+      if (!authStore.session && !authStore.loading) {
+        await authStore.initialize()
+      }
+      
+      const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+      const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
+      
+      if (requiresAuth && !authStore.isAuthenticated) {
+        next('/login')
+      } else if (requiresGuest && authStore.isAuthenticated) {
+        next('/dashboard')
+      } else {
+        next()
+      }
+    } catch (error) {
+      console.error('Router guard error:', error)
+      next('/login')
+    }
+  })
+}
 
 export default router

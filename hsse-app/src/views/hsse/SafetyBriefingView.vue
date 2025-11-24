@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Safety Briefing</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Safety Briefing</h1>
         <p class="text-gray-600 mt-1">Kelola data safety briefing harian</p>
       </div>
-      <button @click="openModal" class="btn-primary">
+      <button @click="openModal" class="btn-primary flex items-center justify-center w-full sm:w-auto">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -16,7 +16,7 @@
 
     <!-- Filters -->
     <div class="card p-4">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label class="label">Cari</label>
           <input 
@@ -41,8 +41,8 @@
           <select v-model="filterStatus" @change="applyFilters" class="input-field">
             <option value="">Semua Status</option>
             <option value="draft">Draft</option>
+            <option value="submitted">Submitted</option>
             <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
           </select>
         </div>
         <div>
@@ -341,8 +341,8 @@
               <label class="label">Status</label>
               <select v-model="form.status" class="input-field">
                 <option value="draft">Draft</option>
+                <option value="submitted">Submitted</option>
                 <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
               </select>
             </div>
 
@@ -517,7 +517,7 @@ const form = ref({
   materi: '',
   jumlah_peserta: 0,
   foto_dokumentasi: [] as string[],
-  status: 'draft' as 'draft' | 'approved' | 'rejected',
+  status: 'draft' as 'draft' | 'submitted' | 'approved',
   catatan: ''
 })
 
@@ -556,7 +556,7 @@ const fetchData = async () => {
     const filters = {
       searchQuery: searchQuery.value || undefined,
       unitId: filterUnit.value || undefined,
-      status: filterStatus.value as 'draft' | 'approved' | 'rejected' | undefined,
+      status: filterStatus.value as 'draft' | 'submitted' | 'approved' | undefined,
       month: filterMonth.value || undefined
     }
 
@@ -756,6 +756,9 @@ const handleSubmit = async () => {
       catatan: form.value.catatan || undefined
     }
 
+    console.log('📤 Sending DTO:', JSON.stringify(dto, null, 2))
+    console.log('Status value:', form.value.status, 'Type:', typeof form.value.status)
+
     if (isEditMode.value && currentItemId.value) {
       await safetyBriefingService.update(currentItemId.value, dto)
     } else {
@@ -802,8 +805,8 @@ const formatDate = (date: string) => {
 const getStatusClass = (status: string) => {
   const classes: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-800',
-    approved: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-800'
+    submitted: 'bg-blue-100 text-blue-800',
+    approved: 'bg-green-100 text-green-800'
   }
   return classes[status] || 'bg-gray-100 text-gray-800'
 }
@@ -811,8 +814,8 @@ const getStatusClass = (status: string) => {
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
     draft: 'Draft',
-    approved: 'Approved',
-    rejected: 'Rejected'
+    submitted: 'Submitted',
+    approved: 'Approved'
   }
   return labels[status] || status
 }
