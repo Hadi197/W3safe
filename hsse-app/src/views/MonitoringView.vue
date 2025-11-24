@@ -174,18 +174,17 @@
       </div>
 
       <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Top 5 User Aktif</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Unit Aktif</h3>
         <div class="space-y-3">
-          <div v-for="(user, idx) in topUsers" :key="user.id" class="flex items-center gap-3">
+          <div v-for="(unit, idx) in topUnits" :key="unit.id" class="flex items-center gap-3">
             <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
               {{ idx + 1 }}
             </div>
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-800">{{ user.name }}</p>
-              <p class="text-xs text-gray-500">{{ user.unit }}</p>
+              <p class="text-sm font-medium text-gray-800">{{ unit.name }}</p>
             </div>
             <div class="text-right">
-              <p class="text-lg font-bold text-blue-600">{{ user.count }}</p>
+              <p class="text-lg font-bold text-blue-600">{{ unit.count }}</p>
               <p class="text-xs text-gray-500">aktivitas</p>
             </div>
           </div>
@@ -398,56 +397,7 @@ const filters = ref({
 const currentPage = ref(1)
 const pageSize = 20
 
-// Statistics
-const stats = computed(() => {
-  return {
-    total: activities.value.length,
-    today: activities.value.filter(a => isToday(new Date(a.created_at))).length,
-    thisWeek: activities.value.filter(a => isThisWeek(new Date(a.created_at), { locale: localeId })).length,
-    thisMonth: activities.value.filter(a => isThisMonth(new Date(a.created_at))).length
-  }
-})
-
-// Module statistics
-const moduleStats = computed(() => {
-  const modules = [
-    { name: 'safety_patrol', label: 'Safety Patrol', color: 'bg-blue-500' },
-    { name: 'safety_drill', label: 'Safety Drill', color: 'bg-green-500' },
-    { name: 'safety_briefing', label: 'Safety Briefing', color: 'bg-purple-500' },
-    { name: 'safety_induction', label: 'Safety Induction', color: 'bg-yellow-500' },
-    { name: 'safety_forum', label: 'Safety Forum', color: 'bg-red-500' },
-    { name: 'silent_inspection', label: 'Silent Inspection', color: 'bg-indigo-500' },
-    { name: 'management_walkthrough', label: 'Management Walkthrough', color: 'bg-pink-500' }
-  ]
-
-  return modules.map(module => ({
-    ...module,
-    count: activities.value.filter(a => a.module === module.name).length
-  }))
-})
-
-// Top users
-const topUsers = computed(() => {
-  const userMap = new Map()
-  
-  activities.value.forEach(activity => {
-    if (!userMap.has(activity.user_id)) {
-      userMap.set(activity.user_id, {
-        id: activity.user_id,
-        name: activity.user_name,
-        unit: activity.unit_name,
-        count: 0
-      })
-    }
-    userMap.get(activity.user_id).count++
-  })
-
-  return Array.from(userMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5)
-})
-
-// Filtered activities
+// Filtered activities (harus di atas karena digunakan oleh computed lain)
 const filteredActivities = computed(() => {
   let result = activities.value
 
@@ -470,6 +420,56 @@ const filteredActivities = computed(() => {
   }
 
   return result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+})
+
+// Statistics - based on filtered data
+const stats = computed(() => {
+  return {
+    total: filteredActivities.value.length,
+    today: filteredActivities.value.filter(a => isToday(new Date(a.created_at))).length,
+    thisWeek: filteredActivities.value.filter(a => isThisWeek(new Date(a.created_at), { locale: localeId })).length,
+    thisMonth: filteredActivities.value.filter(a => isThisMonth(new Date(a.created_at))).length
+  }
+})
+
+// Module statistics - based on filtered data
+const moduleStats = computed(() => {
+  const modules = [
+    { name: 'safety_patrol', label: 'Safety Patrol', color: 'bg-blue-500' },
+    { name: 'safety_drill', label: 'Safety Drill', color: 'bg-green-500' },
+    { name: 'safety_briefing', label: 'Safety Briefing', color: 'bg-purple-500' },
+    { name: 'safety_induction', label: 'Safety Induction', color: 'bg-yellow-500' },
+    { name: 'safety_forum', label: 'Safety Forum', color: 'bg-red-500' },
+    { name: 'silent_inspection', label: 'Silent Inspection', color: 'bg-indigo-500' },
+    { name: 'management_walkthrough', label: 'Management Walkthrough', color: 'bg-pink-500' }
+  ]
+
+  return modules.map(module => ({
+    ...module,
+    count: filteredActivities.value.filter(a => a.module === module.name).length
+  }))
+})
+
+// Top 5 Units - based on filtered data
+const topUnits = computed(() => {
+  const unitMap = new Map()
+  
+  filteredActivities.value.forEach(activity => {
+    if (activity.unit_id) {
+      if (!unitMap.has(activity.unit_id)) {
+        unitMap.set(activity.unit_id, {
+          id: activity.unit_id,
+          name: activity.unit_name,
+          count: 0
+        })
+      }
+      unitMap.get(activity.unit_id).count++
+    }
+  })
+
+  return Array.from(unitMap.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
 })
 
 // Pagination
