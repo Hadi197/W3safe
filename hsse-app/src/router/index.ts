@@ -95,6 +95,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Monitoring Aktivitas' }
       },
       {
+        path: 'monitoring-input',
+        name: 'monitoring-input',
+        component: () => import('@/views/MonitoringInputView.vue'),
+        meta: { title: 'Monitoring Input Data' }
+      },
+      {
         path: 'safety-patrol',
         name: 'safety-patrol',
         component: () => import('@/views/hsse/SafetyPatrolView.vue'),
