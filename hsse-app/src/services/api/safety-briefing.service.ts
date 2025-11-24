@@ -105,7 +105,9 @@ class SafetyBriefingService {
         catatan,
         created_by,
         created_at,
-        updated_at
+        updated_at,
+        unit:units!unit_id(id, nama, kode),
+        petugas:pegawai!petugas_id(id, nama, nip)
       `, { count: 'exact' })
 
     if (filters?.searchQuery) {
@@ -209,55 +211,15 @@ class SafetyBriefingService {
         catatan,
         created_by,
         created_at,
-        updated_at
+        updated_at,
+        unit:units!unit_id(id, nama, kode),
+        petugas:pegawai!petugas_id(id, nama, nip)
       `)
       .eq('id', id)
       .single()
 
     if (error) throw error
-
-    // Get unit and petugas data separately
-    const briefingWithRelations = {
-      ...data,
-      // Map database columns to frontend properties
-      topik_briefing: data.topik,
-      materi_briefing: data.materi,
-      foto_briefing: data.materi // placeholder
-    } as SafetyBriefing
-
-    if (data.unit_id) {
-      const { data: unit } = await supabase
-        .from('units')
-        .select('id, nama, kode')
-        .eq('id', data.unit_id)
-        .single()
-
-      if (unit) {
-        briefingWithRelations.unit = {
-          id: unit.id,
-          nama: unit.nama,
-          kode: unit.kode
-        }
-      }
-    }
-
-    if (data.petugas_id) {
-      const { data: petugas } = await supabase
-        .from('pegawai')
-        .select('id, nama_lengkap, nip')
-        .eq('id', data.petugas_id)
-        .single()
-
-      if (petugas) {
-        briefingWithRelations.petugas = {
-          id: petugas.id,
-          nama: petugas.nama_lengkap,
-          nip: petugas.nip
-        }
-      }
-    }
-
-    return briefingWithRelations
+    return data as SafetyBriefing
   }
 
   /**
@@ -283,39 +245,15 @@ class SafetyBriefingService {
         created_at,
         updated_at,
         approved_by,
-        approved_at
+        approved_at,
+        unit:units!unit_id(id, nama, kode),
+        petugas:pegawai!petugas_id(id, nama, nip)
       `)
       .eq('unit_id', unitId)
       .order('tanggal', { ascending: false })
 
     if (error) throw error
-
-    // Get unit data for each briefing
-    const processedData = await Promise.all((data || []).map(async (briefing) => {
-      const briefingWithRelations = {
-        ...briefing,
-        // Ensure all required properties are present
-        jumlah_peserta: briefing.jumlah_peserta || 0,
-        foto_dokumentasi: briefing.foto_dokumentasi || [],
-        catatan: briefing.catatan || ''
-      } as SafetyBriefing
-
-      if (briefing.unit_id) {
-        const { data: unit } = await supabase
-          .from('units')
-          .select('id, nama, kode')
-          .eq('id', briefing.unit_id)
-          .single()
-
-        if (unit) {
-          briefingWithRelations.unit = unit
-        }
-      }
-
-      return briefingWithRelations
-    }))
-
-    return processedData
+    return data as SafetyBriefing[]
   }
 
   /**
