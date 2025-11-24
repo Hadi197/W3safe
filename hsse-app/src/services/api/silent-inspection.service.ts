@@ -236,6 +236,30 @@ class SilentInspectionService {
     return result.data
   }
 
+  // Helper function to calculate risk level based on findings
+  private calculateRiskLevel(item: any): string {
+    const critical = item.temuan_critical || 0
+    const major = item.temuan_major || 0
+    const minor = item.temuan_minor || 0
+
+    // Risk calculation logic:
+    // - Critical findings: High risk
+    // - Major findings: Medium risk
+    // - Minor findings: Low risk
+    // - Score-based fallback
+    if (critical > 0) return 'sangat_tinggi'
+    if (major > 2) return 'tinggi'
+    if (major > 0 || minor > 3) return 'sedang'
+    if (minor > 0) return 'rendah'
+
+    // Fallback to score-based calculation
+    const score = item.skor_total
+    if (score && score < 50) return 'sangat_tinggi'
+    if (score && score < 70) return 'tinggi'
+    if (score && score < 85) return 'sedang'
+    return 'rendah'
+  }
+
   // Paginated version for performance
   async getPaginated(
     filters?: {
@@ -319,9 +343,10 @@ class SilentInspectionService {
     const totalCount = count || 0
     const totalPages = Math.ceil(totalCount / pagination.pageSize)
 
-    // Map database columns to frontend properties for compatibility
-    const processedData = (data || []).map((item: any) => ({
-      ...item,
+    // Fetch related data for each item
+    const processedData = await Promise.all((data || []).map(async (item: any) => {
+      const itemWithRelations = {
+        ...item,
       // Map database columns to frontend expected properties
       nomor_inspeksi: `SI-${item.id?.slice(-8) || 'UNKNOWN'}`, // Generate simple inspection number
       waktu_mulai: '08:00:00', // Default time
@@ -333,14 +358,51 @@ class SilentInspectionService {
       foto_kondisi_unsafe: item.foto_kondisi_unsafe || [],
       foto_perilaku_unsafe: item.foto_perilaku_unsafe || [],
       skor_kepatuhan: item.skor_total || 0,
-      tingkat_risiko: item.skor_total && item.skor_total < 70 ? 'Tinggi' : 'Rendah',
+      tingkat_risiko: this.calculateRiskLevel(item),
       kondisi_housekeeping: 'Baik',
       penggunaan_apd: 'Baik',
       tindakan_korektif: item.rekomendasi || '',
       status_verifikasi: item.status === 'approved' ? 'verified' : 'pending',
       verified_by: item.approved_by,
       created_by: item.approved_by
-    })) as SilentInspection[]
+      } as SilentInspection
+
+      // Get unit data
+      if (item.unit_id) {
+        const { data: unit } = await supabase
+          .from('units')
+          .select('id, nama_unit, kode_unit')
+          .eq('id', item.unit_id)
+          .single()
+
+        if (unit) {
+          itemWithRelations.unit = {
+            id: unit.id,
+            nama: unit.nama_unit,
+            kode: unit.kode_unit
+          }
+        }
+      }
+
+      // Get inspector data
+      if (item.inspector_id) {
+        const { data: inspector } = await supabase
+          .from('pegawai')
+          .select('id, nama_lengkap, nip')
+          .eq('id', item.inspector_id)
+          .single()
+
+        if (inspector) {
+          itemWithRelations.inspector = {
+            id: inspector.id,
+            nama: inspector.nama_lengkap,
+            nip: inspector.nip
+          }
+        }
+      }
+
+      return itemWithRelations
+    }))
 
     return {
       data: processedData,
