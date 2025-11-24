@@ -134,51 +134,15 @@ class SafetyBriefingService {
 
     if (error) throw error
 
-    // Get unit data separately
-    const processedData = await Promise.all((data || []).map(async (briefing) => {
-      const briefingWithRelations = {
-        ...briefing,
-        // Ensure all required properties are present with correct types
-        jumlah_peserta: briefing.jumlah_peserta || 0,
-        foto_dokumentasi: briefing.foto_dokumentasi || [],
-        catatan: briefing.catatan || ''
-      } as SafetyBriefing
-
-      // Get unit data
-      if (briefing.unit_id) {
-        const { data: unit } = await supabase
-          .from('units')
-          .select('id, nama, kode')
-          .eq('id', briefing.unit_id)
-          .single()
-
-        if (unit) {
-          briefingWithRelations.unit = {
-            id: unit.id,
-            nama: unit.nama,
-            kode: unit.kode
-          }
-        }
-      }
-
-      // Get petugas data
-      if (briefing.petugas_id) {
-        const { data: petugas } = await supabase
-          .from('pegawai')
-          .select('id, nama_lengkap, nip')
-          .eq('id', briefing.petugas_id)
-          .single()
-
-        if (petugas) {
-          briefingWithRelations.petugas = {
-            id: petugas.id,
-            nama: petugas.nama_lengkap,
-            nip: petugas.nip
-          }
-        }
-      }
-
-      return briefingWithRelations
+    // Process data: convert PostgREST array relations to single objects
+    const processedData = (data || []).map((briefing: any) => ({
+      ...briefing,
+      jumlah_peserta: briefing.jumlah_peserta || 0,
+      foto_dokumentasi: briefing.foto_dokumentasi || [],
+      catatan: briefing.catatan || '',
+      // PostgREST returns relations as arrays, extract first element
+      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null,
+      petugas: Array.isArray(briefing.petugas) && briefing.petugas.length > 0 ? briefing.petugas[0] : null
     }))
 
     return {
@@ -219,7 +183,13 @@ class SafetyBriefingService {
       .single()
 
     if (error) throw error
-    return data as SafetyBriefing
+    
+    // Convert PostgREST array relations to single objects
+    return {
+      ...data,
+      unit: Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : null,
+      petugas: Array.isArray(data.petugas) && data.petugas.length > 0 ? data.petugas[0] : null
+    } as SafetyBriefing
   }
 
   /**
@@ -253,7 +223,13 @@ class SafetyBriefingService {
       .order('tanggal', { ascending: false })
 
     if (error) throw error
-    return data as SafetyBriefing[]
+    
+    // Convert PostgREST array relations to single objects
+    return (data || []).map((briefing: any) => ({
+      ...briefing,
+      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null,
+      petugas: Array.isArray(briefing.petugas) && briefing.petugas.length > 0 ? briefing.petugas[0] : null
+    })) as SafetyBriefing[]
   }
 
   /**
