@@ -106,8 +106,7 @@ class SafetyBriefingService {
         created_by,
         created_at,
         updated_at,
-        unit:units!unit_id(id, nama, kode),
-        petugas:pegawai!petugas_id(id, nama, nip)
+        unit:units!unit_id(id, nama, kode)
       `, { count: 'exact' })
 
     if (filters?.searchQuery) {
@@ -141,8 +140,7 @@ class SafetyBriefingService {
       foto_dokumentasi: briefing.foto_dokumentasi || [],
       catatan: briefing.catatan || '',
       // PostgREST returns relations as arrays, extract first element
-      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null,
-      petugas: Array.isArray(briefing.petugas) && briefing.petugas.length > 0 ? briefing.petugas[0] : null
+      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null
     }))
 
     return {
@@ -176,8 +174,7 @@ class SafetyBriefingService {
         created_by,
         created_at,
         updated_at,
-        unit:units!unit_id(id, nama, kode),
-        petugas:pegawai!petugas_id(id, nama, nip)
+        unit:units!unit_id(id, nama, kode)
       `)
       .eq('id', id)
       .single()
@@ -187,8 +184,7 @@ class SafetyBriefingService {
     // Convert PostgREST array relations to single objects
     return {
       ...data,
-      unit: Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : null,
-      petugas: Array.isArray(data.petugas) && data.petugas.length > 0 ? data.petugas[0] : null
+      unit: Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : null
     } as SafetyBriefing
   }
 
@@ -216,8 +212,7 @@ class SafetyBriefingService {
         updated_at,
         approved_by,
         approved_at,
-        unit:units!unit_id(id, nama, kode),
-        petugas:pegawai!petugas_id(id, nama, nip)
+        unit:units!unit_id(id, nama, kode)
       `)
       .eq('unit_id', unitId)
       .order('tanggal', { ascending: false })
@@ -227,8 +222,7 @@ class SafetyBriefingService {
     // Convert PostgREST array relations to single objects
     return (data || []).map((briefing: any) => ({
       ...briefing,
-      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null,
-      petugas: Array.isArray(briefing.petugas) && briefing.petugas.length > 0 ? briefing.petugas[0] : null
+      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null
     })) as SafetyBriefing[]
   }
 

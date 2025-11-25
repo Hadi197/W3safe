@@ -449,14 +449,14 @@ async function countRecords(
     const dateColumnMap: Record<string, string> = {
       'safety_briefing': 'tanggal',
       'silent_inspection': 'tanggal',
-      'safety_patrol': 'tanggal',
-      'safety_forum': 'tanggal',
-      'management_walkthrough': 'tanggal',
-      'safety_drill': 'tanggal',
-      'safety_induction': 'tanggal'
+      'safety_patrol': 'tanggal_patrol',
+      'safety_forum': 'tanggal_forum',
+      'management_walkthrough': 'tanggal_walkthrough',
+      'safety_drill': 'tanggal_drill',
+      'safety_induction': 'tanggal_induction'
     }
 
-    const dateColumn = dateColumnMap[tableName] || 'tanggal'
+    const dateColumn = dateColumnMap[tableName] || 'created_at'
 
     const { count, error } = await supabase
       .from(tableName)
@@ -465,10 +465,24 @@ async function countRecords(
       .gte(dateColumn, startDate)
       .lt(dateColumn, endDate)
 
-    if (error) throw error
+    if (error) {
+      console.error(`Supabase error for ${tableName}:`, {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      throw error
+    }
     return count || 0
-  } catch (error) {
-    console.error(`Error counting ${tableName}:`, error)
+  } catch (error: any) {
+    console.error(`Error counting ${tableName}:`, {
+      message: error?.message || 'Unknown error',
+      unitId,
+      startDate,
+      endDate,
+      error
+    })
     return 0
   }
 }
