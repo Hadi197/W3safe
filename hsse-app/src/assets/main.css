@@ -82,12 +82,21 @@
 
 /* Allow tables and wide content to expand beyond viewport */
 @layer utilities {
-  .table-wrapper {
+  /* Wrapper for tables that need horizontal scroll */
+  .table-responsive {
     @apply w-full overflow-x-auto;
-    min-width: 100%;
+    -webkit-overflow-scrolling: touch;
   }
   
-  .wide-content {
-    min-width: max-content;
+  /* Table that can expand wider than viewport */
+  .table-responsive table {
+    min-width: 100%;
+    width: max-content;
+  }
+  
+  /* For containers with wide content */
+  .overflow-x-container {
+    @apply overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
   }
 }

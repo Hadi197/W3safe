@@ -222,7 +222,7 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="min-h-screen md:ml-72 min-w-full">
+    <div class="min-h-screen md:ml-72">
       <!-- App Title Container - Desktop Only -->
       <div class="hidden md:block bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg">
         <div class="px-6 py-3">
@@ -240,7 +240,7 @@
       </div>
       
       <!-- Page Header -->
-      <header class="bg-primary-600 shadow-none md:shadow-sm md:bg-white min-w-full">
+      <header class="bg-primary-600 shadow-none md:shadow-sm md:bg-white">
         <div class="flex items-center justify-between px-4 md:px-6 py-3 md:py-4">
           <!-- Mobile Menu Button -->
           <button
@@ -303,10 +303,8 @@
       </header>
 
       <!-- Page Content -->
-      <main class="p-4 md:p-8 bg-gray-50 md:bg-white overflow-x-auto min-w-full w-max">
-        <div class="min-w-max">
-          <router-view />
-        </div>
+      <main class="p-4 md:p-8 bg-gray-50 md:bg-white">
+        <router-view />
       </main>
     </div>
   </div>
