@@ -179,6 +179,15 @@ class SafetyBriefingService {
 
     if (error) throw error
     
+    // Handle PostgREST returning unit as array or object
+    if (data && data.unit) {
+      const processedData = {
+        ...data,
+        unit: Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : data.unit
+      }
+      return processedData as SafetyBriefing
+    }
+    
     return data as SafetyBriefing
   }
 
@@ -213,7 +222,13 @@ class SafetyBriefingService {
 
     if (error) throw error
     
-    return (data || []) as SafetyBriefing[]
+    // Handle PostgREST returning unit as array or object
+    const processedData = (data || []).map((item: any) => ({
+      ...item,
+      unit: Array.isArray(item.unit) && item.unit.length > 0 ? item.unit[0] : item.unit
+    }))
+    
+    return processedData as SafetyBriefing[]
   }
 
   /**
