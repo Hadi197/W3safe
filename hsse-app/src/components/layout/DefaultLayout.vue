@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 overflow-x-auto">
     <!-- Mobile Overlay -->
     <div
       v-if="sidebarOpen"
@@ -222,7 +222,7 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="min-h-screen md:ml-72">
+    <div class="min-h-screen md:ml-72 min-w-full">
       <!-- App Title Container - Desktop Only -->
       <div class="hidden md:block bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg">
         <div class="px-6 py-3">
@@ -233,14 +233,14 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h1 class="text-3xl font-bold text-white">Aplikasi Safety Management Wilayah 3</h1>
+              <h1 class="text-3xl font-bold text-white whitespace-nowrap">Aplikasi Safety Management Wilayah 3</h1>
             </div>
           </div>
         </div>
       </div>
       
       <!-- Page Header -->
-      <header class="bg-primary-600 shadow-none md:shadow-sm md:bg-white">
+      <header class="bg-primary-600 shadow-none md:shadow-sm md:bg-white min-w-full">
         <div class="flex items-center justify-between px-4 md:px-6 py-3 md:py-4">
           <!-- Mobile Menu Button -->
           <button
@@ -303,8 +303,10 @@
       </header>
 
       <!-- Page Content -->
-      <main class="p-4 md:p-8 bg-gray-50 md:bg-white">
-        <router-view />
+      <main class="p-4 md:p-8 bg-gray-50 md:bg-white overflow-x-auto min-w-full w-max">
+        <div class="min-w-max">
+          <router-view />
+        </div>
       </main>
     </div>
   </div>
