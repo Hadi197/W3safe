@@ -125,6 +125,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Safety Drill' }
       },
       {
+        path: 'ltifr',
+        name: 'ltifr',
+        component: () => import('@/views/LTIFRView.vue'),
+        meta: { title: 'Laporan LTIFR' }
+      },
+      {
         path: 'unsafe-action-condition',
         name: 'unsafe-action-condition',
         component: () => import('@/views/hsse/UnsafeActionConditionView.vue'),

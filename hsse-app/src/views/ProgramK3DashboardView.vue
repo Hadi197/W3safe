@@ -224,22 +224,22 @@ onMounted(() => {
     </div>
 
     <!-- Footer Note -->
-    <div class="footer-note">
+    <!-- <div class="footer-note">
       *Cek kesesuaian pada <strong>Dashboard Safira</strong>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <style scoped>
 .program-k3-dashboard {
-  padding: 2rem;
+  padding: 1.5rem;
   background: linear-gradient(135deg, #0066cc 0%, #004c99 100%);
   min-height: 100vh;
 }
 
 .dashboard-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: white;
 }
 
@@ -256,14 +256,14 @@ onMounted(() => {
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   margin: 0;
   color: white;
 }
 
 .subtitle {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
@@ -316,63 +316,64 @@ onMounted(() => {
 
 .programs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  max-width: 1400px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .program-card {
   background: white;
-  border-radius: 16px;
-  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
   text-align: center;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .program-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .program-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .program-name {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #1e40af;
-  margin: 0 0 1.5rem 0;
-  min-height: 3rem;
+  margin: 0 0 1rem 0;
+  min-height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1.3;
 }
 
 .realization-box {
   background: #1e40af;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .realization-value {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: 700;
   color: white;
   display: block;
 }
 
 .program-target {
-  font-size: 0.9rem;
-  color: #475569;
+  font-size: 0.8rem;
+  color: #64748b;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .footer-note {
@@ -394,28 +395,37 @@ onMounted(() => {
   }
 
   .title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .subtitle {
-    font-size: 1.25rem;
+    font-size: 1rem;
   }
 
   .programs-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
   }
 
   .program-card {
-    padding: 1.5rem 1rem;
+    padding: 1rem 0.75rem;
   }
 
   .program-icon {
-    font-size: 3rem;
+    font-size: 2rem;
+  }
+
+  .program-name {
+    font-size: 0.875rem;
+    min-height: 2rem;
   }
 
   .realization-value {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
+  }
+
+  .program-target {
+    font-size: 0.75rem;
   }
 }
 </style>
