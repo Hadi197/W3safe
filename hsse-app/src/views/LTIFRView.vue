@@ -38,12 +38,12 @@ const selectedRecord = ref<LTIFRRecord | null>(null)
 const units = ref<any[]>([])
 
 // Filter
-const filterMonth = ref(new Date().toISOString().slice(0, 7))
+const filterMonth = ref('')
 const filterUnit = ref('')
 
 // Form data
 const formData = ref<LTIFRRecord>({
-  periode_bulan: new Date().toISOString().slice(0, 7),
+  periode_bulan: '2025-01',
   jumlah_lti: 0,
   jumlah_fatality: 0,
   jumlah_near_miss: 0,
@@ -57,6 +57,9 @@ const formData = ref<LTIFRRecord>({
 // Computed
 const filteredRecords = computed(() => {
   let result = records.value
+  console.log('All records:', records.value.length)
+  console.log('Filter month:', filterMonth.value)
+  console.log('Filter unit:', filterUnit.value)
   
   if (filterMonth.value) {
     result = result.filter(r => r.periode_bulan === filterMonth.value)
@@ -66,6 +69,7 @@ const filteredRecords = computed(() => {
     result = result.filter(r => r.unit_id === filterUnit.value)
   }
   
+  console.log('Filtered records:', result.length)
   return result
 })
 
@@ -108,16 +112,20 @@ const calculateLTIFR = () => {
 async function loadData() {
   loading.value = true
   try {
+    console.log('Loading LTIFR data...')
     const { data, error } = await supabase
       .from('ltifr_records')
       .select('*, unit:units(nama)')
       .order('periode_bulan', { ascending: false })
     
+    console.log('LTIFR data response:', { data, error })
+    
     if (error) throw error
     records.value = data || []
-  } catch (error) {
+    console.log('Records loaded:', records.value.length)
+  } catch (error: any) {
     console.error('Error loading LTIFR data:', error)
-    alert('Gagal memuat data')
+    alert('Gagal memuat data: ' + error.message)
   } finally {
     loading.value = false
   }
@@ -143,7 +151,7 @@ function openModal(mode: 'add' | 'edit' | 'detail', record?: LTIFRRecord) {
   
   if (mode === 'add') {
     formData.value = {
-      periode_bulan: new Date().toISOString().slice(0, 7),
+      periode_bulan: '2025-01',
       jumlah_lti: 0,
       jumlah_fatality: 0,
       jumlah_near_miss: 0,
