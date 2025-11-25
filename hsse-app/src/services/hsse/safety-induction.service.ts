@@ -278,7 +278,7 @@ class SafetyInductionService {
             .eq('id', induction.unit_id)
             .single()
           
-          return { ...induction, units: unitData }
+          return { ...induction, unit: unitData }
         }
         return induction
       })
@@ -311,7 +311,7 @@ class SafetyInductionService {
         .eq('id', data.unit_id)
         .single()
       
-      return { ...data, units: unitData } as SafetyInduction
+      return { ...data, unit: unitData } as SafetyInduction
     }
     
     return data as SafetyInduction

@@ -508,23 +508,35 @@ const loadActivities = async () => {
           tanggal,
           unit_id,
           created_by,
-          ${table.titleField},
-          units!unit_id(id, nama, kode)
+          ${table.titleField}
         `)
         .order('created_at', { ascending: false })
         .limit(100)
 
       console.log(`[${table.name}] Data sample:`, data?.[0])
-      console.log(`[${table.name}] Unit field:`, data?.[0]?.units)
 
       if (!error && data) {
+        // Fetch all unique unit_ids
+        const unitIds = [...new Set(data.map((r: any) => r.unit_id).filter(Boolean))]
+        const unitsMap = new Map()
+        
+        if (unitIds.length > 0) {
+          const { data: unitsData } = await supabase
+            .from('units')
+            .select('id, nama, kode')
+            .in('id', unitIds)
+          
+          unitsData?.forEach(unit => {
+            unitsMap.set(unit.id, unit)
+          })
+        }
+
         data.forEach((record: any) => {
           // Get unit name with proper fallback
           let unitName = '-'
           if (record.unit_id) {
-            // PostgREST returns unit object from join as 'units' not 'unit'
-            const unitData = record.units
-            if (unitData && typeof unitData === 'object') {
+            const unitData = unitsMap.get(record.unit_id)
+            if (unitData) {
               unitName = unitData.nama || unitData.kode || 'Unit Tidak Diketahui'
             } else {
               unitName = 'Unit Tidak Diketahui'

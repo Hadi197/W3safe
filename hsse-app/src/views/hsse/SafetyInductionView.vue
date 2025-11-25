@@ -550,7 +550,7 @@ onMounted(() => {
                 <div class="text-xs text-gray-500">{{ induction.nik || '-' }}</div>
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">{{ induction.perusahaan }}</td>
-              <td class="px-6 py-4 text-sm text-gray-600">{{ induction.units?.nama || induction.units?.kode || '-' }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600">{{ induction.unit?.nama || induction.unit?.kode || '-' }}</td>
               <td class="px-6 py-4">
                 <span :class="getJenisBadgeClass(induction.jenis_peserta)">
                   {{ induction.jenis_peserta.replace('_', ' ') }}
