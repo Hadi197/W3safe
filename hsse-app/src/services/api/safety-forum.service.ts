@@ -620,36 +620,6 @@ class SafetyForumService {
       throw error
     }
   }
-
-  // Generate nomor forum otomatis
-  async generateNomorForum(jenis: string = 'SF'): Promise<string> {
-    try {
-      const year = new Date().getFullYear()
-      const month = String(new Date().getMonth() + 1).padStart(2, '0')
-      
-      const { data, error } = await supabase
-        .from('safety_forum')
-        .select('nomor_forum')
-        .like('nomor_forum', `${jenis}-${year}-${month}-%`)
-        .order('nomor_forum', { ascending: false })
-        .limit(1)
-
-      if (error) throw error
-
-      let nextNum = 1
-      if (data && data.length > 0 && data[0]) {
-        const parts = data[0].nomor_forum.split('-')
-        const lastPart = parts[parts.length - 1]
-        const lastNum = parseInt(lastPart || '0')
-        nextNum = lastNum + 1
-      }
-
-      return `${jenis}-${year}-${month}-${String(nextNum).padStart(3, '0')}`
-    } catch (error) {
-      console.error('Error generating nomor forum:', error)
-      throw error
-    }
-  }
 }
 
 export const safetyForumService = new SafetyForumService()
