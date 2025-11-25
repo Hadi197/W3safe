@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex bg-gray-50">
+  <div class="min-h-screen bg-gray-50">
     <!-- Mobile Overlay -->
     <div
       v-if="sidebarOpen"
@@ -10,7 +10,7 @@
     <!-- Sidebar -->
     <aside
       :class="[
-        'h-screen bg-gradient-to-b from-primary-900 to-primary-800 text-white shadow-2xl fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out',
+        'h-screen bg-gradient-to-b from-primary-900 to-primary-800 text-white shadow-2xl fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out overflow-y-auto',
         'w-72',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       ]"
@@ -41,7 +41,7 @@
       </div>
 
       <!-- Navigation Menu -->
-      <nav class="p-4 space-y-1 h-[calc(100vh-140px)] overflow-y-auto">
+      <nav class="p-4 space-y-1">
         <!-- Dashboard -->
         <router-link
           to="/dashboard"
@@ -222,7 +222,7 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-h-screen md:ml-72">
+    <div class="min-h-screen md:ml-72">
       <!-- App Title Container - Desktop Only -->
       <div class="hidden md:block bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg">
         <div class="px-6 py-3">
@@ -303,7 +303,7 @@
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-4 md:p-8 overflow-auto bg-gray-50 md:bg-white">
+      <main class="p-4 md:p-8 bg-gray-50 md:bg-white">
         <router-view />
       </main>
     </div>
