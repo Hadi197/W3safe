@@ -179,16 +179,15 @@ class SafetyBriefingService {
 
     if (error) throw error
     
+    if (!data) return null
+    
     // Handle PostgREST returning unit as array or object
-    if (data && data.unit) {
-      const processedData = {
-        ...data,
-        unit: Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : data.unit
-      }
-      return processedData as SafetyBriefing
+    const processedData = {
+      ...data,
+      unit: data.unit && Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : data.unit
     }
     
-    return data as SafetyBriefing
+    return processedData as SafetyBriefing
   }
 
   /**
