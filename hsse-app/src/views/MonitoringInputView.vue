@@ -362,28 +362,39 @@ async function loadData() {
     endDate.setMonth(endDate.getMonth() + 1)
     const endDateStr = endDate.toISOString().slice(0, 10)
 
-    // For each unit, count records in each module
-    const monitoringPromises = (masterPelabuhanData || []).map(async (mp: any) => {
-      const unitId = mp.unit_id
+    // Get unit IDs
+    const unitIds = (masterPelabuhanData || []).map((mp: any) => mp.unit_id)
 
-      // Count records for each module
-      const [
-        safetyBriefingCount,
-        silentInspectionCount,
-        safetyPatrolCount,
-        safetyForumCount,
-        managementWalkthroughCount,
-        safetyDrillCount,
-        safetyInductionCount
-      ] = await Promise.all([
-        countRecords('safety_briefing', unitId, startDate, endDateStr),
-        countRecords('silent_inspection', unitId, startDate, endDateStr),
-        countRecords('safety_patrol', unitId, startDate, endDateStr),
-        countRecords('safety_forum', unitId, startDate, endDateStr),
-        countRecords('management_walkthrough', unitId, startDate, endDateStr),
-        countRecords('safety_drill', unitId, startDate, endDateStr),
-        countRecords('safety_induction', unitId, startDate, endDateStr)
-      ])
+    // Fetch all module data in parallel (7 queries instead of N x 7)
+    const [
+      safetyBriefingData,
+      silentInspectionData,
+      safetyPatrolData,
+      safetyForumData,
+      managementWalkthroughData,
+      safetyDrillData,
+      safetyInductionData
+    ] = await Promise.all([
+      countRecordsByUnits('safety_briefing', 'tanggal', unitIds, startDate, endDateStr),
+      countRecordsByUnits('silent_inspection', 'tanggal', unitIds, startDate, endDateStr),
+      countRecordsByUnits('safety_patrol', 'tanggal_patrol', unitIds, startDate, endDateStr),
+      countRecordsByUnits('safety_forum', 'tanggal_forum', unitIds, startDate, endDateStr),
+      countRecordsByUnits('management_walkthrough', 'tanggal_walkthrough', unitIds, startDate, endDateStr),
+      countRecordsByUnits('safety_drill', 'tanggal_drill', unitIds, startDate, endDateStr),
+      countRecordsByUnits('safety_induction', 'tanggal_induction', unitIds, startDate, endDateStr)
+    ])
+
+    // Build monitoring data from aggregated results
+    monitoringData.value = (masterPelabuhanData || []).map((mp: any) => {
+      const unitId = mp.unit_id
+      
+      const safetyBriefingCount = safetyBriefingData[unitId] || 0
+      const silentInspectionCount = silentInspectionData[unitId] || 0
+      const safetyPatrolCount = safetyPatrolData[unitId] || 0
+      const safetyForumCount = safetyForumData[unitId] || 0
+      const managementWalkthroughCount = managementWalkthroughData[unitId] || 0
+      const safetyDrillCount = safetyDrillData[unitId] || 0
+      const safetyInductionCount = safetyInductionData[unitId] || 0
 
       const totalModules = 7
       const completedModules = [
@@ -420,8 +431,6 @@ async function loadData() {
         completionPercentage: Math.round((completedModules / totalModules) * 100)
       }
     })
-
-    monitoringData.value = await Promise.all(monitoringPromises)
     
     // Sort by completion percentage (ascending) then by unit name
     monitoringData.value.sort((a, b) => {
@@ -438,6 +447,59 @@ async function loadData() {
   }
 }
 
+// New efficient function: fetch all units' counts in one query
+async function countRecordsByUnits(
+  tableName: string,
+  dateColumn: string,
+  unitIds: string[],
+  startDate: string,
+  endDate: string
+): Promise<Record<string, number>> {
+  try {
+    if (unitIds.length === 0) return {}
+
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('unit_id')
+      .in('unit_id', unitIds)
+      .gte(dateColumn, startDate)
+      .lt(dateColumn, endDate)
+
+    if (error) {
+      console.error(`Supabase error for ${tableName}:`, {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      throw error
+    }
+
+    // Count records per unit
+    const countsMap: Record<string, number> = {}
+    unitIds.forEach(id => countsMap[id] = 0)
+    
+    if (data) {
+      data.forEach((row: any) => {
+        if (row.unit_id) {
+          countsMap[row.unit_id] = (countsMap[row.unit_id] || 0) + 1
+        }
+      })
+    }
+
+    return countsMap
+  } catch (error: any) {
+    console.error(`Error counting ${tableName}:`, {
+      message: error?.message || 'Unknown error',
+      tableName,
+      dateColumn,
+      error
+    })
+    return {}
+  }
+}
+
+// Legacy function - kept for backward compatibility if needed
 async function countRecords(
   tableName: string,
   unitId: string,

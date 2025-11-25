@@ -228,7 +228,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units!unit_id(id, kode, nama)
       `, { count: 'exact' })
       .order('tanggal_walkthrough', { ascending: false })
 
@@ -296,7 +296,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units!unit_id(id, kode, nama)
       `)
       .eq('id', id)
       .single()
@@ -462,7 +462,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units!unit_id(id, kode, nama)
       `)
       .eq('perlu_follow_up', true)
       .in('status_follow_up', ['belum', 'terjadwal'])
@@ -487,7 +487,7 @@ class ManagementWalkthroughService {
       .from(this.tableName)
       .select(`
         *,
-        unit:units(id, kode, nama)
+        unit:units!unit_id(id, kode, nama)
       `)
       .gt('temuan_kritis', 0)
       .neq('status', 'completed')

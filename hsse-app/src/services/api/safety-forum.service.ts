@@ -243,7 +243,9 @@ class SafetyForumService {
       const { data, error } = await query
 
       if (error) throw error
-      return data
+      
+      // Unit is already an object, no need to convert
+      return data || []
     } catch (error) {
       console.error('Error fetching safety forums:', error)
       throw error
@@ -300,7 +302,7 @@ class SafetyForumService {
         .order('tanggal_forum', { ascending: false })
 
       if (error) throw error
-      return data
+      return data || []
     } catch (error) {
       console.error('Error fetching forums by unit:', error)
       throw error
@@ -321,7 +323,7 @@ class SafetyForumService {
         .order('tanggal_forum', { ascending: false })
 
       if (error) throw error
-      return data
+      return data || []
     } catch (error) {
       console.error('Error fetching forums by date range:', error)
       throw error
@@ -341,7 +343,7 @@ class SafetyForumService {
         .order('tanggal_forum', { ascending: false })
 
       if (error) throw error
-      return data
+      return data || []
     } catch (error) {
       console.error('Error fetching forums by status:', error)
       throw error
@@ -368,16 +370,28 @@ class SafetyForumService {
   // Update forum
   async update(id: string, dto: Partial<SafetyForumDTO>) {
     try {
-      const { error } = await supabase
+      console.log('=== UPDATE SERVICE ===')
+      console.log('Updating forum ID:', id)
+      console.log('Update DTO:', dto)
+      console.log('Unit ID in DTO:', dto.unit_id)
+      
+      const { data, error } = await supabase
         .from('safety_forum')
         .update(dto)
         .eq('id', id)
+        .select()
+
+      console.log('Update response data:', data)
+      console.log('Update response error:', error)
 
       if (error) throw error
       
-      // Return the updated data without re-fetching
-      // This bypasses the schema cache issue
-      return { id, ...dto }
+      // Re-fetch the updated data with relations
+      const refreshed = await this.getById(id)
+      console.log('Refreshed forum after update:', refreshed)
+      console.log('Refreshed forum unit_id:', refreshed?.unit_id)
+      console.log('Refreshed forum unit:', refreshed?.unit)
+      return refreshed
     } catch (error) {
       console.error('Error updating safety forum:', error)
       throw error

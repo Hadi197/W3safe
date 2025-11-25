@@ -1264,6 +1264,11 @@ const loadForums = async () => {
   try {
     loading.value = true
     const data = await safetyForumService.getAll()
+    console.log('Forums loaded:', data?.length || 0, 'forums')
+    console.log('First forum sample:', data?.[0])
+    console.log('First forum unit_id:', data?.[0]?.unit_id)
+    console.log('First forum unit (before):', data?.[0]?.unit)
+    console.log('Is unit an array?', Array.isArray(data?.[0]?.unit))
     forums.value = data || []
   } catch (error) {
     console.error('Error loading forums:', error)
@@ -1685,7 +1690,11 @@ const saveForm = async () => {
 
     if (formData.value.id) {
       // Update existing
-      await safetyForumService.update(formData.value.id, dataToSave)
+      console.log('Data being sent to update:', dataToSave)
+      console.log('Unit ID being sent:', dataToSave.unit_id)
+      const updated = await safetyForumService.update(formData.value.id, dataToSave)
+      console.log('Updated forum returned:', updated)
+      console.log('Updated forum unit:', updated?.unit)
       alert('Forum berhasil diupdate')
     } else {
       // Create new

@@ -133,14 +133,12 @@ class SafetyBriefingService {
 
     if (error) throw error
 
-    // Process data: convert PostgREST array relations to single objects
+    // Process data: normalize optional fields
     const processedData = (data || []).map((briefing: any) => ({
       ...briefing,
       jumlah_peserta: briefing.jumlah_peserta || 0,
       foto_dokumentasi: briefing.foto_dokumentasi || [],
-      catatan: briefing.catatan || '',
-      // PostgREST returns relations as arrays, extract first element
-      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null
+      catatan: briefing.catatan || ''
     }))
 
     return {
@@ -181,11 +179,7 @@ class SafetyBriefingService {
 
     if (error) throw error
     
-    // Convert PostgREST array relations to single objects
-    return {
-      ...data,
-      unit: Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : null
-    } as SafetyBriefing
+    return data as SafetyBriefing
   }
 
   /**
@@ -219,11 +213,7 @@ class SafetyBriefingService {
 
     if (error) throw error
     
-    // Convert PostgREST array relations to single objects
-    return (data || []).map((briefing: any) => ({
-      ...briefing,
-      unit: Array.isArray(briefing.unit) && briefing.unit.length > 0 ? briefing.unit[0] : null
-    })) as SafetyBriefing[]
+    return (data || []) as SafetyBriefing[]
   }
 
   /**
