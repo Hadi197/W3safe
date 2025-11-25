@@ -179,15 +179,7 @@ class SafetyBriefingService {
 
     if (error) throw error
     
-    if (!data) return null
-    
-    // Handle PostgREST returning unit as array or object
-    const processedData = {
-      ...data,
-      unit: data.unit && Array.isArray(data.unit) && data.unit.length > 0 ? data.unit[0] : data.unit
-    }
-    
-    return processedData as SafetyBriefing
+    return data as any as SafetyBriefing
   }
 
   /**
@@ -221,13 +213,7 @@ class SafetyBriefingService {
 
     if (error) throw error
     
-    // Handle PostgREST returning unit as array or object
-    const processedData = (data || []).map((item: any) => ({
-      ...item,
-      unit: Array.isArray(item.unit) && item.unit.length > 0 ? item.unit[0] : item.unit
-    }))
-    
-    return processedData as SafetyBriefing[]
+    return (data || []) as any as SafetyBriefing[]
   }
 
   /**
