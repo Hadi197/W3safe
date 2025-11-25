@@ -350,6 +350,40 @@ class SafetyForumService {
     }
   }
 
+  // Generate nomor forum: SF-YYYY-MM-XXX
+  async generateNomorForum(): Promise<string> {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const prefix = `SF-${year}-${month}`
+
+    const { data, error } = await supabase
+      .from('safety_forum')
+      .select('nomor_forum')
+      .like('nomor_forum', `${prefix}%`)
+      .order('nomor_forum', { ascending: false })
+      .limit(1)
+
+    if (error) {
+      console.error('Error generating nomor forum:', error)
+      return `${prefix}-001`
+    }
+
+    if (!data || data.length === 0) {
+      return `${prefix}-001`
+    }
+
+    const lastNomor = data[0]?.nomor_forum
+    if (!lastNomor) {
+      return `${prefix}-001`
+    }
+    
+    const lastSequence = parseInt(lastNomor.split('-')[3] || '0')
+    const newSequence = String(lastSequence + 1).padStart(3, '0')
+
+    return `${prefix}-${newSequence}`
+  }
+
   // Normalize data before save (handle case-insensitive values)
   private normalizeData(dto: Partial<SafetyForumDTO>): Partial<SafetyForumDTO> {
     const normalized = { ...dto }
@@ -391,6 +425,11 @@ class SafetyForumService {
   // Create forum
   async create(dto: SafetyForumDTO) {
     try {
+      // Generate nomor_forum if not provided
+      if (!dto.nomor_forum) {
+        dto.nomor_forum = await this.generateNomorForum()
+      }
+
       // Normalize data
       const normalizedDto = this.normalizeData(dto)
       
