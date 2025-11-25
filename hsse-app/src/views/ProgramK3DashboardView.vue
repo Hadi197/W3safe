@@ -182,7 +182,6 @@ onMounted(() => {
     <!-- Header -->
     <div class="dashboard-header">
       <div class="header-content">
-        <img src="/pelindo-logo.png" alt="Pelindo" class="logo" v-if="false" />
         <h1 class="title">
           Realisasi Program K3 
           <span class="subtitle">(s.d <span class="highlight">{{ new Date(selectedMonth).toLocaleDateString('id-ID', { month: 'long' }) }}</span> 2025)</span>
