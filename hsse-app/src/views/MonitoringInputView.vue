@@ -445,12 +445,25 @@ async function countRecords(
   endDate: string
 ): Promise<number> {
   try {
+    // Map table names to their date column
+    const dateColumnMap: Record<string, string> = {
+      'safety_briefing': 'tanggal',
+      'silent_inspection': 'tanggal',
+      'safety_patrol': 'tanggal',
+      'safety_forum': 'tanggal',
+      'management_walkthrough': 'tanggal',
+      'safety_drill': 'tanggal',
+      'safety_induction': 'tanggal'
+    }
+
+    const dateColumn = dateColumnMap[tableName] || 'tanggal'
+
     const { count, error } = await supabase
       .from(tableName)
       .select('*', { count: 'exact', head: true })
       .eq('unit_id', unitId)
-      .gte('tanggal', startDate)
-      .lt('tanggal', endDate)
+      .gte(dateColumn, startDate)
+      .lt(dateColumn, endDate)
 
     if (error) throw error
     return count || 0
