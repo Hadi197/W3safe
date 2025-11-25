@@ -527,6 +527,7 @@ onMounted(() => {
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Peserta</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Perusahaan</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jenis</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instruktur</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skor</th>
@@ -536,10 +537,10 @@ onMounted(() => {
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-if="loading">
-              <td colspan="9" class="px-6 py-4 text-center text-gray-500">Memuat data...</td>
+              <td colspan="10" class="px-6 py-4 text-center text-gray-500">Memuat data...</td>
             </tr>
             <tr v-else-if="inductions.length === 0">
-              <td colspan="9" class="px-6 py-4 text-center text-gray-500">Tidak ada data</td>
+              <td colspan="10" class="px-6 py-4 text-center text-gray-500">Tidak ada data</td>
             </tr>
             <tr v-else v-for="induction in inductions" :key="induction.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 text-sm text-gray-900">{{ induction.nomor_induction }}</td>
@@ -549,6 +550,7 @@ onMounted(() => {
                 <div class="text-xs text-gray-500">{{ induction.nik || '-' }}</div>
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">{{ induction.perusahaan }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600">{{ induction.units?.nama || induction.units?.kode || '-' }}</td>
               <td class="px-6 py-4">
                 <span :class="getJenisBadgeClass(induction.jenis_peserta)">
                   {{ induction.jenis_peserta.replace('_', ' ') }}

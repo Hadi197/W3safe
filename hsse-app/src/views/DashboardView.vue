@@ -754,31 +754,16 @@ const loadRecentActivities = async () => {
   try {
     const activities: Activity[] = []
 
-    // Helper function to get unit name by ID
-    const getUnitName = async (unitId: string | null) => {
-      if (!unitId) return 'Unit Tidak Diketahui'
-      try {
-        const { data: unit, error } = await supabase
-          .from('units')
-          .select('nama')
-          .eq('id', unitId)
-          .single()
-        return error ? 'Unit Tidak Diketahui' : (unit?.nama || 'Unit Tidak Diketahui')
-      } catch {
-        return 'Unit Tidak Diketahui'
-      }
-    }
-
-    // Fetch from Safety Briefing
+    // Fetch from Safety Briefing with unit join
     const { data: briefingData, error: briefingError } = await supabase
       .from('safety_briefing')
-      .select('id, topik, tanggal, waktu_mulai, unit_id')
+      .select('id, topik, tanggal, waktu_mulai, unit_id, units!unit_id(id, nama, kode)')
       .order('created_at', { ascending: false })
       .limit(3)
 
     if (!briefingError && briefingData) {
-      for (const item of briefingData) {
-        const unitName = await getUnitName(item.unit_id)
+      briefingData.forEach((item: any) => {
+        const unitName = item.units?.nama || item.units?.kode || '-'
         activities.push({
           id: `briefing-${item.id}`,
           icon: '📝',
@@ -790,19 +775,19 @@ const loadRecentActivities = async () => {
           badgeColor: 'bg-green-100 text-green-800',
           created_at: new Date(item.tanggal + ' ' + item.waktu_mulai)
         })
-      }
+      })
     }
 
-    // Fetch from Silent Inspection
+    // Fetch from Silent Inspection with unit join
     const { data: inspectionData, error: inspectionError } = await supabase
       .from('silent_inspection')
-      .select('id, area_inspeksi, tanggal, unit_id')
+      .select('id, area_inspeksi, tanggal, unit_id, units!unit_id(id, nama, kode)')
       .order('created_at', { ascending: false })
       .limit(3)
 
     if (!inspectionError && inspectionData) {
-      for (const item of inspectionData) {
-        const unitName = await getUnitName(item.unit_id)
+      inspectionData.forEach((item: any) => {
+        const unitName = item.units?.nama || item.units?.kode || '-'
         activities.push({
           id: `inspection-${item.id}`,
           icon: '🔍',
@@ -814,19 +799,19 @@ const loadRecentActivities = async () => {
           badgeColor: 'bg-blue-100 text-blue-800',
           created_at: new Date(item.tanggal)
         })
-      }
+      })
     }
 
-    // Fetch from Safety Patrol
+    // Fetch from Safety Patrol with unit join
     const { data: patrolData, error: patrolError } = await supabase
       .from('safety_patrol')
-      .select('id, nomor_patrol, area_patrol, tanggal_patrol, unit_id')
+      .select('id, nomor_patrol, area_patrol, tanggal_patrol, unit_id, units!unit_id(id, nama, kode)')
       .order('created_at', { ascending: false })
       .limit(3)
 
     if (!patrolError && patrolData) {
-      for (const item of patrolData) {
-        const unitName = await getUnitName(item.unit_id)
+      patrolData.forEach((item: any) => {
+        const unitName = item.units?.nama || item.units?.kode || '-'
         activities.push({
           id: `patrol-${item.id}`,
           icon: '👮',
@@ -838,19 +823,19 @@ const loadRecentActivities = async () => {
           badgeColor: 'bg-green-100 text-green-800',
           created_at: new Date(item.tanggal_patrol)
         })
-      }
+      })
     }
 
-    // Fetch from Safety Forum
+    // Fetch from Safety Forum with unit join
     const { data: forumData, error: forumError } = await supabase
       .from('safety_forum')
-      .select('id, agenda_utama, tanggal_forum, created_at')
+      .select('id, agenda_utama, tanggal_forum, created_at, unit_id, units!unit_id(id, nama, kode)')
       .order('created_at', { ascending: false })
       .limit(3)
 
     if (!forumError && forumData) {
-      for (const item of forumData) {
-        const unitName = await getUnitName(null) // No unit_id in this table
+      forumData.forEach((item: any) => {
+        const unitName = item.units?.nama || item.units?.kode || '-'
         activities.push({
           id: `forum-${item.id}`,
           icon: '💬',
@@ -862,19 +847,19 @@ const loadRecentActivities = async () => {
           badgeColor: 'bg-orange-100 text-orange-800',
           created_at: new Date(item.tanggal_forum || item.created_at)
         })
-      }
+      })
     }
 
-    // Fetch from Management Walkthrough
+    // Fetch from Management Walkthrough with unit join
     const { data: walkthroughData, error: walkthroughError } = await supabase
       .from('management_walkthrough')
-      .select('id, created_at')
+      .select('id, created_at, unit_id, units!unit_id(id, nama, kode)')
       .order('created_at', { ascending: false })
       .limit(3)
 
     if (!walkthroughError && walkthroughData) {
-      for (const item of walkthroughData) {
-        const unitName = await getUnitName(null) // No unit_id in this table
+      walkthroughData.forEach((item: any) => {
+        const unitName = item.units?.nama || item.units?.kode || '-'
         activities.push({
           id: `walkthrough-${item.id}`,
           icon: '🚶',
@@ -886,19 +871,19 @@ const loadRecentActivities = async () => {
           badgeColor: 'bg-indigo-100 text-indigo-800',
           created_at: new Date(item.created_at)
         })
-      }
+      })
     }
 
-    // Fetch from Safety Induction
+    // Fetch from Safety Induction with unit join
     const { data: inductionData, error: inductionError } = await supabase
       .from('safety_induction')
-      .select('id, created_at')
+      .select('id, created_at, unit_id, units!unit_id(id, nama, kode)')
       .order('created_at', { ascending: false })
       .limit(3)
 
     if (!inductionError && inductionData) {
-      for (const item of inductionData) {
-        const unitName = await getUnitName(null) // No unit_id in this table
+      inductionData.forEach((item: any) => {
+        const unitName = item.units?.nama || item.units?.kode || '-'
         activities.push({
           id: `induction-${item.id}`,
           icon: '🎓',
@@ -910,19 +895,19 @@ const loadRecentActivities = async () => {
           badgeColor: 'bg-teal-100 text-teal-800',
           created_at: new Date(item.created_at)
         })
-      }
+      })
     }
 
-    // Fetch from Safety Drill
+    // Fetch from Safety Drill with unit join
     const { data: drillData, error: drillError } = await supabase
       .from('safety_drill')
-      .select('id, created_at')
+      .select('id, created_at, unit_id, units!unit_id(id, nama, kode)')
       .order('created_at', { ascending: false })
       .limit(3)
 
     if (!drillError && drillData) {
-      for (const item of drillData) {
-        const unitName = await getUnitName(null) // No unit_id in this table
+      drillData.forEach((item: any) => {
+        const unitName = item.units?.nama || item.units?.kode || '-'
         activities.push({
           id: `drill-${item.id}`,
           icon: '🚨',
@@ -934,7 +919,7 @@ const loadRecentActivities = async () => {
           badgeColor: 'bg-red-100 text-red-800',
           created_at: new Date(item.created_at)
         })
-      }
+      })
     }
 
     // Fetch from Unsafe Action/Condition

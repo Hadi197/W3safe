@@ -17,11 +17,13 @@ export interface SafetyDrill {
   deskripsi?: string
   
   // Unit & Lokasi
+  unit_id?: string
   unit_kerja: string
   area_lokasi: string
   ruang_khusus?: string
   titik_kumpul: string
   area_terdampak?: string[]
+  units?: { id: string; nama: string; kode: string }
   
   // Jadwal
   tanggal_drill: string
@@ -357,11 +359,26 @@ class SafetyDrillService {
       throw error
     }
 
+    // Fetch unit data manually for each drill
+    const dataWithUnits = await Promise.all(
+      (data || []).map(async (drill) => {
+        if (drill.unit_id) {
+          const { data: unitData } = await supabase
+            .from('units')
+            .select('id, nama, kode')
+            .eq('id', drill.unit_id)
+            .single()
+          return { ...drill, units: unitData }
+        }
+        return drill
+      })
+    )
+
     const totalCount = count || 0
     const totalPages = Math.ceil(totalCount / pagination.pageSize)
 
     return {
-      data: data || [],
+      data: dataWithUnits,
       count: totalCount,
       page: pagination.page,
       pageSize: pagination.pageSize,
@@ -382,7 +399,41 @@ class SafetyDrillService {
       throw error
     }
 
+    // Fetch unit data manually if unit_id exists
+    if (data && data.unit_id) {
+      const { data: unitData } = await supabase
+        .from('units')
+        .select('id, nama, kode')
+        .eq('id', data.unit_id)
+        .single()
+      return { ...data, units: unitData }
+    }
+
     return data
+  }
+
+  // Normalize data before save (handle case-insensitive values)
+  private normalizeData(drill: Partial<SafetyDrill>): Partial<SafetyDrill> {
+    const normalized = { ...drill }
+    
+    // Normalize enum fields to lowercase
+    if (normalized.jenis_drill) {
+      normalized.jenis_drill = normalized.jenis_drill.toLowerCase() as any
+    }
+    if (normalized.kategori_drill) {
+      normalized.kategori_drill = normalized.kategori_drill.toLowerCase() as any
+    }
+    if (normalized.tingkat_drill) {
+      normalized.tingkat_drill = normalized.tingkat_drill.toLowerCase() as any
+    }
+    if (normalized.status) {
+      normalized.status = normalized.status.toLowerCase() as any
+    }
+    if (normalized.compliance_status) {
+      normalized.compliance_status = normalized.compliance_status.toLowerCase() as any
+    }
+    
+    return normalized
   }
 
   // Create new drill
@@ -391,9 +442,12 @@ class SafetyDrillService {
       drill.nomor_drill = await this.generateNomorDrill()
     }
 
+    // Normalize data
+    const normalizedDrill = this.normalizeData(drill)
+
     const { data, error } = await supabase
       .from(this.tableName)
-      .insert([drill])
+      .insert([normalizedDrill])
       .select()
       .single()
 
@@ -407,9 +461,12 @@ class SafetyDrillService {
 
   // Update drill
   async update(id: string, drill: Partial<SafetyDrill>): Promise<SafetyDrill> {
+    // Normalize data
+    const normalizedDrill = this.normalizeData(drill)
+    
     const { data, error } = await supabase
       .from(this.tableName)
-      .update(drill)
+      .update(normalizedDrill)
       .eq('id', id)
       .select()
       .single()

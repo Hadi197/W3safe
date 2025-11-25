@@ -509,13 +509,28 @@ const loadActivities = async () => {
           unit_id,
           created_by,
           ${table.titleField},
-          unit:units!unit_id(id, nama, kode)
+          units!unit_id(id, nama, kode)
         `)
         .order('created_at', { ascending: false })
         .limit(100)
 
+      console.log(`[${table.name}] Data sample:`, data?.[0])
+      console.log(`[${table.name}] Unit field:`, data?.[0]?.units)
+
       if (!error && data) {
         data.forEach((record: any) => {
+          // Get unit name with proper fallback
+          let unitName = '-'
+          if (record.unit_id) {
+            // PostgREST returns unit object from join as 'units' not 'unit'
+            const unitData = record.units
+            if (unitData && typeof unitData === 'object') {
+              unitName = unitData.nama || unitData.kode || 'Unit Tidak Diketahui'
+            } else {
+              unitName = 'Unit Tidak Diketahui'
+            }
+          }
+
           // Create activity
           allActivities.push({
             id: record.id,
@@ -525,7 +540,7 @@ const loadActivities = async () => {
             user_id: record.created_by || 'system',
             user_name: 'User',
             unit_id: record.unit_id || '',
-            unit_name: record.unit?.nama || '-',
+            unit_name: unitName,
             description: record[table.titleField] || `${table.label} pada ${formatDate(record.tanggal)}`
           })
           
@@ -539,7 +554,7 @@ const loadActivities = async () => {
               user_id: record.created_by || 'system',
               user_name: 'User',
               unit_id: record.unit_id || '',
-              unit_name: record.unit?.nama || '-',
+              unit_name: unitName,
               description: record[table.titleField] || `${table.label} diupdate`
             })
           }

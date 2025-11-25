@@ -218,7 +218,7 @@ class SafetyInductionService {
     },
     pagination: PaginationParams = { page: 1, pageSize: 20 }
   ): Promise<PaginatedResponse<SafetyInduction>> {
-    // Use simple query without join to avoid PostgREST relationship issues
+    // Query without JOIN first, then fetch unit separately
     let query = supabase
       .from(this.tableName)
       .select('*', { count: 'exact' })
@@ -268,8 +268,24 @@ class SafetyInductionService {
     const totalCount = count || 0
     const totalPages = Math.ceil(totalCount / pagination.pageSize)
 
+    // Fetch unit data separately if needed
+    const dataWithUnits = await Promise.all(
+      (data || []).map(async (induction) => {
+        if (induction.unit_id) {
+          const { data: unitData } = await supabase
+            .from('units')
+            .select('id, nama, kode')
+            .eq('id', induction.unit_id)
+            .single()
+          
+          return { ...induction, units: unitData }
+        }
+        return induction
+      })
+    )
+
     return {
-      data: (data || []) as SafetyInduction[],
+      data: dataWithUnits as SafetyInduction[],
       count: totalCount,
       page: pagination.page,
       pageSize: pagination.pageSize,
@@ -286,7 +302,52 @@ class SafetyInductionService {
       .single()
 
     if (error) throw error
+    
+    // Fetch unit separately
+    if (data.unit_id) {
+      const { data: unitData } = await supabase
+        .from('units')
+        .select('id, nama, kode')
+        .eq('id', data.unit_id)
+        .single()
+      
+      return { ...data, units: unitData } as SafetyInduction
+    }
+    
     return data as SafetyInduction
+  }
+
+  // Normalize data before save (handle case-insensitive values)
+  private normalizeData(induction: Partial<SafetyInduction>): Partial<SafetyInduction> {
+    const normalized = { ...induction }
+    
+    // Normalize enum fields to lowercase
+    if (normalized.jenis_peserta) {
+      normalized.jenis_peserta = normalized.jenis_peserta.toLowerCase() as any
+    }
+    if (normalized.kategori_pekerjaan) {
+      normalized.kategori_pekerjaan = normalized.kategori_pekerjaan.toLowerCase() as any
+    }
+    if (normalized.jenis_ujian) {
+      normalized.jenis_ujian = normalized.jenis_ujian.toLowerCase() as any
+    }
+    if (normalized.status_ujian) {
+      normalized.status_ujian = normalized.status_ujian.toLowerCase() as any
+    }
+    if (normalized.evaluasi_pemahaman) {
+      normalized.evaluasi_pemahaman = normalized.evaluasi_pemahaman.toLowerCase() as any
+    }
+    if (normalized.evaluasi_keaktifan) {
+      normalized.evaluasi_keaktifan = normalized.evaluasi_keaktifan.toLowerCase() as any
+    }
+    if (normalized.status_follow_up) {
+      normalized.status_follow_up = normalized.status_follow_up.toLowerCase() as any
+    }
+    if (normalized.status) {
+      normalized.status = normalized.status.toLowerCase() as any
+    }
+    
+    return normalized
   }
 
   // Create new induction
@@ -304,9 +365,12 @@ class SafetyInductionService {
       induction.tanggal_expired = expiredDate.toISOString().split('T')[0]
     }
 
+    // Normalize data
+    const normalizedInduction = this.normalizeData(induction)
+
     const { data, error } = await supabase
       .from(this.tableName)
-      .insert(induction)
+      .insert(normalizedInduction)
       .select()
       .single()
 
@@ -324,9 +388,12 @@ class SafetyInductionService {
       induction.tanggal_expired = expiredDate.toISOString().split('T')[0]
     }
 
+    // Normalize data
+    const normalizedInduction = this.normalizeData(induction)
+
     const { data, error } = await supabase
       .from(this.tableName)
-      .update(induction)
+      .update(normalizedInduction)
       .eq('id', id)
       .select()
       .single()

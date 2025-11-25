@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { safetyDrillService, type SafetyDrill, type DrillFilters } from '@/services/safety-drill.service'
 import { useImageCompression } from '@/composables/useImageCompression'
+import { supabase } from '@/services/api/supabase'
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
@@ -12,6 +13,7 @@ const showDetailModal = ref(false)
 const showFormModal = ref(false)
 const selectedDrill = ref<SafetyDrill | null>(null)
 const isEditing = ref(false)
+const units = ref<Array<{ id: string; nama: string; kode: string }>>([])
 
 // Statistics
 const stats = ref({
@@ -49,6 +51,7 @@ const formData = ref<SafetyDrill>({
   tingkat_drill: 'plant_wide',
   judul_drill: '',
   deskripsi: '',
+  unit_id: '',
   unit_kerja: '',
   area_lokasi: '',
   titik_kumpul: '',
@@ -522,10 +525,25 @@ const filteredDrills = computed(() => {
   return drills.value
 })
 
+// Load units
+const loadUnits = async () => {
+  const { data, error } = await supabase
+    .from('units')
+    .select('id, nama, kode')
+    .order('nama')
+  
+  if (error) {
+    console.error('Error loading units:', error)
+  } else {
+    units.value = data || []
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   loadDrills()
   loadStats()
+  loadUnits()
 })
 </script>
 
@@ -639,6 +657,7 @@ onMounted(() => {
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commander</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -647,12 +666,12 @@ onMounted(() => {
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-if="loading">
-              <td colspan="9" class="px-6 py-4 text-center text-gray-500">
+              <td colspan="10" class="px-6 py-4 text-center text-gray-500">
                 Loading...
               </td>
             </tr>
             <tr v-else-if="filteredDrills.length === 0">
-              <td colspan="9" class="px-6 py-4 text-center text-gray-500">
+              <td colspan="10" class="px-6 py-4 text-center text-gray-500">
                 Tidak ada data drill
               </td>
             </tr>
@@ -671,6 +690,9 @@ onMounted(() => {
               </td>
               <td class="px-6 py-4 text-sm text-gray-900">
                 {{ drill.judul_drill }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ drill.units?.nama || drill.units?.kode || '-' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ drill.drill_commander }}
@@ -1144,8 +1166,13 @@ onMounted(() => {
                 <textarea v-model="formData.deskripsi" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Unit Kerja *</label>
-                <input v-model="formData.unit_kerja" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                <label class="block text-sm font-medium text-gray-700 mb-1">Unit *</label>
+                <select v-model="formData.unit_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  <option value="">-- Pilih Unit --</option>
+                  <option v-for="unit in units" :key="unit.id" :value="unit.id">
+                    {{ unit.nama }} ({{ unit.kode }})
+                  </option>
+                </select>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Area Lokasi *</label>

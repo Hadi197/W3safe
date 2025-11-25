@@ -350,12 +350,53 @@ class SafetyForumService {
     }
   }
 
+  // Normalize data before save (handle case-insensitive values)
+  private normalizeData(dto: Partial<SafetyForumDTO>): Partial<SafetyForumDTO> {
+    const normalized = { ...dto }
+    
+    // Normalize enum fields to lowercase
+    if (normalized.jenis_forum) {
+      normalized.jenis_forum = normalized.jenis_forum.toLowerCase() as any
+    }
+    if (normalized.status) {
+      normalized.status = normalized.status.toLowerCase() as any
+    }
+    if (normalized.status_notulen) {
+      normalized.status_notulen = normalized.status_notulen.toLowerCase() as any
+    }
+    if (normalized.tingkat_urgensi) {
+      normalized.tingkat_urgensi = normalized.tingkat_urgensi.toLowerCase() as any
+    }
+    
+    // Normalize nested risiko items
+    if (normalized.risiko_teridentifikasi) {
+      normalized.risiko_teridentifikasi = normalized.risiko_teridentifikasi.map(item => ({
+        ...item,
+        tingkat_risiko: item.tingkat_risiko?.toLowerCase() as any
+      }))
+    }
+    
+    // Normalize nested action items
+    if (normalized.action_items) {
+      normalized.action_items = normalized.action_items.map(item => ({
+        ...item,
+        status: item.status?.toLowerCase() as any,
+        prioritas: item.prioritas?.toLowerCase() as any
+      }))
+    }
+    
+    return normalized
+  }
+
   // Create forum
   async create(dto: SafetyForumDTO) {
     try {
+      // Normalize data
+      const normalizedDto = this.normalizeData(dto)
+      
       const { data, error } = await supabase
         .from('safety_forum')
-        .insert([dto])
+        .insert([normalizedDto])
         .select()
         .single()
 
@@ -370,27 +411,19 @@ class SafetyForumService {
   // Update forum
   async update(id: string, dto: Partial<SafetyForumDTO>) {
     try {
-      console.log('=== UPDATE SERVICE ===')
-      console.log('Updating forum ID:', id)
-      console.log('Update DTO:', dto)
-      console.log('Unit ID in DTO:', dto.unit_id)
+      // Normalize data
+      const normalizedDto = this.normalizeData(dto)
       
       const { data, error } = await supabase
         .from('safety_forum')
-        .update(dto)
+        .update(normalizedDto)
         .eq('id', id)
         .select()
-
-      console.log('Update response data:', data)
-      console.log('Update response error:', error)
 
       if (error) throw error
       
       // Re-fetch the updated data with relations
       const refreshed = await this.getById(id)
-      console.log('Refreshed forum after update:', refreshed)
-      console.log('Refreshed forum unit_id:', refreshed?.unit_id)
-      console.log('Refreshed forum unit:', refreshed?.unit)
       return refreshed
     } catch (error) {
       console.error('Error updating safety forum:', error)
