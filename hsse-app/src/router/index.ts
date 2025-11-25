@@ -44,6 +44,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/DashboardView.vue'),
         meta: { title: 'Dashboard' }
       },
+      {
+        path: 'program-k3',
+        name: 'program-k3',
+        component: () => import('@/views/ProgramK3DashboardView.vue'),
+        meta: { title: 'Realisasi Program K3' }
+      },
       // Master Data
       {
         path: 'units',
