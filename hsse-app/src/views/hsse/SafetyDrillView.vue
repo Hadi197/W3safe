@@ -6,6 +6,12 @@ import { supabase } from '@/services/api/supabase'
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
+// Get current user
+const getCurrentUserId = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  return user?.id || ''
+}
+
 // State
 const drills = ref<SafetyDrill[]>([])
 const loading = ref(false)
@@ -63,7 +69,7 @@ const formData = ref<SafetyDrill>({
   safety_officer: '',
   jumlah_peserta: 0,
   status: 'planned',
-  created_by: 'Current User'
+  created_by: '' // Will be set automatically from auth
 })
 
 // Options
@@ -199,21 +205,58 @@ const resetForm = () => {
 }
 
 const handleSubmit = async () => {
+  console.log('=== handleSubmit START ===')
+  console.log('Form data:', JSON.stringify(formData.value, null, 2))
+  console.log('Is editing:', isEditing.value)
+  console.log('Loading state:', loading.value)
+  
+  // Prevent double submission
+  if (loading.value) {
+    console.log('Already loading, preventing double submission')
+    return
+  }
+  
+  // Set created_by if creating new drill
+  if (!isEditing.value) {
+    formData.value.created_by = await getCurrentUserId()
+    console.log('Set created_by to:', formData.value.created_by)
+  }
+  
   loading.value = true
+  console.log('Loading set to true')
+  
   try {
     if (isEditing.value && formData.value.id) {
-      await safetyDrillService.update(formData.value.id, formData.value)
+      console.log('UPDATE MODE - Drill ID:', formData.value.id)
+      const result = await safetyDrillService.update(formData.value.id, formData.value)
+      console.log('Update result:', result)
     } else {
-      await safetyDrillService.create(formData.value)
+      console.log('CREATE MODE - Creating new drill')
+      const result = await safetyDrillService.create(formData.value)
+      console.log('Create result:', result)
     }
+    
+    console.log('Closing modal...')
     closeFormModal()
+    
+    console.log('Reloading drills...')
     await loadDrills()
+    
+    console.log('Reloading stats...')
     await loadStats()
+    
+    console.log('Success! Showing alert...')
+    alert('Data berhasil disimpan!')
   } catch (error) {
-    console.error('Error saving drill:', error)
-    alert('Gagal menyimpan data drill')
+    console.error('=== ERROR in handleSubmit ===')
+    console.error('Error object:', error)
+    console.error('Error message:', (error as any).message)
+    console.error('Error details:', JSON.stringify(error, null, 2))
+    alert('Gagal menyimpan data drill: ' + (error as any).message)
   } finally {
     loading.value = false
+    console.log('Loading set to false')
+    console.log('=== handleSubmit END ===')
   }
 }
 
@@ -1677,7 +1720,8 @@ onMounted(() => {
               </button>
               <button
                 v-if="activeTab === formTabs.length - 1"
-                type="submit"
+                type="button"
+                @click="handleSubmit"
                 :disabled="loading"
                 class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400"
               >

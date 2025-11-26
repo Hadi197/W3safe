@@ -438,31 +438,51 @@ class SafetyDrillService {
 
   // Create new drill
   async create(drill: SafetyDrill): Promise<SafetyDrill> {
+    console.log('=== CREATE DRILL SERVICE ===')
+    console.log('Drill data before processing:', drill)
+    
     if (!drill.nomor_drill) {
       drill.nomor_drill = await this.generateNomorDrill()
     }
 
+    // Remove units field if it exists (from JOIN query)
+    const { units, ...drillWithoutUnits } = drill as any
+
     // Normalize data
-    const normalizedDrill = this.normalizeData(drill)
+    const normalizedDrill = this.normalizeData(drillWithoutUnits)
+
+    console.log('Normalized drill data:', normalizedDrill)
 
     const { data, error } = await supabase
       .from(this.tableName)
-      .insert([normalizedDrill])
+      .insert(normalizedDrill)
       .select()
       .single()
+
+    console.log('Supabase response - data:', data)
+    console.log('Supabase response - error:', error)
 
     if (error) {
       console.error('Error creating drill:', error)
       throw error
     }
 
+    console.log('Create successful, returning data')
     return data
   }
 
   // Update drill
   async update(id: string, drill: Partial<SafetyDrill>): Promise<SafetyDrill> {
+    console.log('=== UPDATE DRILL SERVICE ===')
+    console.log('Drill ID:', id)
+    console.log('Drill data before normalization:', drill)
+    
+    // Remove units field if it exists (from JOIN query)
+    const { units, ...drillWithoutUnits } = drill as any
+    
     // Normalize data
-    const normalizedDrill = this.normalizeData(drill)
+    const normalizedDrill = this.normalizeData(drillWithoutUnits)
+    console.log('Normalized drill data:', normalizedDrill)
     
     const { data, error } = await supabase
       .from(this.tableName)
@@ -471,11 +491,15 @@ class SafetyDrillService {
       .select()
       .single()
 
+    console.log('Supabase response - data:', data)
+    console.log('Supabase response - error:', error)
+
     if (error) {
       console.error('Error updating drill:', error)
       throw error
     }
 
+    console.log('Update successful, returning data')
     return data
   }
 
