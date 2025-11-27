@@ -599,7 +599,10 @@ onMounted(async () => {
       let item = drills.value.find(i => i.id === id)
       if (!item) {
         // If not in current list, fetch directly from service
-        item = await safetyDrillService.getById(id)
+        const fetchedItem = await safetyDrillService.getById(id)
+        if (fetchedItem) {
+          item = fetchedItem
+        }
       }
       if (item) {
         openFormModal(item)

@@ -1830,7 +1830,10 @@ onMounted(async () => {
       let item = walkthroughs.value.find(i => i.id === id)
       if (!item) {
         // If not in current page, fetch directly
-        item = await managementWalkthroughService.getById(id)
+        const fetchedItem = await managementWalkthroughService.getById(id)
+        if (fetchedItem) {
+          item = fetchedItem
+        }
       }
       if (item) {
         openFormModal('edit', item)
