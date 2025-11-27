@@ -50,7 +50,9 @@ const loading = ref(false)
 const loadingInsiden = ref(false)
 const loadingSafetyAlert = ref(false)
 const loadingRekapK3l = ref(false)
-const selectedMonth = ref('2024-11') // Default to November 2024 where sample data exists
+const selectedYear = ref(2025) // Default year
+const selectedMonthNum = ref(11) // Default to November
+const selectedMonth = ref('2025-11') // Default to November 2025 where sample data exists
 const selectedSafetyAlertModule = ref('all') // Filter for safety alert by module
 const insidenData = ref<InsidenData[]>([])
 const safetyAlertData = ref<SafetyAlertData[]>([])
@@ -1026,6 +1028,12 @@ async function countRecords(
   }
 }
 
+// Update selectedMonth when year or month changes
+function updateSelectedMonth() {
+  selectedMonth.value = `${selectedYear.value}-${String(selectedMonthNum.value).padStart(2, '0')}`
+  loadData()
+}
+
 onMounted(async () => {
   await loadUnits() // Load units first
   await loadData()
@@ -1060,14 +1068,39 @@ onMounted(async () => {
           </select>
         </div>
         <div class="filter-group">
-          <label for="month">Pilih Bulan:</label>
-          <input 
-            type="month" 
+          <label for="year">Tahun:</label>
+          <select 
+            id="year"
+            v-model="selectedYear" 
+            @change="updateSelectedMonth"
+            class="filter-select"
+          >
+            <option :value="2025">2025</option>
+            <option :value="2024">2024</option>
+            <option :value="2023">2023</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="month">Bulan:</label>
+          <select 
             id="month"
-            v-model="selectedMonth" 
-            @change="loadData"
-            class="month-input"
-          />
+            v-model="selectedMonthNum" 
+            @change="updateSelectedMonth"
+            class="filter-select"
+          >
+            <option :value="1">Januari</option>
+            <option :value="2">Februari</option>
+            <option :value="3">Maret</option>
+            <option :value="4">April</option>
+            <option :value="5">Mei</option>
+            <option :value="6">Juni</option>
+            <option :value="7">Juli</option>
+            <option :value="8">Agustus</option>
+            <option :value="9">September</option>
+            <option :value="10">Oktober</option>
+            <option :value="11">November</option>
+            <option :value="12">Desember</option>
+          </select>
         </div>
       </div>
     </div>
@@ -1396,24 +1429,46 @@ onMounted(async () => {
 
 .filter-section {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-top: 1.5rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .filter-section label {
   color: white;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
-.month-input {
-  padding: 0.5rem 1rem;
-  border: 2px solid white;
+.filter-select {
+  padding: 0.6rem 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   background: white;
+  color: #1e293b;
   font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+}
+
+.filter-select:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
 .loading {
