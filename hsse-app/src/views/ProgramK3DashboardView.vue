@@ -67,6 +67,12 @@ const units = ref<any[]>([]) // List of units for filter
 const rekapK3lCurrentPage = ref(1)
 const rekapK3lItemsPerPage = 5
 
+// Monitoring Temuan data
+const loadingTemuanMonitoring = ref(false)
+const temuanMonitoringData = ref<any[]>([])
+const temuanCurrentPage = ref(1)
+const temuanItemsPerPage = 5
+
 const programs = ref<ProgramData[]>([
   {
     id: 'safety_briefing',
@@ -204,6 +210,9 @@ async function loadData() {
     
     // Load rekap K3L data
     await loadRekapK3lData()
+    
+    // Load temuan monitoring data
+    await loadTemuanMonitoringData()
     
   } catch (error) {
     console.error('Error loading dashboard data:', error)
@@ -992,6 +1001,149 @@ function rekapK3lPrevPage() {
   }
 }
 
+// Computed properties for Temuan Monitoring pagination
+const temuanTotalPages = computed(() => {
+  return Math.ceil(temuanMonitoringData.value.length / temuanItemsPerPage)
+})
+
+const temuanPaginatedData = computed(() => {
+  const start = (temuanCurrentPage.value - 1) * temuanItemsPerPage
+  const end = start + temuanItemsPerPage
+  return temuanMonitoringData.value.slice(start, end)
+})
+
+// Pagination functions for Temuan Monitoring
+function temuanGoToPage(page: number) {
+  if (page >= 1 && page <= temuanTotalPages.value) {
+    temuanCurrentPage.value = page
+  }
+}
+
+function temuanNextPage() {
+  if (temuanCurrentPage.value < temuanTotalPages.value) {
+    temuanCurrentPage.value++
+  }
+}
+
+function temuanPrevPage() {
+  if (temuanCurrentPage.value > 1) {
+    temuanCurrentPage.value--
+  }
+}
+
+// Load Temuan Monitoring data
+async function loadTemuanMonitoringData() {
+  try {
+    loadingTemuanMonitoring.value = true
+    temuanCurrentPage.value = 1 // Reset to first page
+    
+    const [yearStr, monthStr] = selectedMonth.value.split('-')
+    const yearNum = parseInt(yearStr || '2025')
+    const monthNum = parseInt(monthStr || '11')
+    const unitFilter = rekapK3lUnit.value
+    const startDate = `${yearNum}-${String(monthNum).padStart(2, '0')}-01`
+    const lastDay = new Date(yearNum, monthNum, 0).getDate()
+    const endDate = `${yearNum}-${String(monthNum).padStart(2, '0')}-${lastDay}`
+    
+    const allData: any[] = []
+    
+    // 1. Safety Patrol
+    let patrolQuery = supabase
+      .from('safety_patrol')
+      .select('tanggal_patrol, area_patrol, status')
+      .gte('tanggal_patrol', startDate)
+      .lte('tanggal_patrol', endDate)
+    
+    if (unitFilter !== 'all') {
+      patrolQuery = patrolQuery.eq('unit_id', unitFilter)
+    }
+    
+    const { data: patrolData } = await patrolQuery
+    
+    if (patrolData) {
+      patrolData.forEach(item => {
+        allData.push({
+          tanggal: item.tanggal_patrol,
+          temuan: `Safety Patrol - ${item.area_patrol}`,
+          lokasi: item.area_patrol,
+          status_sudah: item.status === 'completed' || item.status === 'selesai',
+          status_belum: item.status !== 'completed' && item.status !== 'selesai',
+          keterangan: item.status || '-'
+        })
+      })
+    }
+    
+    // 2. Silent Inspection
+    let siQuery = supabase
+      .from('silent_inspection')
+      .select('tanggal, area_inspeksi, status, tingkat_risiko')
+      .gte('tanggal', startDate)
+      .lte('tanggal', endDate)
+    
+    if (unitFilter !== 'all') {
+      siQuery = siQuery.eq('unit_id', unitFilter)
+    }
+    
+    const { data: siData } = await siQuery
+    
+    if (siData) {
+      siData.forEach(item => {
+        allData.push({
+          tanggal: item.tanggal,
+          temuan: `Silent Inspection - ${item.area_inspeksi}`,
+          lokasi: item.area_inspeksi,
+          status_sudah: item.status === 'completed' || item.status === 'selesai',
+          status_belum: item.status !== 'completed' && item.status !== 'selesai',
+          keterangan: item.tingkat_risiko || item.status || '-'
+        })
+      })
+    }
+    
+    // 3. Management Walkthrough
+    let mwQuery = supabase
+      .from('management_walkthrough')
+      .select('tanggal_walkthrough, area_inspeksi, status, jumlah_temuan')
+      .gte('tanggal_walkthrough', startDate)
+      .lte('tanggal_walkthrough', endDate)
+      .gt('jumlah_temuan', 0)
+    
+    if (unitFilter !== 'all') {
+      mwQuery = mwQuery.eq('unit_id', unitFilter)
+    }
+    
+    const { data: mwData } = await mwQuery
+    
+    if (mwData) {
+      mwData.forEach(item => {
+        allData.push({
+          tanggal: item.tanggal_walkthrough,
+          temuan: `Management Walkthrough - ${item.area_inspeksi}`,
+          lokasi: item.area_inspeksi,
+          status_sudah: item.status === 'completed' || item.status === 'selesai',
+          status_belum: item.status !== 'completed' && item.status !== 'selesai',
+          keterangan: `${item.jumlah_temuan} temuan`
+        })
+      })
+    }
+    
+    // Sort by date descending
+    allData.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
+    
+    // Add row numbers
+    temuanMonitoringData.value = allData.map((item, index) => ({
+      ...item,
+      no: index + 1
+    }))
+    
+    console.log('Temuan Monitoring loaded:', temuanMonitoringData.value.length, 'items')
+    
+  } catch (error) {
+    console.error('Error loading temuan monitoring data:', error)
+  } finally {
+    loadingTemuanMonitoring.value = false
+  }
+}
+
 // Get badge color class for module
 function getModuleBadgeClass(modul: string): string {
   switch (modul) {
@@ -1445,6 +1597,109 @@ onMounted(async () => {
         <button 
           @click="rekapK3lNextPage" 
           :disabled="rekapK3lCurrentPage === rekapK3lTotalPages"
+          class="pagination-btn"
+        >
+          Selanjutnya
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Monitoring Temuan Section -->
+    <div class="temuan-monitoring-section">
+      <div class="temuan-header">
+        <div>
+          <h2 class="temuan-title">
+            Monitoring Temuan Audit, Inspeksi & Patrol
+            <span class="periode-badge">(s.d {{ getFormattedPeriod() }})</span>
+          </h2>
+        </div>
+        
+        <div class="filter-container">
+          <span class="filter-count">{{ temuanMonitoringData.length }} temuan</span>
+        </div>
+      </div>
+
+      <div v-if="loadingTemuanMonitoring" class="loading-insiden">
+        <div class="spinner-small"></div>
+        <p>Memuat data monitoring temuan...</p>
+      </div>
+
+      <div v-else-if="temuanMonitoringData.length === 0" class="no-data">
+        <p>Tidak ada data temuan untuk periode ini</p>
+      </div>
+
+      <div v-else class="temuan-table-wrapper">
+        <table class="temuan-table">
+          <thead>
+            <tr>
+              <th class="col-no">NO</th>
+              <th class="col-tanggal">TANGGAL</th>
+              <th class="col-temuan">TEMUAN</th>
+              <th class="col-lokasi">LOKASI</th>
+              <th class="col-status" colspan="2">STATUS</th>
+              <th class="col-keterangan">KETERANGAN</th>
+            </tr>
+            <tr class="sub-header">
+              <th colspan="4"></th>
+              <th class="status-sub">SUDAH</th>
+              <th class="status-sub">BELUM</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in temuanPaginatedData" :key="item.no">
+              <td class="text-center">{{ item.no }}</td>
+              <td>{{ formatDate(item.tanggal) }}</td>
+              <td>{{ item.temuan }}</td>
+              <td>{{ item.lokasi }}</td>
+              <td class="text-center status-cell">
+                <span v-if="item.status_sudah" class="status-check">✓</span>
+              </td>
+              <td class="text-center status-cell">
+                <span v-if="item.status_belum" class="status-check">✓</span>
+              </td>
+              <td>{{ item.keterangan }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Controls for Temuan -->
+      <div v-if="temuanMonitoringData.length > 0" class="pagination-controls">
+        <button 
+          @click="temuanPrevPage" 
+          :disabled="temuanCurrentPage === 1"
+          class="pagination-btn"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Sebelumnya
+        </button>
+
+        <div class="pagination-info">
+          <span class="page-numbers">
+            <button
+              v-for="page in temuanTotalPages"
+              :key="page"
+              @click="temuanGoToPage(page)"
+              :class="['page-number', { active: page === temuanCurrentPage }]"
+            >
+              {{ page }}
+            </button>
+          </span>
+          <span class="pagination-text">
+            Halaman {{ temuanCurrentPage }} dari {{ temuanTotalPages }} 
+            ({{ temuanMonitoringData.length }} total temuan)
+          </span>
+        </div>
+
+        <button 
+          @click="temuanNextPage" 
+          :disabled="temuanCurrentPage === temuanTotalPages"
           class="pagination-btn"
         >
           Selanjutnya
@@ -2511,6 +2766,112 @@ onMounted(async () => {
   font-weight: 500;
 }
 
+/* Monitoring Temuan Section */
+.temuan-monitoring-section {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.temuan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.temuan-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.temuan-table-wrapper {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.temuan-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.temuan-table thead tr {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+}
+
+.temuan-table thead tr.sub-header {
+  background: #3b82f6;
+}
+
+.temuan-table th {
+  padding: 1rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.temuan-table th.status-sub {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.temuan-table .col-no {
+  width: 60px;
+}
+
+.temuan-table .col-tanggal {
+  width: 150px;
+}
+
+.temuan-table .col-temuan {
+  width: auto;
+  min-width: 250px;
+}
+
+.temuan-table .col-lokasi {
+  width: 150px;
+}
+
+.temuan-table .col-status {
+  width: 80px;
+}
+
+.temuan-table .col-keterangan {
+  width: 150px;
+}
+
+.temuan-table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+}
+
+.temuan-table td.text-center {
+  text-align: center;
+}
+
+.temuan-table td.status-cell {
+  background: #f8fafc;
+  text-align: center;
+}
+
+.temuan-table .status-check {
+  color: #16a34a;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
 @media (max-width: 768px) {
   .rekap-k3l-section {
     padding: 1rem;
@@ -2590,6 +2951,34 @@ onMounted(async () => {
   .pagination-text {
     font-size: 0.75rem;
     text-align: center;
+  }
+
+  .temuan-monitoring-section {
+    padding: 1rem;
+    margin: 2rem 0.5rem 1rem;
+  }
+
+  .temuan-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .temuan-title {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .temuan-table {
+    font-size: 0.75rem;
+  }
+
+  .temuan-table th,
+  .temuan-table td {
+    padding: 0.5rem;
+  }
+
+  .temuan-table .status-check {
+    font-size: 1rem;
   }
 }
 </style>
