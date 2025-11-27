@@ -676,6 +676,34 @@ class SafetyDrillService {
     return data || []
   }
 
+  // Get data for Rekap Implementasi K3L table
+  async getRekapK3L(year: number = new Date().getFullYear()): Promise<any[]> {
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('tanggal_drill, waktu_mulai, tujuan_drill, drill_commander, jumlah_peserta, area_lokasi')
+      .gte('tanggal_drill', `${year}-01-01`)
+      .lte('tanggal_drill', `${year}-12-31`)
+      .order('tanggal_drill', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching Rekap K3L data:', error)
+      throw error
+    }
+
+    // Transform data to match Rekap K3L format
+    return (data || []).map((item, index) => ({
+      no: index + 1,
+      kegiatan: item.tujuan_drill,
+      dokumentasi: 'Tidak Ada',
+      hari_tanggal: item.tanggal_drill,
+      jam: item.waktu_mulai,
+      pimpinan: item.drill_commander,
+      peserta: item.jumlah_peserta,
+      tempat: item.area_lokasi,
+      keterangan: '-'
+    }))
+  }
+
   // Upload file helper
   async uploadFile(file: File, folder: string = 'drill-docs'): Promise<string> {
     const fileName = `${Date.now()}-${file.name}`

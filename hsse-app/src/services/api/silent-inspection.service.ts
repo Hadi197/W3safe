@@ -125,7 +125,9 @@ export interface UpdateSilentInspectionDto {
   waktu_selesai?: string
   unit_id?: string
   wilayah_id?: string
+  area?: string
   area_inspeksi?: string
+  deskripsi?: string
   inspector_id?: string
   anggota_tim?: string[]
   kategori_bahaya?: string
@@ -144,6 +146,7 @@ export interface UpdateSilentInspectionDto {
   tingkat_risiko?: string
   kondisi_housekeeping?: string
   penggunaan_apd?: string
+  tindak_lanjut?: any
   rekomendasi?: string
   tindakan_korektif?: string
   pic_tindak_lanjut?: string
@@ -418,14 +421,7 @@ class SilentInspectionService {
   async getById(id: string): Promise<SilentInspection | null> {
     const { data, error } = await supabase
       .from(this.tableName)
-      .select(`
-        id, tanggal, triwulan, tahun, unit_id, wilayah_id, inspector_id,
-        area_inspeksi, checklist, rekomendasi,
-        status, approved_by, approved_at,
-        created_at, updated_at,
-        foto_kondisi_unsafe, foto_perilaku_unsafe,
-        temuan_critical, temuan_major, temuan_minor
-      `)
+      .select('*')
       .eq('id', id)
       .single()
 
@@ -476,13 +472,14 @@ class SilentInspectionService {
       jenis_inspeksi: 'silent',
       fokus_inspeksi: data.checklist || [],
       jumlah_temuan: (data.temuan_critical || 0) + (data.temuan_major || 0) + (data.temuan_minor || 0),
-      kategori_bahaya: 'General',
+      kategori_bahaya: data.kategori_bahaya || 'General',
+      deskripsi_temuan: data.deskripsi_temuan || '',
       foto_kondisi_unsafe: data.foto_kondisi_unsafe || [],
       foto_perilaku_unsafe: data.foto_perilaku_unsafe || [],
-      skor_kepatuhan: 0,
-      tingkat_risiko: 'Rendah',
-      kondisi_housekeeping: 'Baik',
-      penggunaan_apd: 'Baik',
+      skor_kepatuhan: data.skor_kepatuhan || 0,
+      tingkat_risiko: data.tingkat_risiko || 'Rendah',
+      kondisi_housekeeping: data.kondisi_housekeeping || 'Baik',
+      penggunaan_apd: data.penggunaan_apd || 'Baik',
       tindakan_korektif: data.rekomendasi || '',
       status_verifikasi: data.status === 'approved' ? 'verified' : 'pending',
       verified_by: data.approved_by,
@@ -763,6 +760,10 @@ class SilentInspectionService {
     if (dto.unit_id !== undefined) dbData.unit_id = dto.unit_id
     if (dto.wilayah_id !== undefined) dbData.wilayah_id = dto.wilayah_id
     if (dto.area_inspeksi !== undefined) dbData.area_inspeksi = dto.area_inspeksi
+    if (dto.deskripsi_temuan !== undefined) dbData.deskripsi_temuan = dto.deskripsi_temuan
+    if (dto.inspector_id !== undefined) dbData.inspector_id = dto.inspector_id
+    if (dto.anggota_tim !== undefined) dbData.anggota_tim = dto.anggota_tim
+    if (dto.kategori_bahaya !== undefined) dbData.kategori_bahaya = dto.kategori_bahaya
     if (dto.checklist_items !== undefined || dto.fokus_inspeksi !== undefined) {
       dbData.checklist = dto.checklist_items || dto.fokus_inspeksi || []
     }
@@ -770,11 +771,23 @@ class SilentInspectionService {
     if (dto.temuan_critical !== undefined) dbData.temuan_critical = dto.temuan_critical
     if (dto.temuan_major !== undefined) dbData.temuan_major = dto.temuan_major
     if (dto.temuan_minor !== undefined) dbData.temuan_minor = dto.temuan_minor
+    if (dto.tingkat_risiko !== undefined) dbData.tingkat_risiko = dto.tingkat_risiko
+    if (dto.kondisi_housekeeping !== undefined) dbData.kondisi_housekeeping = dto.kondisi_housekeeping
+    if (dto.penggunaan_apd !== undefined) dbData.penggunaan_apd = dto.penggunaan_apd
+    if (dto.skor_kepatuhan !== undefined) dbData.skor_kepatuhan = dto.skor_kepatuhan
+    if (dto.skor_total !== undefined) dbData.skor_total = dto.skor_total
+    if (dto.tindak_lanjut !== undefined) dbData.tindak_lanjut = dto.tindak_lanjut
+    if (dto.pic_tindak_lanjut !== undefined) dbData.pic_tindak_lanjut = dto.pic_tindak_lanjut
+    if (dto.target_penyelesaian !== undefined) dbData.target_penyelesaian = dto.target_penyelesaian
+    if (dto.status_tindak_lanjut !== undefined) dbData.status_tindak_lanjut = dto.status_tindak_lanjut
     if (dto.rekomendasi !== undefined || dto.tindakan_korektif !== undefined) {
       dbData.rekomendasi = dto.rekomendasi || dto.tindakan_korektif
     }
+    if (dto.catatan !== undefined) dbData.catatan = dto.catatan
     if (dto.foto_kondisi_unsafe !== undefined) dbData.foto_kondisi_unsafe = dto.foto_kondisi_unsafe
     if (dto.foto_perilaku_unsafe !== undefined) dbData.foto_perilaku_unsafe = dto.foto_perilaku_unsafe
+    if (dto.verified_by !== undefined) dbData.verified_by = dto.verified_by
+    if (dto.verified_at !== undefined) dbData.verified_at = dto.verified_at
     if (dto.status !== undefined) dbData.status = dto.status
 
     const { data, error } = await supabase

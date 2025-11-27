@@ -1255,9 +1255,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { managementWalkthroughService, type ManagementWalkthrough } from '@/services/management-walkthrough.service'
 import { unitsService } from '@/services/api/units.service'
 import { useImageCompression } from '@/composables/useImageCompression'
+
+const route = useRoute()
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
@@ -1814,10 +1817,28 @@ watch(filters, () => {
 }, { deep: true })
 
 // Lifecycle
-onMounted(() => {
-  loadWalkthroughs()
+onMounted(async () => {
+  await loadWalkthroughs()
   loadStats()
   loadUnits()
+  
+  // Check if opened from monitoring table with id parameter
+  const id = route.query.id as string
+  const mode = route.query.mode as string
+  if (id && mode === 'edit') {
+    try {
+      let item = walkthroughs.value.find(i => i.id === id)
+      if (!item) {
+        // If not in current page, fetch directly
+        item = await managementWalkthroughService.getById(id)
+      }
+      if (item) {
+        openFormModal('edit', item)
+      }
+    } catch (error) {
+      console.error('Error loading management walkthrough for edit:', error)
+    }
+  }
 })
 </script>
 

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 import { safetyDrillService, type SafetyDrill, type DrillFilters } from '@/services/safety-drill.service'
 import { useImageCompression } from '@/composables/useImageCompression'
 import { supabase } from '@/services/api/supabase'
@@ -583,10 +586,28 @@ const loadUnits = async () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  loadDrills()
+onMounted(async () => {
+  await loadDrills()
   loadStats()
   loadUnits()
+  
+  // Check if opened from monitoring table with id parameter
+  const id = route.query.id as string
+  const mode = route.query.mode as string
+  if (id && mode === 'edit') {
+    try {
+      let item = drills.value.find(i => i.id === id)
+      if (!item) {
+        // If not in current list, fetch directly from service
+        item = await safetyDrillService.getById(id)
+      }
+      if (item) {
+        openFormModal(item)
+      }
+    } catch (error) {
+      console.error('Error loading safety drill for edit:', error)
+    }
+  }
 })
 </script>
 

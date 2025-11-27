@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { safetyPatrolService, type SafetyPatrol } from '@/services/hsse/safety-patrol.service'
 import { useUnitsStore } from '@/stores/units'
 import { useImageCompression } from '@/composables/useImageCompression'
+
+const route = useRoute()
 
 const unitsStore = useUnitsStore()
 const { compressSingleImage, formatFileSize } = useImageCompression()
@@ -538,10 +541,24 @@ const closeImageModal = () => {
   selectedImageUrl.value = ''
 }
 
-onMounted(() => {
-  loadPatrols()
+onMounted(async () => {
+  await loadPatrols()
   loadStats()
   unitsStore.fetchUnits()
+  
+  // Check if opened from monitoring table with id parameter
+  const id = route.query.id as string
+  const mode = route.query.mode as string
+  if (id && mode === 'edit') {
+    try {
+      const patrol = await safetyPatrolService.getById(id)
+      if (patrol) {
+        openFormModal('edit', patrol)
+      }
+    } catch (error) {
+      console.error('Error loading patrol for edit:', error)
+    }
+  }
 })
 </script>
 

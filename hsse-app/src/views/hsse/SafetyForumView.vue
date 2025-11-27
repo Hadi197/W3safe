@@ -1132,10 +1132,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useImageCompression } from '@/composables/useImageCompression'
 import { safetyForumService, type SafetyForumDTO } from '@/services/api/safety-forum.service'
 import { unitsService } from '@/services/api/units.service'
 import { supabase } from '@/services/api/supabase'
+
+const route = useRoute()
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
@@ -1785,8 +1788,26 @@ const confirmDelete = async (forum: any) => {
 }
 
 // Lifecycle
-onMounted(() => {
-  loadForums()
+onMounted(async () => {
+  await loadForums()
   loadUnits()
+  
+  // Check if opened from monitoring table with id parameter
+  const id = route.query.id as string
+  const mode = route.query.mode as string
+  if (id && mode === 'edit') {
+    try {
+      let item = forums.value.find(i => i.id === id)
+      if (!item) {
+        // If not in current page, fetch directly
+        item = await safetyForumService.getById(id)
+      }
+      if (item) {
+        openFormModal(item)
+      }
+    } catch (error) {
+      console.error('Error loading safety forum for edit:', error)
+    }
+  }
 })
 </script>

@@ -585,10 +585,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { format } from 'date-fns'
 import { useImageCompression } from '@/composables/useImageCompression'
 import { silentInspectionService, type SilentInspection, type CreateSilentInspectionDto, type PaginatedResponse } from '@/services/api/silent-inspection.service'
 import { unitsService, type Unit } from '@/services/api/units.service'
+
+const route = useRoute()
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
@@ -801,36 +804,61 @@ const resetForm = () => {
 }
 
 const editItem = async (item: SilentInspection) => {
-  isEdit.value = true
-  editId.value = item.id
-  form.value = {
-    tanggal: item.tanggal,
-    waktu_mulai: item.waktu_mulai || '',
-    waktu_selesai: item.waktu_selesai,
-    unit_id: item.unit_id,
-    area_inspeksi: item.area_inspeksi,
-    kategori_bahaya: item.kategori_bahaya,
-    checklist_items: item.checklist || [],
-    jumlah_temuan: (item.temuan_critical || 0) + (item.temuan_major || 0) + (item.temuan_minor || 0), // Will be overridden by computed
+  console.log('📝 Edit item data:', {
+    id: item.id,
+    deskripsi_temuan: item.deskripsi_temuan,
     temuan_critical: item.temuan_critical,
     temuan_major: item.temuan_major,
-    temuan_minor: item.temuan_minor,
-    deskripsi_temuan: item.deskripsi_temuan,
-    foto_kondisi_unsafe: item.foto_kondisi_unsafe || [],
-    foto_perilaku_unsafe: item.foto_perilaku_unsafe || [],
-    skor_kepatuhan: item.skor_kepatuhan,
-    tingkat_risiko: item.tingkat_risiko,
-    kondisi_housekeeping: item.kondisi_housekeeping,
-    penggunaan_apd: item.penggunaan_apd,
-    rekomendasi: item.rekomendasi,
-    tindakan_korektif: item.tindakan_korektif,
-    pic_tindak_lanjut: item.pic_tindak_lanjut,
-    target_penyelesaian: item.target_penyelesaian,
-    status_tindak_lanjut: item.status_tindak_lanjut,
-    status: item.status,
-    catatan: item.catatan
+    temuan_minor: item.temuan_minor
+  })
+  
+  // Fetch fresh data from database to ensure we have latest
+  try {
+    const freshData = await silentInspectionService.getById(item.id)
+    console.log('🔄 Fresh data from DB:', {
+      deskripsi_temuan: freshData?.deskripsi_temuan,
+      temuan_critical: freshData?.temuan_critical,
+      temuan_major: freshData?.temuan_major,
+      temuan_minor: freshData?.temuan_minor
+    })
+    
+    if (freshData) {
+      isEdit.value = true
+      editId.value = freshData.id
+      form.value = {
+        tanggal: freshData.tanggal,
+        waktu_mulai: freshData.waktu_mulai || '',
+        waktu_selesai: freshData.waktu_selesai,
+        unit_id: freshData.unit_id,
+        area_inspeksi: freshData.area_inspeksi,
+        kategori_bahaya: freshData.kategori_bahaya,
+        checklist_items: freshData.checklist || [],
+        jumlah_temuan: (freshData.temuan_critical || 0) + (freshData.temuan_major || 0) + (freshData.temuan_minor || 0),
+        temuan_critical: freshData.temuan_critical,
+        temuan_major: freshData.temuan_major,
+        temuan_minor: freshData.temuan_minor,
+        deskripsi_temuan: freshData.deskripsi_temuan || '',
+        foto_kondisi_unsafe: freshData.foto_kondisi_unsafe || [],
+        foto_perilaku_unsafe: freshData.foto_perilaku_unsafe || [],
+        skor_kepatuhan: freshData.skor_kepatuhan,
+        tingkat_risiko: freshData.tingkat_risiko,
+        kondisi_housekeeping: freshData.kondisi_housekeeping,
+        penggunaan_apd: freshData.penggunaan_apd,
+        rekomendasi: freshData.rekomendasi,
+        tindakan_korektif: freshData.tindakan_korektif,
+        pic_tindak_lanjut: freshData.pic_tindak_lanjut,
+        target_penyelesaian: freshData.target_penyelesaian,
+        status_tindak_lanjut: freshData.status_tindak_lanjut,
+        status: freshData.status,
+        catatan: freshData.catatan
+      }
+      console.log('✅ Form populated with deskripsi_temuan:', form.value.deskripsi_temuan)
+      showModal.value = true
+    }
+  } catch (error) {
+    console.error('❌ Error fetching fresh data:', error)
+    alert('Gagal memuat data untuk edit')
   }
-  showModal.value = true
 }
 
 const handleFileSelectKondisi = async (event: Event) => {
@@ -1179,9 +1207,23 @@ const getStatusLabel = (status: string) => {
 }
 
 // Lifecycle
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  await loadData()
   window.addEventListener('keydown', handleKeyPress)
+  
+  // Check if opened from monitoring table with id parameter
+  const id = route.query.id as string
+  const mode = route.query.mode as string
+  if (id && mode === 'edit') {
+    try {
+      const item = await silentInspectionService.getById(id)
+      if (item) {
+        editItem(item)
+      }
+    } catch (error) {
+      console.error('Error loading silent inspection for edit:', error)
+    }
+  }
 })
 
 onUnmounted(() => {

@@ -107,6 +107,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Monitoring Input Data' }
       },
       {
+        path: 'temuan-monitoring',
+        name: 'temuan-monitoring',
+        component: () => import('@/views/TemuanMonitoringView.vue'),
+        meta: { title: 'Monitoring Temuan & Tindak Lanjut' }
+      },
+      {
         path: 'safety-patrol',
         name: 'safety-patrol',
         component: () => import('@/views/hsse/SafetyPatrolView.vue'),

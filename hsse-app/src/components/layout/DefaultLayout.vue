@@ -66,169 +66,236 @@
           <span class="font-medium">Realisasi Program K3</span>
         </router-link>
 
-        <!-- Safety Programs Section -->
-        <div class="pt-4 pb-2">
-          <p class="px-4 text-xs font-semibold text-primary-300 uppercase tracking-wider">Program Keselamatan</p>
+        <!-- Safety Programs Group -->
+        <div class="pt-4">
+          <button
+            @click="expandedGroups.safetyPrograms = !expandedGroups.safetyPrograms"
+            class="w-full flex items-center justify-between px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-3 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span class="text-sm font-semibold text-primary-200">Program Keselamatan</span>
+            </div>
+            <svg
+              :class="['w-4 h-4 text-primary-300 transition-transform duration-200', expandedGroups.safetyPrograms ? 'transform rotate-180' : '']"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div v-show="expandedGroups.safetyPrograms" class="ml-4 mt-1 space-y-1">
+            <router-link
+              to="/safety-briefing"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm">Safety Briefing</span>
+            </router-link>
+
+            <router-link
+              to="/silent-inspection"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span class="text-sm">Silent Inspection</span>
+            </router-link>
+
+            <router-link
+              to="/safety-forum"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span class="text-sm">Safety Forum</span>
+            </router-link>
+
+            <router-link
+              to="/management-walkthrough"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span class="text-sm">Management Walkthrough</span>
+            </router-link>
+
+            <router-link
+              to="/safety-patrol"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+              </svg>
+              <span class="text-sm">Safety Patrol</span>
+            </router-link>
+
+            <router-link
+              to="/safety-induction"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <span class="text-sm">Safety Induction</span>
+            </router-link>
+
+            <router-link
+              to="/safety-drill"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+              </svg>
+              <span class="text-sm">Safety Drill</span>
+            </router-link>
+
+            <router-link
+              to="/ltifr"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span class="text-sm">Laporan LTIFR</span>
+            </router-link>
+
+            <router-link
+              to="/unsafe-action-condition"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="text-sm">Unsafe Action/Condition</span>
+            </router-link>
+          </div>
         </div>
 
-        <router-link
-          to="/safety-briefing"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span class="font-medium">Safety Briefing</span>
-        </router-link>
+        <!-- Master Data Group -->
+        <div class="pt-4">
+          <button
+            @click="expandedGroups.masterData = !expandedGroups.masterData"
+            class="w-full flex items-center justify-between px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-3 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span class="text-sm font-semibold text-primary-200">Master Data</span>
+            </div>
+            <svg
+              :class="['w-4 h-4 text-primary-300 transition-transform duration-200', expandedGroups.masterData ? 'transform rotate-180' : '']"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-        <router-link
-          to="/silent-inspection"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-          </svg>
-          <span class="font-medium">Silent Inspection</span>
-        </router-link>
+          <div v-show="expandedGroups.masterData" class="ml-4 mt-1 space-y-1">
+            <router-link
+              to="/units"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span class="text-sm">Master Palabuhan</span>
+            </router-link>
 
-        <router-link
-          to="/safety-forum"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-          <span class="font-medium">Safety Forum</span>
-        </router-link>
-
-        <router-link
-          to="/management-walkthrough"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          <span class="font-medium">Management Walkthrough</span>
-        </router-link>
-
-        <!-- Divider -->
-        <div class="my-4 border-t border-white/10"></div>
-
-        <router-link
-          to="/safety-patrol"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-          </svg>
-          <span class="font-medium">Safety Patrol</span>
-        </router-link>
-
-        <router-link
-          to="/safety-induction"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <span class="font-medium">Safety Induction</span>
-        </router-link>
-
-        <router-link
-          to="/safety-drill"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
-          </svg>
-          <span class="font-medium">Safety Drill</span>
-        </router-link>
-
-        <router-link
-          to="/ltifr"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <span class="font-medium">Laporan LTIFR</span>
-        </router-link>
-
-        <router-link
-          to="/unsafe-action-condition"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17v4m-2-2h4" />
-          </svg>
-          <span class="font-medium">Unsafe Action/Condition</span>
-        </router-link>
-
-        <!-- Master Data Section -->
-        <div class="pt-6 pb-2">
-          <p class="px-4 text-xs font-semibold text-primary-300 uppercase tracking-wider">Master Data</p>
+            <router-link
+              to="/pegawai"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+              <span class="text-sm">Master Pegawai</span>
+            </router-link>
+          </div>
         </div>
 
-        <router-link
-          to="/units"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          <span class="font-medium">Master Palabuhan</span>
-        </router-link>
+        <!-- Monitoring Group -->
+        <div class="pt-4">
+          <button
+            @click="expandedGroups.monitoring = !expandedGroups.monitoring"
+            class="w-full flex items-center justify-between px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-3 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span class="text-sm font-semibold text-primary-200">Monitoring & Laporan</span>
+            </div>
+            <svg
+              :class="['w-4 h-4 text-primary-300 transition-transform duration-200', expandedGroups.monitoring ? 'transform rotate-180' : '']"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-        <router-link
-          to="/pegawai"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-          </svg>
-          <span class="font-medium">Master Pegawai</span>
-        </router-link>
+          <div v-show="expandedGroups.monitoring" class="ml-4 mt-1 space-y-1">
+            <router-link
+              to="/monitoring"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span class="text-sm">Monitoring Aktivitas</span>
+            </router-link>
 
-        <!-- Monitoring Section -->
-        <div class="pt-6 pb-2">
-          <p class="px-4 text-xs font-semibold text-primary-300 uppercase tracking-wider">Monitoring & Laporan</p>
+            <router-link
+              to="/monitoring-input"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              <span class="text-sm">Monitoring Input Data</span>
+            </router-link>
+
+            <router-link
+              to="/temuan-monitoring"
+              class="flex items-center px-4 py-2.5 rounded-lg hover:bg-white/10 bg-white/0 transition-colors duration-200"
+              active-class="bg-white/20"
+            >
+              <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span class="text-sm">Monitoring Temuan</span>
+            </router-link>
+          </div>
         </div>
-
-        <router-link
-          to="/monitoring"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <span class="font-medium">Monitoring Aktivitas</span>
-        </router-link>
-
-        <router-link
-          to="/monitoring-input"
-          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 bg-white/0 transition-colors duration-200"
-          active-class="bg-white/20"
-        >
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          <span class="font-medium">Monitoring Input Data</span>
-        </router-link>
       </nav>
     </aside>
 
@@ -330,6 +397,13 @@ const router = useRouter()
 const authStore = useAuthStore()
 const showUserMenu = ref(false)
 const sidebarOpen = ref(false)
+
+// Expand/Collapse state for menu groups - default collapsed
+const expandedGroups = ref({
+  safetyPrograms: false,
+  masterData: false,
+  monitoring: false
+})
 
 const userName = computed(() => authStore.user?.email?.split('@')[0] || 'User')
 const userInitials = computed(() => {
