@@ -63,6 +63,10 @@ const rekapK3lUnit = ref<string>('all') // Default to all units
 const rekapK3lData = ref<any[]>([])
 const units = ref<any[]>([]) // List of units for filter
 
+// Pagination for Rekap K3L
+const rekapK3lCurrentPage = ref(1)
+const rekapK3lItemsPerPage = 5
+
 const programs = ref<ProgramData[]>([
   {
     id: 'safety_briefing',
@@ -650,6 +654,7 @@ async function loadUnits() {
 async function loadRekapK3lData() {
   try {
     loadingRekapK3l.value = true
+    rekapK3lCurrentPage.value = 1 // Reset to first page when loading new data
     
     // Use selectedMonth from main page filter
     const [yearStr, monthStr] = selectedMonth.value.split('-')
@@ -957,6 +962,36 @@ function getFormattedPeriod(): string {
   return `[${getMonthName(monthNum)}] ${year}`
 }
 
+// Computed properties for pagination
+const rekapK3lTotalPages = computed(() => {
+  return Math.ceil(rekapK3lData.value.length / rekapK3lItemsPerPage)
+})
+
+const rekapK3lPaginatedData = computed(() => {
+  const start = (rekapK3lCurrentPage.value - 1) * rekapK3lItemsPerPage
+  const end = start + rekapK3lItemsPerPage
+  return rekapK3lData.value.slice(start, end)
+})
+
+// Pagination functions
+function rekapK3lGoToPage(page: number) {
+  if (page >= 1 && page <= rekapK3lTotalPages.value) {
+    rekapK3lCurrentPage.value = page
+  }
+}
+
+function rekapK3lNextPage() {
+  if (rekapK3lCurrentPage.value < rekapK3lTotalPages.value) {
+    rekapK3lCurrentPage.value++
+  }
+}
+
+function rekapK3lPrevPage() {
+  if (rekapK3lCurrentPage.value > 1) {
+    rekapK3lCurrentPage.value--
+  }
+}
+
 // Get badge color class for module
 function getModuleBadgeClass(modul: string): string {
   switch (modul) {
@@ -1046,7 +1081,7 @@ onMounted(async () => {
     <div class="dashboard-header">
       <div class="header-content">
         <h1 class="title">
-          Realisasi Program K3 
+          Monitoring Realisasi K3 
           <span class="subtitle">(s.d <span class="highlight">{{ new Date(selectedMonth).toLocaleDateString('id-ID', { month: 'long' }) }}</span> 2025)</span>
         </h1>
       </div>
@@ -1319,7 +1354,7 @@ onMounted(async () => {
       <div class="rekap-k3l-header">
         <div>
           <h2 class="rekap-k3l-title">
-            Rekan Implementasi K3L 
+            Rekap Implementasi K3L 
             <span class="periode-badge">(periode {{ getFormattedPeriod() }})</span>
           </h2>
         </div>
@@ -1352,7 +1387,7 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in rekapK3lData" :key="item.no">
+            <tr v-for="item in rekapK3lPaginatedData" :key="item.no">
               <td class="text-center">{{ item.no }}</td>
               <td class="modul-cell">
                 <span class="modul-badge" :class="getModuleBadgeClass(item.modul)">
@@ -1376,6 +1411,48 @@ onMounted(async () => {
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      <div v-if="rekapK3lData.length > 0" class="pagination-controls">
+        <button 
+          @click="rekapK3lPrevPage" 
+          :disabled="rekapK3lCurrentPage === 1"
+          class="pagination-btn"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Sebelumnya
+        </button>
+
+        <div class="pagination-info">
+          <span class="page-numbers">
+            <button
+              v-for="page in rekapK3lTotalPages"
+              :key="page"
+              @click="rekapK3lGoToPage(page)"
+              :class="['page-number', { active: page === rekapK3lCurrentPage }]"
+            >
+              {{ page }}
+            </button>
+          </span>
+          <span class="pagination-text">
+            Halaman {{ rekapK3lCurrentPage }} dari {{ rekapK3lTotalPages }} 
+            ({{ rekapK3lData.length }} total kegiatan)
+          </span>
+        </div>
+
+        <button 
+          @click="rekapK3lNextPage" 
+          :disabled="rekapK3lCurrentPage === rekapK3lTotalPages"
+          class="pagination-btn"
+        >
+          Selanjutnya
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Footer Note -->
@@ -1383,6 +1460,7 @@ onMounted(async () => {
       *Cek kesesuaian pada <strong>Dashboard Safira</strong>
     </div> -->
   </div>
+
 </template>
 
 <style scoped>
@@ -2347,6 +2425,92 @@ onMounted(async () => {
   color: #475569;
 }
 
+/* Pagination Controls */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #1e40af;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #1e3a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.pagination-btn:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.pagination-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.page-number {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.5rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-number:hover {
+  background: #e2e8f0;
+  border-color: #1e40af;
+}
+
+.page-number.active {
+  background: #1e40af;
+  color: white;
+  border-color: #1e40af;
+}
+
+.pagination-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .rekap-k3l-section {
     padding: 1rem;
@@ -2401,5 +2565,32 @@ onMounted(async () => {
     min-width: 70px;
     font-size: 0.7rem;
   }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pagination-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .page-numbers {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .page-number {
+    min-width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+
+  .pagination-text {
+    font-size: 0.75rem;
+    text-align: center;
+  }
 }
 </style>
+
