@@ -1529,12 +1529,58 @@ async function loadWalkthroughReportData() {
       console.error('Error loading walkthrough report:', error)
       walkthroughReportData.value = []
     } else {
-      // Flatten unit name untuk kemudahan akses
-      const processedData = (data || []).map(item => ({
-        ...item,
-        unit_name: item.units?.nama || null
-      }))
+      // Flatten unit name dan process data untuk kemudahan akses
+      const processedData = (data || []).map(item => {
+        // Helper function untuk extract text dari berbagai format
+        const extractText = (field: any): string => {
+          if (!field) return ''
+          if (typeof field === 'string') return field
+          if (Array.isArray(field)) {
+            // Jika array kosong, return empty
+            if (field.length === 0) return ''
+            // Jika array of strings, join
+            if (typeof field[0] === 'string') return field.join(', ')
+            // Jika array of objects, extract text properties
+            return field.map(obj => obj.text || obj.catatan || obj.rekomendasi || '').filter(Boolean).join('. ')
+          }
+          if (typeof field === 'object') {
+            // Jika object, try to extract common text fields
+            return field.text || field.catatan || field.rekomendasi || field.temuan || ''
+          }
+          return String(field)
+        }
+
+        // Extract foto URLs dari temuan_bahaya
+        const extractFotoUrls = (temuanBahaya: any): string[] => {
+          if (!temuanBahaya || !Array.isArray(temuanBahaya)) return []
+          
+          const allFotos: string[] = []
+          temuanBahaya.forEach((temuan: any) => {
+            if (temuan.foto_urls && Array.isArray(temuan.foto_urls)) {
+              allFotos.push(...temuan.foto_urls)
+            }
+          })
+          return allFotos
+        }
+
+        const fotoUrls = extractFotoUrls(item.temuan_bahaya)
+
+        return {
+          ...item,
+          unit_name: item.units?.nama || null,
+          // Process catatan/rekomendasi/temuan
+          catatan_text: extractText(item.catatan_evaluasi),
+          rekomendasi_text: extractText(item.rekomendasi),
+          temuan_text: extractText(item.temuan_bahaya),
+          // Extract foto dari temuan_bahaya
+          foto_1: fotoUrls[0] || null,
+          foto_2: fotoUrls[1] || null,
+          foto_3: fotoUrls[2] || null,
+          all_foto_urls: fotoUrls.length > 0 ? fotoUrls : null
+        }
+      })
       walkthroughReportData.value = processedData
+      console.log('Sample processed data:', processedData[0]) // Debug
     }
     
     console.log('Walkthrough Report loaded:', walkthroughReportData.value.length, 'items')
@@ -2245,8 +2291,8 @@ onMounted(async () => {
         <div class="report-section">
           <h4 class="section-title">Catatan/evaluasi/rekomendasi/temuan:</h4>
           <p class="section-content">
-            <template v-if="item.catatan_evaluasi || item.rekomendasi || item.temuan">
-              {{ item.catatan_evaluasi || item.rekomendasi || item.temuan }}
+            <template v-if="item.catatan_text || item.rekomendasi_text || item.temuan_text">
+              {{ item.catatan_text || item.rekomendasi_text || item.temuan_text }}
             </template>
             <template v-else>
               Hasil walkthrough menunjukkan {{ item.jumlah_temuan || 0 }} temuan di area {{ item.area_inspeksi || 'inspeksi' }}. 
@@ -2259,19 +2305,19 @@ onMounted(async () => {
         <div class="documentation-section">
           <div class="doc-column">
             <div class="doc-box">
-              <img v-if="item.dokumentasi_foto_1" :src="item.dokumentasi_foto_1" alt="Dokumentasi 1" />
+              <img v-if="item.foto_1" :src="item.foto_1" alt="Dokumentasi 1" />
               <span v-else class="doc-placeholder">Dokumentasi</span>
             </div>
           </div>
           <div class="doc-column">
             <div class="doc-box">
-              <img v-if="item.dokumentasi_foto_2" :src="item.dokumentasi_foto_2" alt="Dokumentasi 2" />
+              <img v-if="item.foto_2" :src="item.foto_2" alt="Dokumentasi 2" />
               <span v-else class="doc-placeholder">Dokumentasi</span>
             </div>
           </div>
           <div class="doc-column">
             <div class="doc-box">
-              <img v-if="item.dokumentasi_foto_3" :src="item.dokumentasi_foto_3" alt="Dokumentasi 3" />
+              <img v-if="item.foto_3" :src="item.foto_3" alt="Dokumentasi 3" />
               <span v-else class="doc-placeholder">Dokumentasi</span>
             </div>
           </div>

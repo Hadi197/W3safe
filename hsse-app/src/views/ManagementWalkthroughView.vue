@@ -1250,11 +1250,77 @@
         </div>
       </div>
     </div>
+
+    <!-- Photo Viewer Modal -->
+    <div v-if="showPhotoModal" class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-90">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <!-- Close Button -->
+        <button 
+          @click="closePhotoModal" 
+          class="absolute top-4 right-4 text-white hover:text-gray-300 z-50"
+        >
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Previous Button -->
+        <button 
+          v-if="currentPhotos.length > 1 && currentPhotoIndex > 0"
+          @click="prevPhoto" 
+          class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-3 z-50"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <!-- Photo Display -->
+        <div class="relative max-w-6xl w-full">
+          <img 
+            :src="currentPhotos[currentPhotoIndex]" 
+            :alt="`Photo ${currentPhotoIndex + 1}`"
+            class="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+          />
+          
+          <!-- Photo Counter -->
+          <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full text-sm">
+            {{ currentPhotoIndex + 1 }} / {{ currentPhotos.length }}
+          </div>
+        </div>
+
+        <!-- Next Button -->
+        <button 
+          v-if="currentPhotos.length > 1 && currentPhotoIndex < currentPhotos.length - 1"
+          @click="nextPhoto" 
+          class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-3 z-50"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        <!-- Thumbnail Strip -->
+        <div v-if="currentPhotos.length > 1" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-4xl overflow-x-auto pb-2">
+          <button
+            v-for="(photo, index) in currentPhotos"
+            :key="index"
+            @click="currentPhotoIndex = index"
+            :class="[
+              'flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden',
+              currentPhotoIndex === index ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'
+            ]"
+          >
+            <img :src="photo" :alt="`Thumbnail ${index + 1}`" class="w-full h-full object-cover" />
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { managementWalkthroughService, type ManagementWalkthrough } from '@/services/management-walkthrough.service'
 import { unitsService } from '@/services/api/units.service'
@@ -1296,8 +1362,11 @@ const filters = reactive({
 
 const showDetailModal = ref(false)
 const showFormModal = ref(false)
+const showPhotoModal = ref(false)
 const formMode = ref<'create' | 'edit'>('create')
 const selectedWalkthrough = ref<ManagementWalkthrough | null>(null)
+const currentPhotos = ref<string[]>([])
+const currentPhotoIndex = ref(0)
 const activeFormTab = ref('dasar')
 
 // Form tabs
@@ -1554,9 +1623,27 @@ const removeTemuanPhoto = (temuanIndex: number, photoIndex: number) => {
 }
 
 const openPhotoViewer = (photos: string[], startIndex: number) => {
-  // TODO: Implement photo viewer modal
-  // For now, open photo in new tab
-  window.open(photos[startIndex], '_blank')
+  currentPhotos.value = photos
+  currentPhotoIndex.value = startIndex
+  showPhotoModal.value = true
+}
+
+const nextPhoto = () => {
+  if (currentPhotoIndex.value < currentPhotos.value.length - 1) {
+    currentPhotoIndex.value++
+  }
+}
+
+const prevPhoto = () => {
+  if (currentPhotoIndex.value > 0) {
+    currentPhotoIndex.value--
+  }
+}
+
+const closePhotoModal = () => {
+  showPhotoModal.value = false
+  currentPhotos.value = []
+  currentPhotoIndex.value = 0
 }
 
 const addActionItem = () => {
@@ -1736,6 +1823,19 @@ const getRiskBadge = (risk?: string) => {
   return `${baseClass} ${map[risk || ''] || 'bg-gray-100 text-gray-800'}`
 }
 
+// Keyboard navigation for photo viewer
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (!showPhotoModal.value) return
+  
+  if (event.key === 'ArrowLeft') {
+    prevPhoto()
+  } else if (event.key === 'ArrowRight') {
+    nextPhoto()
+  } else if (event.key === 'Escape') {
+    closePhotoModal()
+  }
+}
+
 const getActionStatusBadge = (status?: string) => {
   const baseClass = 'px-2 py-1 text-xs font-semibold rounded'
   const map: Record<string, string> = {
@@ -1822,6 +1922,9 @@ onMounted(async () => {
   loadStats()
   loadUnits()
   
+  // Add keyboard event listener for photo viewer
+  window.addEventListener('keydown', handleKeyPress)
+  
   // Check if opened from monitoring table with id parameter
   const id = route.query.id as string
   const mode = route.query.mode as string
@@ -1842,6 +1945,11 @@ onMounted(async () => {
       console.error('Error loading management walkthrough for edit:', error)
     }
   }
+})
+
+// Cleanup
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyPress)
 })
 </script>
 
