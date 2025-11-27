@@ -1515,7 +1515,12 @@ async function loadWalkthroughReportData() {
     
     const { data, error } = await supabase
       .from('management_walkthrough')
-      .select('*')
+      .select(`
+        *,
+        units:unit_id (
+          nama
+        )
+      `)
       .gte('tanggal_walkthrough', startDate)
       .lte('tanggal_walkthrough', endDate)
       .order('tanggal_walkthrough', { ascending: false })
@@ -1524,7 +1529,12 @@ async function loadWalkthroughReportData() {
       console.error('Error loading walkthrough report:', error)
       walkthroughReportData.value = []
     } else {
-      walkthroughReportData.value = data || []
+      // Flatten unit name untuk kemudahan akses
+      const processedData = (data || []).map(item => ({
+        ...item,
+        unit_name: item.units?.nama || null
+      }))
+      walkthroughReportData.value = processedData
     }
     
     console.log('Walkthrough Report loaded:', walkthroughReportData.value.length, 'items')
@@ -2204,31 +2214,44 @@ onMounted(async () => {
       >
         <!-- Header Card -->
         <div class="report-header">
-          <h3 class="report-title">{{ item.nama_agenda || '[Nama Agenda]' }}</h3>
+          <h3 class="report-title">
+            {{ item.nama_agenda || item.area_inspeksi || 'Management Walkthrough' }}
+          </h3>
         </div>
         
         <div class="report-info">
           <div class="info-row">
             <span class="info-label">Lokasi:</span>
-            <span class="info-value">{{ item.lokasi_pelaksanaan || '-' }}, {{ formatDate(item.tanggal_walkthrough) }}</span>
+            <span class="info-value">
+              {{ item.unit_name || item.lokasi_pelaksanaan || item.area_inspeksi || 'Unit Kerja' }}, 
+              {{ formatDate(item.tanggal_walkthrough) }}
+            </span>
           </div>
           <div class="info-row">
             <span class="info-label">Pimpinan:</span>
-            <span class="info-value">{{ item.pimpinan_pelaksanaan || '-' }}</span>
+            <span class="info-value">{{ item.pimpinan_pelaksanaan || 'Management Team' }}</span>
           </div>
         </div>
         
         <!-- Uraian Kegiatan -->
         <div class="report-section">
           <h4 class="section-title">Uraian Kegiatan:</h4>
-          <p class="section-content">{{ item.uraian_kegiatan || '[Jelaskan kegiatan yang dilaksanakan]' }}</p>
+          <p class="section-content">
+            {{ item.uraian_kegiatan || 'Kegiatan Management Walkthrough untuk inspeksi area ' + (item.area_inspeksi || 'kerja') + '. Ditemukan ' + (item.jumlah_temuan || 0) + ' temuan yang perlu ditindaklanjuti.' }}
+          </p>
         </div>
         
         <!-- Catatan/Evaluasi/Rekomendasi/Temuan -->
         <div class="report-section">
           <h4 class="section-title">Catatan/evaluasi/rekomendasi/temuan:</h4>
           <p class="section-content">
-            {{ item.catatan_evaluasi || item.rekomendasi || item.temuan || '[Jelaskan kegiatan yang dilaksanakan]' }}
+            <template v-if="item.catatan_evaluasi || item.rekomendasi || item.temuan">
+              {{ item.catatan_evaluasi || item.rekomendasi || item.temuan }}
+            </template>
+            <template v-else>
+              Hasil walkthrough menunjukkan {{ item.jumlah_temuan || 0 }} temuan di area {{ item.area_inspeksi || 'inspeksi' }}. 
+              Diperlukan tindak lanjut untuk perbaikan kondisi yang ditemukan.
+            </template>
           </p>
         </div>
         
