@@ -73,6 +73,18 @@ const temuanMonitoringData = ref<any[]>([])
 const temuanCurrentPage = ref(1)
 const temuanItemsPerPage = 5
 
+// Isu Strategis K3L data
+const loadingIsuStrategis = ref(false)
+const isuStrategisData = ref<any[]>([])
+const isuCurrentPage = ref(1)
+const isuItemsPerPage = 5
+
+// Laporan Management Walkthrough data
+const loadingWalkthroughReport = ref(false)
+const walkthroughReportData = ref<any[]>([])
+const walkthroughCurrentPage = ref(1)
+const walkthroughItemsPerPage = 3
+
 const programs = ref<ProgramData[]>([
   {
     id: 'safety_briefing',
@@ -213,6 +225,12 @@ async function loadData() {
     
     // Load temuan monitoring data
     await loadTemuanMonitoringData()
+    
+    // Load isu strategis data
+    await loadIsuStrategisData()
+    
+    // Load walkthrough report data
+    await loadWalkthroughReportData()
     
   } catch (error) {
     console.error('Error loading dashboard data:', error)
@@ -1144,6 +1162,381 @@ async function loadTemuanMonitoringData() {
   }
 }
 
+// Isu Strategis pagination computed
+const isuTotalPages = computed(() => {
+  return Math.ceil(isuStrategisData.value.length / isuItemsPerPage)
+})
+
+const isuPaginatedData = computed(() => {
+  const start = (isuCurrentPage.value - 1) * isuItemsPerPage
+  const end = start + isuItemsPerPage
+  return isuStrategisData.value.slice(start, end)
+})
+
+function isuGoToPage(page: number) {
+  if (page >= 1 && page <= isuTotalPages.value) {
+    isuCurrentPage.value = page
+  }
+}
+
+function isuNextPage() {
+  if (isuCurrentPage.value < isuTotalPages.value) {
+    isuCurrentPage.value++
+  }
+}
+
+function isuPrevPage() {
+  if (isuCurrentPage.value > 1) {
+    isuCurrentPage.value--
+  }
+}
+
+// Walkthrough Report pagination
+const walkthroughTotalPages = computed(() => {
+  return Math.ceil(walkthroughReportData.value.length / walkthroughItemsPerPage)
+})
+
+const walkthroughPaginatedData = computed(() => {
+  const start = (walkthroughCurrentPage.value - 1) * walkthroughItemsPerPage
+  const end = start + walkthroughItemsPerPage
+  return walkthroughReportData.value.slice(start, end)
+})
+
+function walkthroughGoToPage(page: number) {
+  if (page >= 1 && page <= walkthroughTotalPages.value) {
+    walkthroughCurrentPage.value = page
+  }
+}
+
+function walkthroughNextPage() {
+  if (walkthroughCurrentPage.value < walkthroughTotalPages.value) {
+    walkthroughCurrentPage.value++
+  }
+}
+
+function walkthroughPrevPage() {
+  if (walkthroughCurrentPage.value > 1) {
+    walkthroughCurrentPage.value--
+  }
+}
+
+// Load Isu Strategis K3L data
+async function loadIsuStrategisData() {
+  try {
+    loadingIsuStrategis.value = true
+    isuCurrentPage.value = 1 // Reset to first page
+    
+    const [yearStr, monthStr] = selectedMonth.value.split('-')
+    const yearNum = parseInt(yearStr || '2025')
+    const monthNum = parseInt(monthStr || '11')
+    
+    // Get last day of month (handle 28/29/30/31 days correctly)
+    const lastDay = new Date(yearNum, monthNum, 0).getDate()
+    const monthStr2 = String(monthNum).padStart(2, '0')
+    const startDate = `${yearNum}-${monthStr2}-01`
+    const endDate = `${yearNum}-${monthStr2}-${String(lastDay).padStart(2, '0')}`
+    
+    console.log('Loading Isu Strategis for:', yearNum, monthNum, 'Date range:', startDate, 'to', endDate)
+    
+    const allIssues: any[] = []
+    
+    // 1. Safety Briefing Issues (without status filter for now)
+    const { data: briefingData, error: briefingError } = await supabase
+      .from('safety_briefing')
+      .select('topik, status')
+      .gte('tanggal', startDate)
+      .lte('tanggal', endDate)
+      .limit(3)
+    
+    console.log('Safety Briefing Issues:', briefingData?.length || 0, briefingError)
+    
+    if (briefingData && briefingData.length > 0) {
+      briefingData.forEach(item => {
+        let dukungan = 'Dukungan monitoring dan evaluasi implementasi K3'
+        if (item.topik?.toLowerCase().includes('apd') || item.topik?.toLowerCase().includes('alat pelindung')) {
+          dukungan = 'Penyediaan APD yang memadai dan pelatihan penggunaan'
+        } else if (item.topik?.toLowerCase().includes('prosedur') || item.topik?.toLowerCase().includes('sop')) {
+          dukungan = 'Sosialisasi dan pemutakhiran prosedur K3'
+        } else if (item.topik?.toLowerCase().includes('keselamatan') || item.topik?.toLowerCase().includes('safety')) {
+          dukungan = 'Dukungan program peningkatan budaya keselamatan'
+        }
+        
+        allIssues.push({
+          modul: 'Safety Briefing',
+          critical_issue: item.topik,
+          dukungan_kantor_pusat: dukungan
+        })
+      })
+    }
+    
+    // 2. Safety Patrol Issues (all data, not just with temuan)
+    const { data: patrolData, error: patrolError } = await supabase
+      .from('safety_patrol')
+      .select('area_patrol, temuan_kritikal, temuan_mayor')
+      .gte('tanggal_patrol', startDate)
+      .lte('tanggal_patrol', endDate)
+      .order('tanggal_patrol', { ascending: false })
+      .limit(3)
+    
+    console.log('Safety Patrol Issues:', patrolData?.length || 0, patrolError)
+    
+    if (patrolData && patrolData.length > 0) {
+      patrolData.forEach(item => {
+        const kritisCount = item.temuan_kritikal || 0
+        const mayorCount = item.temuan_mayor || 0
+        let dukungan = 'Monitoring berkala dan sharing best practice'
+        
+        if (kritisCount > 0) {
+          dukungan = 'Dukungan segera untuk perbaikan kondisi kritis dan audit mendalam'
+        } else if (mayorCount > 2) {
+          dukungan = 'Asistensi teknis dan alokasi anggaran perbaikan'
+        }
+        
+        allIssues.push({
+          modul: 'Safety Patrol',
+          critical_issue: `Patrol ${item.area_patrol}: ${kritisCount} temuan kritis, ${mayorCount} temuan mayor`,
+          dukungan_kantor_pusat: dukungan
+        })
+      })
+    }
+    
+    // 3. Safety Drill Issues (remove status filter)
+    const { data: drillData, error: drillError } = await supabase
+      .from('safety_drill')
+      .select('jenis_drill, evaluasi_overall, review_notes, jumlah_temuan, status')
+      .gte('tanggal_drill', startDate)
+      .lte('tanggal_drill', endDate)
+      .limit(2)
+    
+    console.log('Safety Drill Issues:', drillData?.length || 0, drillError)
+    
+    if (drillData && drillData.length > 0) {
+      drillData.forEach(item => {
+        let issue = 'Perlu peningkatan kesiapan tanggap darurat'
+        if (item.evaluasi_overall?.toLowerCase().includes('kurang')) {
+          issue = 'Masih terdapat kekurangan dalam pelaksanaan'
+        } else if (item.evaluasi_overall?.toLowerCase().includes('perlu')) {
+          issue = 'Perlu peningkatan kesiapan tim'
+        } else if (item.review_notes?.toLowerCase().includes('kurang')) {
+          issue = 'Masih terdapat kekurangan dalam pelaksanaan'
+        } else if ((item.jumlah_temuan || 0) > 0) {
+          issue = `Ditemukan ${item.jumlah_temuan} temuan yang perlu ditindaklanjuti`
+        }
+        
+        let dukungan = 'Dukungan pelatihan dan sertifikasi tim tanggap darurat'
+        if (item.jenis_drill === 'kebakaran') {
+          dukungan = 'Pelatihan fire fighting dan penyediaan alat pemadam'
+        } else if (item.jenis_drill === 'evakuasi') {
+          dukungan = 'Simulasi berkala dan perbaikan jalur evakuasi'
+        } else if (item.jenis_drill === 'gempa') {
+          dukungan = 'Pelatihan dan pengadaan peralatan emergency response'
+        }
+        
+        allIssues.push({
+          modul: 'Safety Drill',
+          critical_issue: `Evaluasi drill ${item.jenis_drill}: ${issue}`,
+          dukungan_kantor_pusat: dukungan
+        })
+      })
+    }
+    
+    // 4. Safety Forum Issues (remove status filter)
+    const { data: forumData, error: forumError } = await supabase
+      .from('safety_forum')
+      .select('agenda_utama, masalah_teridentifikasi, action_items, status')
+      .gte('tanggal_forum', startDate)
+      .lte('tanggal_forum', endDate)
+      .limit(2)
+    
+    console.log('Safety Forum Issues:', forumData?.length || 0, forumError)
+    
+    if (forumData && forumData.length > 0) {
+      forumData.forEach(item => {
+        const masalah = item.masalah_teridentifikasi && item.masalah_teridentifikasi.length > 0 
+          ? item.masalah_teridentifikasi[0] 
+          : `Pembahasan: ${item.agenda_utama}`
+        
+        let dukungan = 'Monitoring implementasi hasil forum dan fasilitasi koordinasi'
+        let actionItemsCount = 0
+        
+        // Check if action_items is JSONB array
+        if (item.action_items) {
+          try {
+            if (Array.isArray(item.action_items)) {
+              actionItemsCount = item.action_items.length
+            } else if (typeof item.action_items === 'object') {
+              // JSONB might come as object, check if it has length property or is array-like
+              actionItemsCount = Object.keys(item.action_items).length
+            }
+          } catch (e) {
+            console.log('Error parsing action_items:', e)
+          }
+        }
+        
+        if (actionItemsCount > 3) {
+          dukungan = `Dukungan implementasi ${actionItemsCount} action items dan alokasi resources`
+        } else if (item.agenda_utama?.toLowerCase().includes('kecelakaan') || item.agenda_utama?.toLowerCase().includes('incident')) {
+          dukungan = 'Investigasi mendalam dan program pencegahan kecelakaan'
+        } else if (item.agenda_utama?.toLowerCase().includes('audit') || item.agenda_utama?.toLowerCase().includes('compliance')) {
+          dukungan = 'Asistensi persiapan audit dan pemenuhan regulasi'
+        }
+        
+        allIssues.push({
+          modul: 'Safety Forum',
+          critical_issue: masalah,
+          dukungan_kantor_pusat: dukungan
+        })
+      })
+    }
+    
+    // 5. Safety Induction Issues (remove status filter)
+    const { data: inductionData, error: inductionError } = await supabase
+      .from('safety_induction')
+      .select('jenis_peserta, nama_peserta, status_ujian, perlu_reinduction, status')
+      .gte('tanggal_induction', startDate)
+      .lte('tanggal_induction', endDate)
+      .limit(2)
+    
+    console.log('Safety Induction Issues:', inductionData?.length || 0, inductionError)
+    
+    if (inductionData && inductionData.length > 0) {
+      inductionData.forEach(item => {
+        let issueExtra = ''
+        if (item.status_ujian === 'tidak_lulus') {
+          issueExtra = ' (Tidak Lulus Ujian)'
+        } else if (item.perlu_reinduction) {
+          issueExtra = ' (Perlu Re-Induction)'
+        }
+        
+        let dukungan = 'Pengembangan e-learning induction dan database sertifikasi'
+        if (item.jenis_peserta?.toLowerCase().includes('tamu') || item.jenis_peserta?.toLowerCase().includes('vendor')) {
+          dukungan = 'Standarisasi materi induction dan sistem tracking peserta eksternal'
+        } else if (item.jenis_peserta?.toLowerCase().includes('kontraktor')) {
+          dukungan = 'Modul induction khusus kontraktor dan monitoring kepatuhan'
+        } else if (item.status_ujian === 'tidak_lulus') {
+          dukungan = 'Program remedial dan peningkatan kualitas training'
+        }
+        
+        allIssues.push({
+          modul: 'Safety Induction',
+          critical_issue: `Induction ${item.jenis_peserta} - ${item.nama_peserta}${issueExtra}`,
+          dukungan_kantor_pusat: dukungan
+        })
+      })
+    }
+    
+    // 6. Silent Inspection Issues (remove risk filter)
+    const { data: inspectionData, error: inspectionError } = await supabase
+      .from('silent_inspection')
+      .select('area_inspeksi, tingkat_risiko, jumlah_temuan')
+      .gte('tanggal', startDate)
+      .lte('tanggal', endDate)
+      .order('tingkat_risiko', { ascending: true })
+      .limit(3)
+    
+    console.log('Silent Inspection Issues:', inspectionData?.length || 0, inspectionError)
+    
+    if (inspectionData && inspectionData.length > 0) {
+      inspectionData.forEach(item => {
+        let dukungan = 'Monitoring berkala dan sharing best practice antar unit'
+        if (item.tingkat_risiko === 'tinggi' || item.tingkat_risiko === 'high') {
+          dukungan = 'Intervensi segera dan dukungan teknis perbaikan kondisi high risk'
+        } else if ((item.jumlah_temuan || 0) > 5) {
+          dukungan = 'Alokasi anggaran perbaikan dan program peningkatan awareness'
+        }
+        
+        allIssues.push({
+          modul: 'Silent Inspection',
+          critical_issue: `Inspeksi ${item.area_inspeksi} - Tingkat risiko: ${item.tingkat_risiko || 'sedang'}`,
+          dukungan_kantor_pusat: dukungan
+        })
+      })
+    }
+    
+    // 7. Management Walkthrough Issues (remove status filter)
+    const { data: walkthroughData, error: walkthroughError } = await supabase
+      .from('management_walkthrough')
+      .select('area_inspeksi, jumlah_temuan, status')
+      .gte('tanggal_walkthrough', startDate)
+      .lte('tanggal_walkthrough', endDate)
+      .order('jumlah_temuan', { ascending: false })
+      .limit(2)
+    
+    console.log('Management Walkthrough Issues:', walkthroughData?.length || 0, walkthroughError)
+    
+    if (walkthroughData && walkthroughData.length > 0) {
+      walkthroughData.forEach(item => {
+        let dukungan = 'Replikasi best practice ke unit lain'
+        const temuanCount = item.jumlah_temuan || 0
+        
+        if (temuanCount > 5) {
+          dukungan = 'Program perbaikan komprehensif dan alokasi anggaran khusus'
+        } else if (temuanCount > 0) {
+          dukungan = 'Dukungan implementasi corrective action dan monitoring progress'
+        }
+        
+        allIssues.push({
+          modul: 'Management Walkthrough',
+          critical_issue: `Walkthrough ${item.area_inspeksi} menemukan ${temuanCount} temuan`,
+          dukungan_kantor_pusat: dukungan
+        })
+      })
+    }
+    
+    // Add row numbers
+    isuStrategisData.value = allIssues.map((item, index) => ({
+      ...item,
+      no: index + 1
+    }))
+    
+    console.log('Isu Strategis loaded:', isuStrategisData.value.length, 'items')
+    
+  } catch (error) {
+    console.error('Error loading isu strategis data:', error)
+  } finally {
+    loadingIsuStrategis.value = false
+  }
+}
+
+// Load Laporan Management Walkthrough data
+async function loadWalkthroughReportData() {
+  try {
+    loadingWalkthroughReport.value = true
+    walkthroughCurrentPage.value = 1
+    
+    const [yearStr, monthStr] = selectedMonth.value.split('-')
+    const yearNum = parseInt(yearStr || '2025')
+    const monthNum = parseInt(monthStr || '11')
+    
+    const lastDay = new Date(yearNum, monthNum, 0).getDate()
+    const monthStr2 = String(monthNum).padStart(2, '0')
+    const startDate = `${yearNum}-${monthStr2}-01`
+    const endDate = `${yearNum}-${monthStr2}-${String(lastDay).padStart(2, '0')}`
+    
+    const { data, error } = await supabase
+      .from('management_walkthrough')
+      .select('*')
+      .gte('tanggal_walkthrough', startDate)
+      .lte('tanggal_walkthrough', endDate)
+      .order('tanggal_walkthrough', { ascending: false })
+    
+    if (error) {
+      console.error('Error loading walkthrough report:', error)
+      walkthroughReportData.value = []
+    } else {
+      walkthroughReportData.value = data || []
+    }
+    
+    console.log('Walkthrough Report loaded:', walkthroughReportData.value.length, 'items')
+    
+  } catch (error) {
+    console.error('Error loading walkthrough report:', error)
+    walkthroughReportData.value = []
+  } finally {
+    loadingWalkthroughReport.value = false
+  }
+}
+
 // Get badge color class for module
 function getModuleBadgeClass(modul: string): string {
   switch (modul) {
@@ -1714,6 +2107,188 @@ onMounted(async () => {
     <!-- <div class="footer-note">
       *Cek kesesuaian pada <strong>Dashboard Safira</strong>
     </div> -->
+  </div>
+
+  <!-- Isu Strategis K3L Section -->
+  <div class="isu-strategis-section">
+    <div class="isu-header">
+      <h2 class="isu-title">Isu Strategis K3L (periode {{ selectedMonth }})</h2>
+      <span class="isu-count">{{ isuStrategisData.length }} isu</span>
+    </div>
+    
+    <div v-if="loadingIsuStrategis" class="loading-state">
+      <div class="spinner"></div>
+      <p>Memuat data isu strategis...</p>
+    </div>
+    
+    <div v-else-if="isuStrategisData.length === 0" class="empty-state">
+      <p>Tidak ada isu strategis untuk periode ini</p>
+    </div>
+    
+    <table v-else class="isu-table">
+      <thead>
+        <tr>
+          <th style="width: 60px;">NO</th>
+          <th>CRITICAL ISSUE</th>
+          <th>DUKUNGAN YANG DIBUTUHKAN DARI KANTOR PUSAT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in isuPaginatedData" :key="item.no">
+          <td class="text-center">{{ item.no }}</td>
+          <td>
+            <div class="issue-content">
+              <span class="module-badge" :class="getModuleBadgeClass(item.modul)">{{ item.modul }}</span>
+              <span class="issue-text">{{ item.critical_issue }}</span>
+            </div>
+          </td>
+          <td>{{ item.dukungan_kantor_pusat }}</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <!-- Pagination for Isu Strategis -->
+    <div v-if="isuStrategisData.length > isuItemsPerPage" class="pagination-controls">
+      <button 
+        @click="isuPrevPage" 
+        :disabled="isuCurrentPage === 1"
+        class="pagination-btn"
+      >
+        ← Prev
+      </button>
+      
+      <div class="page-numbers">
+        <button
+          v-for="page in isuTotalPages"
+          :key="page"
+          @click="isuGoToPage(page)"
+          :class="['page-number', { active: page === isuCurrentPage }]"
+        >
+          {{ page }}
+        </button>
+      </div>
+      
+      <button 
+        @click="isuNextPage" 
+        :disabled="isuCurrentPage === isuTotalPages"
+        class="pagination-btn"
+      >
+        Next →
+      </button>
+      
+      <span class="pagination-text">
+        Halaman {{ isuCurrentPage }} dari {{ isuTotalPages }} (Total: {{ isuStrategisData.length }} isu)
+      </span>
+    </div>
+  </div>
+
+  <!-- Laporan Management Walkthrough Section -->
+  <div class="walkthrough-report-section">
+    <h2>Laporan Management Walkthrough (periode {{ selectedMonth }})</h2>
+    <span class="data-count">{{ walkthroughReportData.length }} laporan</span>
+    
+    <div v-if="loadingWalkthroughReport" class="loading-state">
+      <div class="spinner"></div>
+      <p>Memuat laporan...</p>
+    </div>
+    
+    <div v-else-if="walkthroughReportData.length === 0" class="empty-state">
+      <p>Tidak ada laporan walkthrough untuk periode ini</p>
+    </div>
+    
+    <div v-else class="walkthrough-reports-container">
+      <div 
+        v-for="item in walkthroughPaginatedData" 
+        :key="item.id" 
+        class="walkthrough-report-card"
+      >
+        <!-- Header Card -->
+        <div class="report-header">
+          <h3 class="report-title">{{ item.nama_agenda || '[Nama Agenda]' }}</h3>
+        </div>
+        
+        <div class="report-info">
+          <div class="info-row">
+            <span class="info-label">Lokasi:</span>
+            <span class="info-value">{{ item.lokasi_pelaksanaan || '-' }}, {{ formatDate(item.tanggal_walkthrough) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Pimpinan:</span>
+            <span class="info-value">{{ item.pimpinan_pelaksanaan || '-' }}</span>
+          </div>
+        </div>
+        
+        <!-- Uraian Kegiatan -->
+        <div class="report-section">
+          <h4 class="section-title">Uraian Kegiatan:</h4>
+          <p class="section-content">{{ item.uraian_kegiatan || '[Jelaskan kegiatan yang dilaksanakan]' }}</p>
+        </div>
+        
+        <!-- Catatan/Evaluasi/Rekomendasi/Temuan -->
+        <div class="report-section">
+          <h4 class="section-title">Catatan/evaluasi/rekomendasi/temuan:</h4>
+          <p class="section-content">
+            {{ item.catatan_evaluasi || item.rekomendasi || item.temuan || '[Jelaskan kegiatan yang dilaksanakan]' }}
+          </p>
+        </div>
+        
+        <!-- Dokumentasi (3 kolom) -->
+        <div class="documentation-section">
+          <div class="doc-column">
+            <div class="doc-box">
+              <img v-if="item.dokumentasi_foto_1" :src="item.dokumentasi_foto_1" alt="Dokumentasi 1" />
+              <span v-else class="doc-placeholder">Dokumentasi</span>
+            </div>
+          </div>
+          <div class="doc-column">
+            <div class="doc-box">
+              <img v-if="item.dokumentasi_foto_2" :src="item.dokumentasi_foto_2" alt="Dokumentasi 2" />
+              <span v-else class="doc-placeholder">Dokumentasi</span>
+            </div>
+          </div>
+          <div class="doc-column">
+            <div class="doc-box">
+              <img v-if="item.dokumentasi_foto_3" :src="item.dokumentasi_foto_3" alt="Dokumentasi 3" />
+              <span v-else class="doc-placeholder">Dokumentasi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pagination for Walkthrough Report -->
+    <div v-if="walkthroughReportData.length > walkthroughItemsPerPage" class="pagination-controls">
+      <button 
+        @click="walkthroughPrevPage" 
+        :disabled="walkthroughCurrentPage === 1"
+        class="pagination-btn"
+      >
+        ← Prev
+      </button>
+      
+      <div class="page-numbers">
+        <button
+          v-for="page in walkthroughTotalPages"
+          :key="page"
+          @click="walkthroughGoToPage(page)"
+          :class="['page-number', { active: page === walkthroughCurrentPage }]"
+        >
+          {{ page }}
+        </button>
+      </div>
+      
+      <button 
+        @click="walkthroughNextPage" 
+        :disabled="walkthroughCurrentPage === walkthroughTotalPages"
+        class="pagination-btn"
+      >
+        Next →
+      </button>
+      
+      <span class="pagination-text">
+        Halaman {{ walkthroughCurrentPage }} dari {{ walkthroughTotalPages }} (Total: {{ walkthroughReportData.length }} laporan)
+      </span>
+    </div>
   </div>
 
 </template>
@@ -2872,6 +3447,97 @@ onMounted(async () => {
   font-weight: 700;
 }
 
+/* Isu Strategis K3L Section */
+.isu-strategis-section {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.isu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.isu-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.isu-count {
+  font-size: 0.875rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.isu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.isu-table thead {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+}
+
+.isu-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+}
+
+.isu-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.2s;
+}
+
+.isu-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.isu-table td {
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.isu-table td.text-center {
+  text-align: center;
+}
+
+.issue-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.module-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.issue-text {
+  color: #1e293b;
+  line-height: 1.6;
+}
+
 @media (max-width: 768px) {
   .rekap-k3l-section {
     padding: 1rem;
@@ -2979,6 +3645,202 @@ onMounted(async () => {
 
   .temuan-table .status-check {
     font-size: 1rem;
+  }
+
+  .isu-strategis-section {
+    padding: 1rem;
+    margin: 2rem 0.5rem 1rem;
+  }
+
+  .isu-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .isu-title {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .isu-table {
+    font-size: 0.75rem;
+  }
+
+  .isu-table th,
+  .isu-table td {
+    padding: 0.5rem;
+  }
+
+  .module-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
+/* Laporan Management Walkthrough Styles */
+.walkthrough-report-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.walkthrough-report-section h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.walkthrough-reports-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.walkthrough-report-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.report-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.report-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.report-info {
+  background: #f9fafb;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #374151;
+  min-width: 100px;
+}
+
+.info-value {
+  color: #6b7280;
+}
+
+.report-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.report-section:last-of-type {
+  border-bottom: none;
+}
+
+.section-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.section-content {
+  margin: 0;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.documentation-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+}
+
+.doc-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-box {
+  aspect-ratio: 4/3;
+  background: white;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.doc-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doc-placeholder {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Responsive untuk Walkthrough Report */
+@media (max-width: 768px) {
+  .walkthrough-report-section {
+    padding: 1rem;
+  }
+
+  .report-header {
+    padding: 1rem;
+  }
+
+  .report-title {
+    font-size: 1rem;
+  }
+
+  .report-info {
+    padding: 0.75rem 1rem;
+  }
+
+  .info-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .info-label {
+    min-width: auto;
+  }
+
+  .report-section {
+    padding: 1rem;
+  }
+
+  .documentation-section {
+    grid-template-columns: 1fr;
+    padding: 1rem;
   }
 }
 </style>
