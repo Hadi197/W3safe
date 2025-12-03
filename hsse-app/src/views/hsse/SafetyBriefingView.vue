@@ -75,7 +75,6 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Topik</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peserta</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Foto</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
             </tr>
@@ -94,11 +93,6 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ item.jumlah_peserta || 0 }} orang
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="getStatusClass(item.status)" class="px-2 py-1 text-xs font-semibold rounded-full">
-                  {{ getStatusLabel(item.status) }}
-                </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
                 <button
