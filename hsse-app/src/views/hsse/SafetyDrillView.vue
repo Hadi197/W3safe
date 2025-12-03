@@ -6,6 +6,7 @@ const route = useRoute()
 import { safetyDrillService, type SafetyDrill, type DrillFilters } from '@/services/safety-drill.service'
 import { useImageCompression } from '@/composables/useImageCompression'
 import { supabase } from '@/services/api/supabase'
+import { unitsService } from '@/services/api/units.service'
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
@@ -573,15 +574,12 @@ const filteredDrills = computed(() => {
 
 // Load units
 const loadUnits = async () => {
-  const { data, error } = await supabase
-    .from('units')
-    .select('id, nama, kode')
-    .order('nama')
-  
-  if (error) {
-    console.error('Error loading units:', error)
-  } else {
-    units.value = data || []
+  try {
+    units.value = await unitsService.getAllActiveHierarchical()
+    console.log('✅ Loaded units:', units.value.length)
+    console.log('📋 Units:', units.value.map(u => `${u.nama} (${u.tipe})`))
+  } catch (error) {
+    console.error('❌ Error loading units:', error)
   }
 }
 
