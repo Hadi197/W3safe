@@ -180,8 +180,8 @@
           </div>
         </div>
 
-        <!-- Master Data Group -->
-        <div class="pt-4">
+        <!-- Master Data Group - HIDDEN -->
+        <!-- <div class="pt-4">
           <button
             @click="expandedGroups.masterData = !expandedGroups.masterData"
             class="w-full flex items-center justify-between px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
@@ -225,7 +225,7 @@
               <span class="text-sm">Master Pegawai</span>
             </router-link>
           </div>
-        </div>
+        </div> -->
 
         <!-- Monitoring Group -->
         <div class="pt-4">
@@ -363,6 +363,15 @@
                   </svg>
                   Profile Saya
                 </router-link>
+                <button
+                  @click="showChangePasswordModal = true; showUserMenu = false"
+                  class="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  Ganti Password
+                </button>
                 <hr class="my-2">
                 <button
                   @click="handleLogout"
@@ -384,6 +393,12 @@
         <router-view />
       </main>
     </div>
+
+    <!-- Change Password Modal -->
+    <ChangePasswordModal 
+      :is-open="showChangePasswordModal" 
+      @close="showChangePasswordModal = false" 
+    />
   </div>
 </template>
 
@@ -391,10 +406,12 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import ChangePasswordModal from '@/components/modals/ChangePasswordModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const showUserMenu = ref(false)
+const showChangePasswordModal = ref(false)
 const sidebarOpen = ref(false)
 
 // Debug sidebar state
