@@ -16,7 +16,7 @@
 
     <!-- Filter Section -->
     <div class="card">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Wilayah</label>
           <select v-model="filters.wilayahId" class="input-field" @change="onWilayahChange">
@@ -39,6 +39,22 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
           <input v-model="filters.month" type="month" class="input-field" @change="loadData">
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+          <input v-model="filters.startDate" type="date" class="input-field" @change="loadData">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Selesai</label>
+          <input v-model="filters.endDate" type="date" class="input-field" @change="loadData">
+        </div>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button @click="resetFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+          Reset Filter
+        </button>
+        <button @click="loadData" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
+          Terapkan Filter
+        </button>
       </div>
     </div>
 
@@ -259,7 +275,9 @@ const allAreaList = ref<any[]>([])
 const filters = reactive({
   wilayahId: '',
   areaId: '',
-  month: new Date().toISOString().slice(0, 7) // YYYY-MM
+  month: new Date().toISOString().slice(0, 7), // YYYY-MM
+  startDate: '',
+  endDate: ''
 })
 
 const currentMonth = computed(() => {
@@ -328,6 +346,16 @@ function onAreaChange() {
   loadData()
 }
 
+function resetFilters() {
+  filters.wilayahId = ''
+  filters.areaId = ''
+  filters.month = new Date().toISOString().slice(0, 7)
+  filters.startDate = ''
+  filters.endDate = ''
+  areaList.value = allAreaList.value
+  loadData()
+}
+
 async function loadData() {
   loading.value = true
   try {
@@ -356,11 +384,29 @@ async function loadData() {
 
     if (error) throw error
 
-    // Get date range for the selected month
-    const startDate = `${filters.month}-01`
-    const endDate = new Date(filters.month + '-01')
-    endDate.setMonth(endDate.getMonth() + 1)
-    const endDateStr = endDate.toISOString().slice(0, 10)
+    // Get date range - prioritize custom date range over month filter
+    let startDate: string
+    let endDateStr: string
+    
+    if (filters.startDate && filters.endDate) {
+      // Use custom date range
+      startDate = filters.startDate
+      endDateStr = filters.endDate
+    } else if (filters.startDate) {
+      // Only start date provided, use until today
+      startDate = filters.startDate
+      endDateStr = new Date().toISOString().slice(0, 10)
+    } else if (filters.endDate) {
+      // Only end date provided, use from beginning of month
+      startDate = filters.endDate.slice(0, 8) + '01'
+      endDateStr = filters.endDate
+    } else {
+      // Use month filter (default)
+      startDate = `${filters.month}-01`
+      const endDate = new Date(filters.month + '-01')
+      endDate.setMonth(endDate.getMonth() + 1)
+      endDateStr = endDate.toISOString().slice(0, 10)
+    }
 
     // Get unit IDs
     const unitIds = (masterPelabuhanData || []).map((mp: any) => mp.unit_id)
