@@ -182,7 +182,7 @@
             <select v-model="formData.area_id" required class="input-field" :disabled="!formData.wilayah_id">
               <option value="">Pilih Area</option>
               <option v-for="area in availableAreas" :key="area.id" :value="area.id">
-                {{ area.nama }}
+                {{ area.nama_area }}
               </option>
             </select>
             <p v-if="formData.wilayah_id && availableAreas.length === 0" class="text-xs text-red-500 mt-1">
@@ -314,7 +314,7 @@ async function loadMasterData() {
       .from('areas')
       .select('*')
       .eq('aktif', true)
-      .order('nama')
+      .order('nama_area')
     
     if (areasError) throw areasError
     allAreas.value = areasData || []
