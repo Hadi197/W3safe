@@ -86,7 +86,6 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temuan</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Risiko</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Foto</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
             </tr>
@@ -113,11 +112,6 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="getRiskClass(item.tingkat_risiko)" class="px-2 py-1 text-xs font-semibold rounded-full">
                   {{ getRiskLabel(item.tingkat_risiko) }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="getStatusClass(item.status)" class="px-2 py-1 text-xs font-semibold rounded-full">
-                  {{ getStatusLabel(item.status) }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -360,14 +354,6 @@
                 <select v-model="form.status_tindak_lanjut" class="input-field">
                   <option value="open">Open</option>
                   <option value="in_progress">In Progress</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </div>
-              <div>
-                <label class="label">Status Laporan</label>
-                <select v-model="form.status" class="input-field">
-                  <option value="draft">Draft</option>
-                  <option value="approved">Approved</option>
                   <option value="closed">Closed</option>
                 </select>
               </div>
