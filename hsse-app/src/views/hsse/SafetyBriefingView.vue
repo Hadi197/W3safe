@@ -337,15 +337,6 @@
               <textarea v-model="form.catatan" rows="3" placeholder="Catatan tambahan..." class="input-field"></textarea>
             </div>
 
-            <div>
-              <label class="label">Status</label>
-              <select v-model="form.status" class="input-field">
-                <option value="draft">Draft</option>
-                <option value="submitted">Submitted</option>
-                <option value="approved">Approved</option>
-              </select>
-            </div>
-
             <!-- Actions -->
             <div class="flex justify-end space-x-3 pt-4 border-t">
               <button type="button" @click="closeModal" class="btn-secondary">
