@@ -1008,9 +1008,11 @@ const loadStats = async () => {
 
 const loadUnits = async () => {
   try {
-    units.value = await unitsService.getActive()
+    units.value = await unitsService.getAllActiveHierarchical()
+    console.log('✅ Loaded units:', units.value.length)
+    console.log('📋 Units:', units.value.map(u => `${u.nama} (${u.tipe})`))
   } catch (error) {
-    console.error('Error loading units:', error)
+    console.error('❌ Error loading units:', error)
   }
 }
 
@@ -1401,8 +1403,79 @@ const viewIncident = async (incident: any) => {
 }
 
 const editIncident = (incident: any) => {
+  console.log('🔍 Edit Incident - Raw Data:', incident)
+  console.log('📸 Foto Kejadian from DB:', incident.foto_kejadian)
+  console.log('📸 Type of foto_kejadian:', typeof incident.foto_kejadian)
+  console.log('📸 Is Array?', Array.isArray(incident.foto_kejadian))
+  
   selectedIncident.value = incident
-  Object.assign(formData, incident)
+  
+  // Properly map incident data to form fields
+  formData.tanggal_kejadian = incident.tanggal_kejadian || new Date().toISOString().split('T')[0]
+  formData.waktu_kejadian = incident.waktu_kejadian || new Date().toTimeString().slice(0, 5)
+  formData.lokasi_kejadian = incident.lokasi_kejadian || ''
+  formData.unit_kerja = incident.unit_kerja || ''
+  formData.jenis_kejadian = incident.jenis_kejadian || ''
+  formData.kategori = incident.kategori || ''
+  formData.sub_kategori = incident.sub_kategori || ''
+  formData.deskripsi_kejadian = incident.deskripsi_kejadian || ''
+  formData.penyebab_diduga = incident.penyebab_diduga || ''
+  formData.potensi_risiko = incident.potensi_risiko || ''
+  formData.pelapor_nama = incident.pelapor_nama || ''
+  formData.pelapor_jabatan = incident.pelapor_jabatan || ''
+  formData.pelapor_kontak = incident.pelapor_kontak || ''
+  formData.tindakan_segera = incident.tindakan_segera || ''
+  formData.area_diamankan = incident.area_diamankan || false
+  formData.korban_ada = incident.korban_ada || false
+  formData.korban_jumlah = incident.korban_jumlah || 0
+  
+  // Handle photo array - ensure it's always an array
+  if (Array.isArray(incident.foto_kejadian)) {
+    formData.foto_kejadian = [...incident.foto_kejadian]
+    console.log('✅ Foto as array:', formData.foto_kejadian)
+  } else if (incident.foto_kejadian && typeof incident.foto_kejadian === 'string') {
+    // Try to parse if it's a JSON string
+    try {
+      const parsed = JSON.parse(incident.foto_kejadian)
+      formData.foto_kejadian = Array.isArray(parsed) ? parsed : [incident.foto_kejadian]
+      console.log('✅ Foto parsed from string:', formData.foto_kejadian)
+    } catch {
+      formData.foto_kejadian = [incident.foto_kejadian]
+      console.log('✅ Foto as single string wrapped:', formData.foto_kejadian)
+    }
+  } else if (incident.foto_kejadian) {
+    formData.foto_kejadian = [incident.foto_kejadian]
+    console.log('✅ Foto wrapped:', formData.foto_kejadian)
+  } else {
+    formData.foto_kejadian = []
+    console.log('⚠️ No foto found')
+  }
+  
+  // Handle video array
+  if (Array.isArray(incident.video_kejadian)) {
+    formData.video_kejadian = [...incident.video_kejadian]
+  } else if (incident.video_kejadian && typeof incident.video_kejadian === 'string') {
+    try {
+      const parsed = JSON.parse(incident.video_kejadian)
+      formData.video_kejadian = Array.isArray(parsed) ? parsed : [incident.video_kejadian]
+    } catch {
+      formData.video_kejadian = [incident.video_kejadian]
+    }
+  } else if (incident.video_kejadian) {
+    formData.video_kejadian = [incident.video_kejadian]
+  } else {
+    formData.video_kejadian = []
+  }
+  
+  formData.audio_catatan = incident.audio_catatan || ''
+  formData.prioritas = incident.prioritas || 'medium'
+  formData.severity_level = incident.severity_level || null
+  formData.latitude = incident.latitude || null
+  formData.longitude = incident.longitude || null
+  formData.gps_accuracy = incident.gps_accuracy || null
+  
+  console.log('✅ Final formData.foto_kejadian:', formData.foto_kejadian)
+  
   showForm.value = true
 }
 
