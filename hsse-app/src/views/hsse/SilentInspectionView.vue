@@ -708,7 +708,7 @@ const loadData = async () => {
 
     const [result, unitsData] = await Promise.all([
       silentInspectionService.getPaginated(filters, { page: currentPage.value, pageSize: pageSize.value }),
-      unitsService.getActive()
+      unitsService.getAllActiveHierarchical()
     ])
     
     items.value = result.data
