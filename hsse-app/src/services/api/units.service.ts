@@ -337,6 +337,38 @@ class UnitsService {
 
     if (error) throw error
   }
+
+  // Get all active units including wilayah and areas (for hierarchical display)
+  async getAllActiveHierarchical(): Promise<Unit[]> {
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('id, kode, nama, tipe, aktif, created_at, updated_at')
+      .eq('aktif', true)
+      .order('nama', { ascending: true })
+
+    if (error) throw error
+
+    const units = (data || []) as Unit[]
+
+    // Sort to show hierarchy: Wilayah → Area → Unit
+    return units.sort((a, b) => {
+      const aIsWilayah = a.nama.toLowerCase().includes('wilayah')
+      const bIsWilayah = b.nama.toLowerCase().includes('wilayah')
+      const aIsArea = a.nama.toLowerCase().startsWith('area')
+      const bIsArea = b.nama.toLowerCase().startsWith('area')
+      
+      // Wilayah first
+      if (aIsWilayah && !bIsWilayah) return -1
+      if (!aIsWilayah && bIsWilayah) return 1
+      
+      // Then Areas
+      if (aIsArea && !bIsArea) return -1
+      if (!aIsArea && bIsArea) return 1
+      
+      // Same type, alphabetical
+      return a.nama.localeCompare(b.nama)
+    })
+  }
 }
 
 export const unitsService = new UnitsService()

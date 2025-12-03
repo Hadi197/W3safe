@@ -7,13 +7,13 @@
         <p class="mt-2 text-gray-600">Kelola data unit berdasarkan wilayah dan area</p>
       </div>
       <button 
-        class="btn-primary flex items-center space-x-2 opacity-50 cursor-not-allowed"
-        disabled
+        @click="openAddUnitModal"
+        class="btn-primary flex items-center space-x-2"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        <span>Tambah Unit (Coming Soon)</span>
+        <span>Tambah Unit</span>
       </button>
     </div>
 
@@ -124,18 +124,18 @@
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex gap-2 justify-end">
                   <button
-                    class="text-gray-400 cursor-not-allowed opacity-50"
-                    disabled
-                    title="Edit disabled - Read-only view"
+                    @click="openEditUnitModal(unit)"
+                    class="text-indigo-600 hover:text-indigo-900"
+                    title="Edit unit"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </button>
                   <button
-                    class="text-gray-400 cursor-not-allowed opacity-50"
-                    disabled
-                    title="Delete disabled - Read-only view"
+                    @click="confirmDelete(unit)"
+                    class="text-red-600 hover:text-red-900"
+                    title="Hapus unit"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -149,15 +149,135 @@
       </div>
     </div>
 
+    <!-- Add/Edit Unit Modal -->
+    <div v-if="showModal" @click="closeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div @click.stop class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-gray-900">
+            {{ editingUnit ? 'Edit Unit' : 'Tambah Unit Baru' }}
+          </h3>
+          <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form @submit.prevent="saveUnit" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Wilayah *</label>
+            <select v-model="formData.wilayah_id" required class="input-field">
+              <option value="">Pilih Wilayah</option>
+              <option v-for="wilayah in availableWilayah" :key="wilayah.id" :value="wilayah.id">
+                {{ wilayah.nama }} ({{ wilayah.kode }})
+              </option>
+            </select>
+            <p v-if="availableWilayah.length === 0" class="text-xs text-red-500 mt-1">
+              Tidak ada data wilayah. Pastikan tabel wilayah sudah terisi.
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Area *</label>
+            <select v-model="formData.area_id" required class="input-field" :disabled="!formData.wilayah_id">
+              <option value="">Pilih Area</option>
+              <option v-for="area in availableAreas" :key="area.id" :value="area.id">
+                {{ area.nama }}
+              </option>
+            </select>
+            <p v-if="formData.wilayah_id && availableAreas.length === 0" class="text-xs text-red-500 mt-1">
+              Tidak ada area untuk wilayah ini.
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Unit *</label>
+            <select v-model="formData.unit_id" required class="input-field" :disabled="!formData.area_id">
+              <option value="">Pilih Unit</option>
+              <option v-for="unit in availableUnits" :key="unit.id" :value="unit.id">
+                {{ unit.nama }} ({{ unit.kode }})
+              </option>
+            </select>
+            <p v-if="formData.area_id && availableUnits.length === 0" class="text-xs text-red-500 mt-1">
+              Tidak ada unit untuk area ini.
+            </p>
+          </div>
+
+          <div class="flex items-center">
+            <input 
+              v-model="formData.aktif" 
+              type="checkbox" 
+              id="aktif"
+              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label for="aktif" class="ml-2 block text-sm text-gray-900">
+              Unit Aktif
+            </label>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button type="button" @click="closeModal" class="btn-secondary">
+              Batal
+            </button>
+            <button type="submit" :disabled="saving" class="btn-primary">
+              {{ saving ? 'Menyimpan...' : 'Simpan' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useMasterPelabuhanStore } from '@/stores/master-pelabuhan'
+import { supabase } from '@/services/api/supabase'
 
 const masterPelabuhanStore = useMasterPelabuhanStore()
 const searchQuery = ref('')
+const showModal = ref(false)
+const editingUnit = ref(null)
+const saving = ref(false)
+
+const formData = ref({
+  wilayah_id: '',
+  area_id: '',
+  unit_id: '',
+  aktif: true
+})
+
+const availableWilayah = ref([])
+const allAreas = ref([])
+const allUnits = ref([])
+
+// Filtered areas based on selected wilayah
+const availableAreas = computed(() => {
+  if (!formData.value.wilayah_id) return allAreas.value
+  return allAreas.value.filter(area => area.wilayah_id === formData.value.wilayah_id)
+})
+
+// Filtered units based on selected area
+const availableUnits = computed(() => {
+  if (!formData.value.area_id) return allUnits.value
+  return allUnits.value.filter(unit => unit.area_id === formData.value.area_id)
+})
+
+// Watch wilayah change to reset area and unit
+watch(() => formData.value.wilayah_id, (newVal, oldVal) => {
+  if (newVal !== oldVal && !editingUnit.value) {
+    formData.value.area_id = ''
+    formData.value.unit_id = ''
+  }
+})
+
+// Watch area change to reset unit
+watch(() => formData.value.area_id, (newVal, oldVal) => {
+  if (newVal !== oldVal && !editingUnit.value) {
+    formData.value.unit_id = ''
+  }
+})
 
 const filteredUnits = computed(() => {
   if (!searchQuery.value) return masterPelabuhanStore.masterPelabuhan
@@ -173,6 +293,163 @@ const filteredUnits = computed(() => {
 
 async function loadData() {
   await masterPelabuhanStore.fetchMasterPelabuhan()
+  await loadMasterData()
+}
+
+async function loadMasterData() {
+  try {
+    // Load wilayah
+    const { data: wilayahData, error: wilayahError } = await supabase
+      .from('wilayah')
+      .select('*')
+      .eq('aktif', true)
+      .order('nama')
+    
+    if (wilayahError) throw wilayahError
+    availableWilayah.value = wilayahData || []
+    console.log('✅ Loaded wilayah:', wilayahData?.length)
+
+    // Load all areas
+    const { data: areasData, error: areasError } = await supabase
+      .from('areas')
+      .select('*')
+      .eq('aktif', true)
+      .order('nama')
+    
+    if (areasError) throw areasError
+    allAreas.value = areasData || []
+    console.log('✅ Loaded areas:', areasData?.length)
+
+    // Load all units
+    const { data: unitsData, error: unitsError } = await supabase
+      .from('units')
+      .select('*')
+      .eq('aktif', true)
+      .order('nama')
+    
+    if (unitsError) throw unitsError
+    allUnits.value = unitsData || []
+    console.log('✅ Loaded units:', unitsData?.length)
+  } catch (error) {
+    console.error('❌ Error loading master data:', error)
+    alert('Gagal memuat data master: ' + error.message)
+  }
+}
+
+function openAddUnitModal() {
+  editingUnit.value = null
+  formData.value = {
+    wilayah_id: '',
+    area_id: '',
+    unit_id: '',
+    aktif: true
+  }
+  console.log('➕ Opening add modal')
+  console.log('Available Wilayah:', availableWilayah.value.length)
+  console.log('All Areas:', allAreas.value.length)
+  console.log('All Units:', allUnits.value.length)
+  showModal.value = true
+}
+
+function openEditUnitModal(unit: any) {
+  editingUnit.value = unit
+  formData.value = {
+    wilayah_id: unit.wilayah_id || '',
+    area_id: unit.area_id || '',
+    unit_id: unit.unit_id || '',
+    aktif: unit.aktif ?? true
+  }
+  console.log('📝 Editing unit:', unit.unit?.nama, 'FormData:', formData.value)
+  showModal.value = true
+}
+
+function closeModal() {
+  showModal.value = false
+  editingUnit.value = null
+}
+
+async function saveUnit() {
+  saving.value = true
+  try {
+    console.log('💾 Saving unit with data:', formData.value)
+    
+    const dataToSave = {
+      wilayah_id: formData.value.wilayah_id,
+      area_id: formData.value.area_id,
+      unit_id: formData.value.unit_id,
+      aktif: formData.value.aktif,
+      updated_at: new Date().toISOString()
+    }
+
+    if (editingUnit.value) {
+      // Update existing unit
+      console.log('📝 Updating unit ID:', editingUnit.value.id)
+      const { data, error } = await supabase
+        .from('master_pelabuhan')
+        .update(dataToSave)
+        .eq('id', editingUnit.value.id)
+        .select()
+
+      if (error) {
+        console.error('❌ Update error:', error)
+        throw error
+      }
+      console.log('✅ Updated successfully:', data)
+      alert('Unit berhasil diupdate!')
+    } else {
+      // Create new unit
+      console.log('➕ Creating new unit')
+      const { data, error } = await supabase
+        .from('master_pelabuhan')
+        .insert({
+          ...dataToSave,
+          created_at: new Date().toISOString()
+        })
+        .select()
+
+      if (error) {
+        console.error('❌ Insert error:', error)
+        throw error
+      }
+      console.log('✅ Created successfully:', data)
+      alert('Unit berhasil ditambahkan!')
+    }
+
+    closeModal()
+    await loadData()
+  } catch (error) {
+    console.error('❌ Error saving unit:', error)
+    alert('Gagal menyimpan unit: ' + (error.message || error))
+  } finally {
+    saving.value = false
+  }
+}
+
+async function confirmDelete(unit: any) {
+  const unitName = unit.unit?.nama || 'unit ini'
+  if (!confirm(`Apakah Anda yakin ingin menghapus ${unitName}?`)) {
+    return
+  }
+
+  try {
+    console.log('🗑️ Deleting unit ID:', unit.id)
+    const { error } = await supabase
+      .from('master_pelabuhan')
+      .delete()
+      .eq('id', unit.id)
+
+    if (error) {
+      console.error('❌ Delete error:', error)
+      throw error
+    }
+    
+    console.log('✅ Deleted successfully')
+    alert('Unit berhasil dihapus!')
+    await loadData()
+  } catch (error) {
+    console.error('❌ Error deleting unit:', error)
+    alert('Gagal menghapus unit: ' + (error.message || error))
+  }
 }
 
 onMounted(() => {

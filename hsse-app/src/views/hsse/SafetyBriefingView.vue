@@ -575,9 +575,13 @@ const fetchData = async () => {
 
 const fetchUnits = async () => {
   try {
-    units.value = await unitsService.getActive()
+    // Use service method that gets all active units including wilayah and areas
+    units.value = await unitsService.getAllActiveHierarchical()
+    console.log('✅ Loaded units:', units.value.length)
+    console.log('📋 Units:', units.value.map(u => `${u.nama} (${u.tipe || 'unknown'})`))
   } catch (error) {
-    console.error('Error fetching units:', error)
+    console.error('❌ Error fetching units:', error)
+    units.value = []
   }
 }
 
