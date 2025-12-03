@@ -1465,7 +1465,7 @@ const loadStats = async () => {
 
 const loadUnits = async () => {
   try {
-    units.value = await unitsService.getActive()
+    units.value = await unitsService.getAllActiveHierarchical()
   } catch (error) {
     console.error('Error loading units:', error)
   }
