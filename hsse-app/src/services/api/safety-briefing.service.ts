@@ -311,7 +311,34 @@ class SafetyBriefingService {
    * Upload single photo
    */
   async uploadPhoto(file: File, briefingId?: string): Promise<string> {
-    const fileExt = file.name.split('.').pop()
+    // Convert AVIF to JPEG if needed
+    let fileToUpload = file
+    let fileExt = file.name.split('.').pop()?.toLowerCase()
+    
+    if (fileExt === 'avif' || file.type === 'image/avif') {
+      try {
+        // Convert AVIF to JPEG using canvas
+        const bitmap = await createImageBitmap(file)
+        const canvas = document.createElement('canvas')
+        canvas.width = bitmap.width
+        canvas.height = bitmap.height
+        const ctx = canvas.getContext('2d')
+        ctx?.drawImage(bitmap, 0, 0)
+        
+        // Convert to JPEG blob
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.9)
+        })
+        
+        fileToUpload = new File([blob], file.name.replace(/\.avif$/i, '.jpg'), {
+          type: 'image/jpeg'
+        })
+        fileExt = 'jpg'
+      } catch (conversionError) {
+        console.warn('AVIF conversion failed, trying original:', conversionError)
+      }
+    }
+    
     const timestamp = Date.now()
     const randomStr = Math.random().toString(36).substring(7)
     const fileName = `${briefingId || 'temp'}_${timestamp}_${randomStr}.${fileExt}`
@@ -319,7 +346,7 @@ class SafetyBriefingService {
 
     const { error: uploadError } = await supabase.storage
       .from(this.bucketName)
-      .upload(filePath, file, {
+      .upload(filePath, fileToUpload, {
         cacheControl: '3600',
         upsert: false
       })

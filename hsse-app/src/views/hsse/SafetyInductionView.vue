@@ -2,8 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { safetyInductionService, type SafetyInduction } from '@/services/hsse/safety-induction.service'
 import { useUnitsStore } from '@/stores/units'
+import { useImageCompression } from '@/composables/useImageCompression'
 
 const unitsStore = useUnitsStore()
+const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
 const loading = ref(false)
@@ -77,7 +79,8 @@ const formData = ref<Partial<SafetyInduction>>({
   passing_grade: 80,
   sertifikat_diterbitkan: false,
   masa_berlaku_bulan: 12,
-  akses_area: []
+  akses_area: [],
+  foto_induction: []
 })
 
 // Helper refs
@@ -91,7 +94,69 @@ const newAPD = ref<{ jenis_apd: string; ukuran: string; jumlah: number; nomor_as
   tanggal_serah: new Date().toISOString().split('T')[0]!
 })
 const newArea = ref('')
-const newAksesArea = ref('')// Load data
+const newAksesArea = ref('')
+const fileInput = ref<HTMLInputElement>()
+const selectedFiles = ref<Array<{ file: File; preview: string }>>([])
+
+// Photo handlers
+const handleFileSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files) return
+
+  const maxFiles = 10
+  const currentTotal = (formData.value.foto_induction?.length || 0) + selectedFiles.value.length
+  
+  if (currentTotal >= maxFiles) {
+    alert(`Maksimal ${maxFiles} foto`)
+    return
+  }
+
+  for (const file of Array.from(target.files)) {
+    if (currentTotal + selectedFiles.value.length >= maxFiles) {
+      alert(`Maksimal ${maxFiles} foto`)
+      break
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert(`File ${file.name} bukan gambar`)
+      continue
+    }
+
+    try {
+      // Compress image
+      const result = await compressSingleImage(file)
+      
+      if (result.success && result.compressedFile) {
+        const preview = URL.createObjectURL(result.compressedFile)
+        selectedFiles.value.push({
+          file: result.compressedFile,
+          preview
+        })
+        console.log(`✅ Compressed: ${result.originalSize} → ${result.compressedSize}`)
+      } else {
+        const preview = URL.createObjectURL(file)
+        selectedFiles.value.push({ file, preview })
+      }
+    } catch (error) {
+      console.error('Error processing file:', error)
+      const preview = URL.createObjectURL(file)
+      selectedFiles.value.push({ file, preview })
+    }
+  }
+
+  target.value = ''
+}
+
+const removeSelectedFile = (index: number) => {
+  URL.revokeObjectURL(selectedFiles.value[index].preview)
+  selectedFiles.value.splice(index, 1)
+}
+
+const removeExistingPhoto = (index: number) => {
+  formData.value.foto_induction?.splice(index, 1)
+}
+
+// Load data
 const loadInductions = async () => {
   try {
     loading.value = true
@@ -182,6 +247,9 @@ const closeFormModal = () => {
   showFormModal.value = false
   formMode.value = 'create'
   activeTab.value = 1
+  // Cleanup photo previews
+  selectedFiles.value.forEach(f => URL.revokeObjectURL(f.preview))
+  selectedFiles.value = []
 }
 
 // CRUD operations
@@ -189,7 +257,28 @@ const handleSubmit = async () => {
   try {
     loading.value = true
     
-    const dataToSave = { ...formData.value }
+    let photoUrls: string[] = []
+
+    // Upload new photos if any
+    if (selectedFiles.value.length > 0) {
+      try {
+        photoUrls = await safetyInductionService.uploadPhotos(
+          selectedFiles.value.map(f => f.file),
+          formData.value.id
+        )
+      } catch (photoError) {
+        console.warn('Photo upload failed, continuing without photos:', photoError)
+        alert('Peringatan: Upload foto gagal, data akan disimpan tanpa foto baru')
+      }
+    }
+
+    // Combine with existing photos
+    const allPhotoUrls = [...(formData.value.foto_induction || []), ...photoUrls]
+    
+    const dataToSave = { 
+      ...formData.value,
+      foto_induction: allPhotoUrls.length > 0 ? allPhotoUrls : undefined
+    }
 
     if (formMode.value === 'create') {
       await safetyInductionService.create(dataToSave)
@@ -1414,6 +1503,66 @@ onMounted(() => {
                     {{ area }}
                     <button type="button" @click="removeAksesArea(idx)" class="text-red-600 hover:text-red-900">×</button>
                   </span>
+                </div>
+              </div>
+
+              <!-- Foto Dokumentasi -->
+              <div class="border-t pt-4">
+                <h4 class="font-semibold text-gray-900 mb-3">📷 Foto Dokumentasi Induction</h4>
+                <p class="text-sm text-gray-600 mb-3">Upload foto saat pelaksanaan induction (max 10 foto)</p>
+                
+                <input 
+                  type="file" 
+                  ref="fileInput"
+                  @change="handleFileSelect" 
+                  accept="image/*" 
+                  multiple
+                  class="hidden" 
+                />
+                
+                <button 
+                  type="button" 
+                  @click="$refs.fileInput?.click()"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                  Upload Foto
+                </button>
+
+                <!-- Selected files preview -->
+                <div v-if="selectedFiles.length > 0" class="mt-4 space-y-2">
+                  <h5 class="text-sm font-medium text-gray-700">File yang akan diupload:</h5>
+                  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div v-for="(file, idx) in selectedFiles" :key="idx" 
+                      class="relative group border rounded-lg p-2 bg-gray-50">
+                      <img :src="file.preview" class="w-full h-32 object-cover rounded" />
+                      <div class="mt-1 text-xs text-gray-600 truncate">{{ file.file.name }}</div>
+                      <div class="text-xs text-gray-500">{{ formatFileSize(file.file.size) }}</div>
+                      <button 
+                        type="button"
+                        @click="removeSelectedFile(idx)"
+                        class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >×</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Existing photos -->
+                <div v-if="formData.foto_induction && formData.foto_induction.length > 0" class="mt-4 space-y-2">
+                  <h5 class="text-sm font-medium text-gray-700">Foto yang sudah diupload:</h5>
+                  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div v-for="(url, idx) in formData.foto_induction" :key="idx"
+                      class="relative group border rounded-lg overflow-hidden">
+                      <img :src="url" class="w-full h-32 object-cover" />
+                      <button 
+                        type="button"
+                        @click="removeExistingPhoto(idx)"
+                        class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >×</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

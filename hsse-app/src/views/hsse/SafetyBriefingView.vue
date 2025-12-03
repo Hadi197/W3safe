@@ -743,7 +743,6 @@ const handleSubmit = async () => {
       materi: form.value.materi || undefined,
       jumlah_peserta: form.value.jumlah_peserta,
       foto_dokumentasi: allPhotoUrls.length > 0 ? allPhotoUrls : undefined,
-      status: form.value.status,
       catatan: form.value.catatan || undefined
     }
 

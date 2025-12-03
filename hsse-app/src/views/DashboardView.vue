@@ -223,16 +223,50 @@
               </svg>
             </button>
           </div>
-          <!-- Month Filter -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 md:gap-3">
-            <label class="text-white text-xs md:text-sm font-medium">Filter Bulan:</label>
-            <input
-              v-model="selectedMonth"
-              @change="selectedModule === 'safety_briefing' ? loadSafetyBriefingData() : loadMonthlyData()"
-              type="month"
-              class="px-3 py-2 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-white flex-1 sm:flex-none"
-            />
-            <span class="text-blue-100 text-xs md:text-sm">
+          <!-- Date Filters -->
+          <div class="flex flex-col lg:flex-row gap-3">
+            <!-- Month Filter -->
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+              <label class="text-white text-xs md:text-sm font-medium whitespace-nowrap">Filter Bulan:</label>
+              <input
+                v-model="selectedMonth"
+                @change="selectedModule === 'safety_briefing' ? loadSafetyBriefingData() : loadMonthlyData()"
+                type="month"
+                class="px-3 py-2 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-white"
+              />
+            </div>
+            
+            <!-- Date Range Filter -->
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+              <label class="text-white text-xs md:text-sm font-medium whitespace-nowrap">Atau Range Tanggal:</label>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model="dateFrom"
+                  @change="onDateRangeChange"
+                  type="date"
+                  class="px-3 py-2 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-white"
+                  placeholder="Dari"
+                />
+                <span class="text-white">-</span>
+                <input
+                  v-model="dateTo"
+                  @change="onDateRangeChange"
+                  type="date"
+                  class="px-3 py-2 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-white"
+                  placeholder="Sampai"
+                />
+                <button 
+                  v-if="dateFrom || dateTo"
+                  @click="clearDateRange"
+                  class="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm transition-colors"
+                  title="Reset filter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <span class="text-blue-100 text-xs md:text-sm self-center">
               <span v-if="selectedModule === 'safety_briefing'">
                 Total: {{ safetyBriefingData.length }} Safety Briefing
               </span>
@@ -469,6 +503,10 @@ const stats = ref({
 const now = new Date()
 const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 const selectedMonth = ref(defaultMonth)
+const dateFrom = ref('')
+const dateTo = ref('')
+const useCustomDateRange = ref(false)
+
 // Monthly table modal
 const showMonthlyTableModal = ref(false)
 const selectedModule = ref('')
@@ -476,6 +514,34 @@ const selectedModuleName = ref('')
 const units = ref<any[]>([])
 const monthlyData = ref<any[]>([])
 const safetyBriefingData = ref<any[]>([])
+
+// Debug: Log modal state
+console.log('Dashboard mounted - showMonthlyTableModal:', showMonthlyTableModal.value)
+
+// Date range filter handlers
+const onDateRangeChange = () => {
+  if (dateFrom.value && dateTo.value) {
+    useCustomDateRange.value = true
+    selectedMonth.value = '' // Clear month filter when using custom range
+    if (selectedModule.value === 'safety_briefing') {
+      loadSafetyBriefingData()
+    } else {
+      loadMonthlyData()
+    }
+  }
+}
+
+const clearDateRange = () => {
+  dateFrom.value = ''
+  dateTo.value = ''
+  useCustomDateRange.value = false
+  selectedMonth.value = defaultMonth
+  if (selectedModule.value === 'safety_briefing') {
+    loadSafetyBriefingData()
+  } else {
+    loadMonthlyData()
+  }
+}
 
 // Generate days 1-31
 const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1)
@@ -508,17 +574,33 @@ const loadMonthlyData = async () => {
     units.value = unitsData || []
     console.log('Dashboard: Units assigned:', units.value.length, 'units')
     
-    // Parse selected month
-    const [yearStr, monthStr] = selectedMonth.value.split('-')
-    const year = parseInt(yearStr!)
-    const month = parseInt(monthStr!)
+    let startDate: string
+    let endDate: string
+    let daysInSelectedMonth: number
     
-    // Calculate days in selected month
-    const daysInSelectedMonth = new Date(year, month, 0).getDate()
+    // Use custom date range if set, otherwise use selected month
+    if (useCustomDateRange.value && dateFrom.value && dateTo.value) {
+      startDate = dateFrom.value
+      endDate = dateTo.value
+      // Calculate days between dates
+      const start = new Date(dateFrom.value)
+      const end = new Date(dateTo.value)
+      daysInSelectedMonth = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    } else {
+      // Parse selected month
+      const [yearStr, monthStr] = selectedMonth.value.split('-')
+      const year = parseInt(yearStr!)
+      const month = parseInt(monthStr!)
+      
+      // Calculate days in selected month
+      daysInSelectedMonth = new Date(year, month, 0).getDate()
+      
+      // Get first and last day of selected month
+      startDate = `${year}-${String(month).padStart(2, '0')}-01`
+      endDate = `${year}-${String(month).padStart(2, '0')}-${String(daysInSelectedMonth).padStart(2, '0')}`
+    }
     
-    // Get first and last day of selected month
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(daysInSelectedMonth).padStart(2, '0')}`
+    console.log('Dashboard: Date range:', startDate, 'to', endDate, '(', daysInSelectedMonth, 'days)')
     
     // Get table name and date field based on module
     let tableName = ''
@@ -618,14 +700,25 @@ const loadSafetyBriefingData = async () => {
   try {
     console.log('Dashboard: Loading Safety Briefing data...')
     
-    // Parse selected month
-    const [yearStr, monthStr] = selectedMonth.value.split('-')
-    const year = parseInt(yearStr!)
-    const month = parseInt(monthStr!)
+    let startDate: string
+    let endDate: string
     
-    // Get first and last day of selected month
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`
+    // Use custom date range if set, otherwise use selected month
+    if (useCustomDateRange.value && dateFrom.value && dateTo.value) {
+      startDate = dateFrom.value
+      endDate = dateTo.value
+    } else {
+      // Parse selected month
+      const [yearStr, monthStr] = selectedMonth.value.split('-')
+      const year = parseInt(yearStr!)
+      const month = parseInt(monthStr!)
+      
+      // Get first and last day of selected month
+      startDate = `${year}-${String(month).padStart(2, '0')}-01`
+      endDate = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`
+    }
+    
+    console.log('Dashboard: Date range:', startDate, 'to', endDate)
     
     // Query Safety Briefing data with full details (without join)
     const { data: briefingData, error: queryError } = await supabase
@@ -1295,8 +1388,8 @@ const loadStats = async () => {
       supabase
         .from('management_walkthrough')
         .select('id', { count: 'exact', head: true })
-        .gte('created_at', startDate)
-        .lt('created_at', endDate),
+        .gte('tanggal', startDate)
+        .lt('tanggal', endDate),
 
       // Safety Induction - current month
       supabase
@@ -1316,8 +1409,8 @@ const loadStats = async () => {
       supabase
         .from('unsafe_action_condition')
         .select('id', { count: 'exact', head: true })
-        .gte('created_at', startDate)
-        .lt('created_at', endDate)
+        .gte('tanggal_kejadian', startDate)
+        .lt('tanggal_kejadian', endDate)
     ])
 
     // Update stats

@@ -388,7 +388,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -396,6 +396,13 @@ const router = useRouter()
 const authStore = useAuthStore()
 const showUserMenu = ref(false)
 const sidebarOpen = ref(false)
+
+// Debug sidebar state
+watch(sidebarOpen, (newVal) => {
+  console.log('🔍 Sidebar state changed:', newVal)
+})
+
+console.log('🚀 DefaultLayout mounted, sidebarOpen initial:', sidebarOpen.value)
 
 // Expand/Collapse state for menu groups - default collapsed
 const expandedGroups = ref({

@@ -516,13 +516,40 @@ class SafetyInductionService {
 
   // Upload file helper
   async uploadFile(file: File, folder: 'certificates' | 'photos' | 'documents' | 'signatures'): Promise<string> {
-    const fileExt = file.name.split('.').pop()
+    // Convert AVIF to JPEG if needed (for photos only)
+    let fileToUpload = file
+    let fileExt = file.name.split('.').pop()?.toLowerCase()
+    
+    if (folder === 'photos' && (fileExt === 'avif' || file.type === 'image/avif')) {
+      try {
+        // Convert AVIF to JPEG using canvas
+        const bitmap = await createImageBitmap(file)
+        const canvas = document.createElement('canvas')
+        canvas.width = bitmap.width
+        canvas.height = bitmap.height
+        const ctx = canvas.getContext('2d')
+        ctx?.drawImage(bitmap, 0, 0)
+        
+        // Convert to JPEG blob
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.9)
+        })
+        
+        fileToUpload = new File([blob], file.name.replace(/\.avif$/i, '.jpg'), {
+          type: 'image/jpeg'
+        })
+        fileExt = 'jpg'
+      } catch (conversionError) {
+        console.warn('AVIF conversion failed, trying original:', conversionError)
+      }
+    }
+    
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
     const filePath = `induction/${folder}/${fileName}`
 
     const { error: uploadError } = await supabase.storage
       .from('hsse')
-      .upload(filePath, file)
+      .upload(filePath, fileToUpload)
 
     if (uploadError) throw uploadError
 
@@ -531,6 +558,12 @@ class SafetyInductionService {
       .getPublicUrl(filePath)
 
     return data.publicUrl
+  }
+
+  // Upload multiple photos (batch)
+  async uploadPhotos(files: File[], inductionId?: string): Promise<string[]> {
+    const uploadPromises = files.map(file => this.uploadFile(file, 'photos'))
+    return await Promise.all(uploadPromises)
   }
 
   // Get participants by company
