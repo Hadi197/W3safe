@@ -394,7 +394,7 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">Pilih Kategori</option>
-                  <optgroup v-if="formData.jenis_kejadian === 'unsafe_action'" label="Unsafe Action">
+                  <optgroup v-if="!formData.jenis_kejadian || formData.jenis_kejadian === 'unsafe_action'" label="Unsafe Action">
                     <option value="Tidak Menggunakan APD">Tidak Menggunakan APD</option>
                     <option value="Bekerja di Ketinggian Tanpa Pengaman">Bekerja di Ketinggian Tanpa Pengaman</option>
                     <option value="Menggunakan Peralatan Rusak">Menggunakan Peralatan Rusak</option>
@@ -403,7 +403,7 @@
                     <option value="Mengabaikan Prosedur">Mengabaikan Prosedur</option>
                     <option value="Lainnya">Lainnya</option>
                   </optgroup>
-                  <optgroup v-if="formData.jenis_kejadian === 'unsafe_condition'" label="Unsafe Condition">
+                  <optgroup v-if="!formData.jenis_kejadian || formData.jenis_kejadian === 'unsafe_condition'" label="Unsafe Condition">
                     <option value="Pencahayaan Kurang">Pencahayaan Kurang</option>
                     <option value="Ventilasi Buruk">Ventilasi Buruk</option>
                     <option value="Lantai Licin/Basah">Lantai Licin/Basah</option>
