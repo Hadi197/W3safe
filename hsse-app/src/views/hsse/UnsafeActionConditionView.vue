@@ -1020,11 +1020,27 @@ const loadUnits = async () => {
     console.log('🔍 authStore.unitId:', authStore.unitId)
     console.log('🔍 authStore.unitKode:', authStore.unitKode)
     console.log('🔍 authStore.isAdmin:', authStore.isAdmin)
+    console.log('🔍 authStore.user:', authStore.user)
     
-    // Set unit_kerja jika masih kosong
-    if (!formData.unit_kerja && authStore.unitNama) {
-      formData.unit_kerja = authStore.unitNama
-      console.log('✅ Set unit_kerja to:', authStore.unitNama)
+    // Cari unit berdasarkan unitId jika unitNama tidak tersedia
+    if (!formData.unit_kerja) {
+      let unitNama = authStore.unitNama
+      
+      // Jika unitNama tidak ada, cari dari units berdasarkan unitId
+      if (!unitNama && authStore.unitId) {
+        const foundUnit = units.value.find(u => u.id === authStore.unitId)
+        if (foundUnit) {
+          unitNama = foundUnit.nama
+          console.log('🔍 Found unit by ID:', foundUnit.nama)
+        }
+      }
+      
+      if (unitNama) {
+        formData.unit_kerja = unitNama
+        console.log('✅ Set unit_kerja to:', unitNama)
+      } else {
+        console.warn('⚠️ No unit found for user')
+      }
     }
   } catch (error) {
     console.error('❌ Error loading units:', error)
@@ -2142,7 +2158,18 @@ const resetFormData = () => {
   formData.tanggal_kejadian = new Date().toISOString().split('T')[0]
   formData.waktu_kejadian = new Date().toTimeString().slice(0, 5)
   formData.lokasi_kejadian = ''
-  formData.unit_kerja = authStore.unitNama || ''
+  
+  // Cari unit berdasarkan unitId jika unitNama tidak tersedia
+  let unitNama = authStore.unitNama
+  if (!unitNama && authStore.unitId && units.value.length > 0) {
+    const foundUnit = units.value.find(u => u.id === authStore.unitId)
+    if (foundUnit) {
+      unitNama = foundUnit.nama
+      console.log('🔍 Reset: Found unit by ID:', foundUnit.nama)
+    }
+  }
+  
+  formData.unit_kerja = unitNama || ''
   console.log('📝 formData.unit_kerja after reset:', formData.unit_kerja)
   formData.jenis_kejadian = ''
   formData.kategori = ''
