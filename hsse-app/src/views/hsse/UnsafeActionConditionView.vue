@@ -1014,6 +1014,18 @@ const loadUnits = async () => {
     units.value = await unitsService.getAllActiveHierarchical()
     console.log('✅ Loaded units:', units.value.length)
     console.log('📋 Units:', units.value.map(u => `${u.nama} (${u.tipe})`))
+    
+    // Debug: Check authStore values
+    console.log('🔍 authStore.unitNama:', authStore.unitNama)
+    console.log('🔍 authStore.unitId:', authStore.unitId)
+    console.log('🔍 authStore.unitKode:', authStore.unitKode)
+    console.log('🔍 authStore.isAdmin:', authStore.isAdmin)
+    
+    // Set unit_kerja jika masih kosong
+    if (!formData.unit_kerja && authStore.unitNama) {
+      formData.unit_kerja = authStore.unitNama
+      console.log('✅ Set unit_kerja to:', authStore.unitNama)
+    }
   } catch (error) {
     console.error('❌ Error loading units:', error)
   }
@@ -2126,10 +2138,12 @@ onMounted(async () => {
 
 // Function to reset form data
 const resetFormData = () => {
+  console.log('🔄 Reset form data, authStore.unitNama:', authStore.unitNama)
   formData.tanggal_kejadian = new Date().toISOString().split('T')[0]
   formData.waktu_kejadian = new Date().toTimeString().slice(0, 5)
   formData.lokasi_kejadian = ''
   formData.unit_kerja = authStore.unitNama || ''
+  console.log('📝 formData.unit_kerja after reset:', formData.unit_kerja)
   formData.jenis_kejadian = ''
   formData.kategori = ''
   formData.sub_kategori = ''
@@ -2159,6 +2173,7 @@ watch(filters, () => {
 }, { deep: true })
 
 watch(showForm, (newVal) => {
+  console.log('👁️ showForm changed to:', newVal, 'selectedIncident:', selectedIncident.value)
   // Reset form when opening modal for new incident
   if (newVal && !selectedIncident.value) {
     resetFormData()
@@ -2167,8 +2182,12 @@ watch(showForm, (newVal) => {
 
 // Watch authStore.unitNama untuk update formData.unit_kerja
 watch(() => authStore.unitNama, (newUnitNama) => {
+  console.log('👁️ authStore.unitNama changed to:', newUnitNama)
+  console.log('   formData.unit_kerja:', formData.unit_kerja)
+  console.log('   selectedIncident:', selectedIncident.value)
   if (newUnitNama && !formData.unit_kerja && !selectedIncident.value) {
     formData.unit_kerja = newUnitNama
+    console.log('✅ Updated formData.unit_kerja to:', newUnitNama)
   }
 })
 </script>
