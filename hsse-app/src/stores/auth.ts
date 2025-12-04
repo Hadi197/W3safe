@@ -16,7 +16,6 @@ export const useAuthStore = defineStore('auth', () => {
   const unitKode = computed(() => user.value?.user_metadata?.unit_kode || null)
   const unitNama = computed(() => user.value?.user_metadata?.unit_nama || '')
   const userName = computed(() => user.value?.user_metadata?.username || user.value?.email || '')
-  const userName = computed(() => user.value?.user_metadata?.username || user.value?.email || '')
 
   // Initialize auth state
   const initialize = async () => {
