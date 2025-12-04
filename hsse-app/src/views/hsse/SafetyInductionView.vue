@@ -1229,7 +1229,7 @@ onMounted(() => {
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Unit</label>
-                  <select v-model="formData.unit_id" class="w-full px-3 py-2 border rounded-lg">
+                  <select v-model="formData.unit_id" class="w-full px-3 py-2 border rounded-lg" :disabled="!authStore.isAdmin">
                     <option value="">Pilih unit...</option>
                     <option v-for="unit in unitsStore.units" :key="unit.id" :value="unit.id">
                       {{ unit.nama }}

@@ -11,6 +11,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!session.value)
   const userRole = computed(() => user.value?.user_metadata?.role || 'user')
+  const isAdmin = computed(() => user.value?.email === 'admin2@w3safe.com' || userRole.value === 'admin')
   const unitId = computed(() => user.value?.user_metadata?.unit_id || null)
   const unitKode = computed(() => user.value?.user_metadata?.unit_kode || null)
   const userName = computed(() => user.value?.user_metadata?.username || user.value?.email || '')
@@ -98,6 +99,7 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     isAuthenticated,
     userRole,
+    isAdmin,
     unitId,
     unitKode,
     userName,

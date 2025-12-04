@@ -1234,7 +1234,7 @@ onMounted(async () => {
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Unit *</label>
-                <select v-model="formData.unit_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <select v-model="formData.unit_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" :disabled="!authStore.isAdmin">
                   <option value="">-- Pilih Unit --</option>
                   <option v-for="unit in units" :key="unit.id" :value="unit.id">
                     {{ unit.nama }} ({{ unit.kode }})

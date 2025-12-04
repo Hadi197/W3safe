@@ -227,7 +227,7 @@
               
               <div>
                 <label class="label">Unit <span class="text-red-500">*</span></label>
-                <select v-model="form.unit_id" class="input-field" required>
+                <select v-model="form.unit_id" class="input-field" required :disabled="!authStore.isAdmin">
                   <option value="">Pilih Unit</option>
                   <option v-for="unit in units" :key="unit.id" :value="unit.id">
                     {{ unit.nama }}
