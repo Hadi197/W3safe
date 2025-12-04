@@ -955,7 +955,7 @@ const formData = reactive({
   tanggal_kejadian: new Date().toISOString().split('T')[0],
   waktu_kejadian: new Date().toTimeString().slice(0, 5),
   lokasi_kejadian: '',
-  unit_kerja: authStore.unitKode || '',
+  unit_kerja: authStore.unitNama || '',
   jenis_kejadian: '',
   kategori: '',
   sub_kategori: '',
@@ -2124,7 +2124,7 @@ const resetFormData = () => {
   formData.tanggal_kejadian = new Date().toISOString().split('T')[0]
   formData.waktu_kejadian = new Date().toTimeString().slice(0, 5)
   formData.lokasi_kejadian = ''
-  formData.unit_kerja = authStore.unitKode || ''
+  formData.unit_kerja = authStore.unitNama || ''
   formData.jenis_kejadian = ''
   formData.kategori = ''
   formData.sub_kategori = ''

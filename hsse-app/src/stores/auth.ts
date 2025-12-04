@@ -14,6 +14,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => user.value?.email === 'admin2@w3safe.com' || userRole.value === 'admin')
   const unitId = computed(() => user.value?.user_metadata?.unit_id || null)
   const unitKode = computed(() => user.value?.user_metadata?.unit_kode || null)
+  const unitNama = computed(() => user.value?.user_metadata?.unit_nama || '')
+  const userName = computed(() => user.value?.user_metadata?.username || user.value?.email || '')
   const userName = computed(() => user.value?.user_metadata?.username || user.value?.email || '')
 
   // Initialize auth state
@@ -102,6 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     unitId,
     unitKode,
+    unitNama,
     userName,
     initialize,
     login,
