@@ -2117,6 +2117,11 @@ onMounted(async () => {
   await loadIncidents()
   await loadStats()
   await loadUnits()
+  
+  // Set unit_kerja setelah auth store siap
+  if (authStore.unitNama && !formData.unit_kerja) {
+    formData.unit_kerja = authStore.unitNama
+  }
 })
 
 // Function to reset form data
@@ -2157,6 +2162,13 @@ watch(showForm, (newVal) => {
   // Reset form when opening modal for new incident
   if (newVal && !selectedIncident.value) {
     resetFormData()
+  }
+})
+
+// Watch authStore.unitNama untuk update formData.unit_kerja
+watch(() => authStore.unitNama, (newUnitNama) => {
+  if (newUnitNama && !formData.unit_kerja && !selectedIncident.value) {
+    formData.unit_kerja = newUnitNama
   }
 })
 </script>
