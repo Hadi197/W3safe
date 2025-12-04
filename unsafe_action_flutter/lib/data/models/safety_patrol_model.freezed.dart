@@ -71,12 +71,16 @@ mixin _$SafetyPatrol {
   @JsonKey(name: 'unsafe_condition')
   dynamic get unsafeCondition =>
       throw _privateConstructorUsedError; // JSONB array of objects
+  @JsonKey(name: 'foto_unsafe_condition')
+  List<String> get fotoUnsafeCondition => throw _privateConstructorUsedError;
   @JsonKey(name: 'jumlah_unsafe_act')
   int get jumlahUnsafeAct => throw _privateConstructorUsedError;
   @JsonKey(name: 'unsafe_act')
   dynamic get unsafeAct =>
       throw _privateConstructorUsedError; // JSONB array of objects
-// Worker observations
+  @JsonKey(name: 'foto_unsafe_act')
+  List<String> get fotoUnsafeAct =>
+      throw _privateConstructorUsedError; // Worker observations
   @JsonKey(name: 'pekerja_diamati')
   int get pekerjaDiamati => throw _privateConstructorUsedError;
   @JsonKey(name: 'pekerja_patuh_apd')
@@ -243,8 +247,10 @@ abstract class $SafetyPatrolCopyWith<$Res> {
       @JsonKey(name: 'tingkat_kebisingan') String? tingkatKebisingan,
       @JsonKey(name: 'jumlah_unsafe_condition') int jumlahUnsafeCondition,
       @JsonKey(name: 'unsafe_condition') dynamic unsafeCondition,
+      @JsonKey(name: 'foto_unsafe_condition') List<String> fotoUnsafeCondition,
       @JsonKey(name: 'jumlah_unsafe_act') int jumlahUnsafeAct,
       @JsonKey(name: 'unsafe_act') dynamic unsafeAct,
+      @JsonKey(name: 'foto_unsafe_act') List<String> fotoUnsafeAct,
       @JsonKey(name: 'pekerja_diamati') int pekerjaDiamati,
       @JsonKey(name: 'pekerja_patuh_apd') int pekerjaPatuhApd,
       @JsonKey(name: 'pekerja_tidak_patuh_apd') int pekerjaTidakPatuhApd,
@@ -339,8 +345,10 @@ class _$SafetyPatrolCopyWithImpl<$Res, $Val extends SafetyPatrol>
     Object? tingkatKebisingan = freezed,
     Object? jumlahUnsafeCondition = null,
     Object? unsafeCondition = freezed,
+    Object? fotoUnsafeCondition = null,
     Object? jumlahUnsafeAct = null,
     Object? unsafeAct = freezed,
+    Object? fotoUnsafeAct = null,
     Object? pekerjaDiamati = null,
     Object? pekerjaPatuhApd = null,
     Object? pekerjaTidakPatuhApd = null,
@@ -488,6 +496,10 @@ class _$SafetyPatrolCopyWithImpl<$Res, $Val extends SafetyPatrol>
           ? _value.unsafeCondition
           : unsafeCondition // ignore: cast_nullable_to_non_nullable
               as dynamic,
+      fotoUnsafeCondition: null == fotoUnsafeCondition
+          ? _value.fotoUnsafeCondition
+          : fotoUnsafeCondition // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       jumlahUnsafeAct: null == jumlahUnsafeAct
           ? _value.jumlahUnsafeAct
           : jumlahUnsafeAct // ignore: cast_nullable_to_non_nullable
@@ -496,6 +508,10 @@ class _$SafetyPatrolCopyWithImpl<$Res, $Val extends SafetyPatrol>
           ? _value.unsafeAct
           : unsafeAct // ignore: cast_nullable_to_non_nullable
               as dynamic,
+      fotoUnsafeAct: null == fotoUnsafeAct
+          ? _value.fotoUnsafeAct
+          : fotoUnsafeAct // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       pekerjaDiamati: null == pekerjaDiamati
           ? _value.pekerjaDiamati
           : pekerjaDiamati // ignore: cast_nullable_to_non_nullable
@@ -759,8 +775,10 @@ abstract class _$$SafetyPatrolImplCopyWith<$Res>
       @JsonKey(name: 'tingkat_kebisingan') String? tingkatKebisingan,
       @JsonKey(name: 'jumlah_unsafe_condition') int jumlahUnsafeCondition,
       @JsonKey(name: 'unsafe_condition') dynamic unsafeCondition,
+      @JsonKey(name: 'foto_unsafe_condition') List<String> fotoUnsafeCondition,
       @JsonKey(name: 'jumlah_unsafe_act') int jumlahUnsafeAct,
       @JsonKey(name: 'unsafe_act') dynamic unsafeAct,
+      @JsonKey(name: 'foto_unsafe_act') List<String> fotoUnsafeAct,
       @JsonKey(name: 'pekerja_diamati') int pekerjaDiamati,
       @JsonKey(name: 'pekerja_patuh_apd') int pekerjaPatuhApd,
       @JsonKey(name: 'pekerja_tidak_patuh_apd') int pekerjaTidakPatuhApd,
@@ -853,8 +871,10 @@ class __$$SafetyPatrolImplCopyWithImpl<$Res>
     Object? tingkatKebisingan = freezed,
     Object? jumlahUnsafeCondition = null,
     Object? unsafeCondition = freezed,
+    Object? fotoUnsafeCondition = null,
     Object? jumlahUnsafeAct = null,
     Object? unsafeAct = freezed,
+    Object? fotoUnsafeAct = null,
     Object? pekerjaDiamati = null,
     Object? pekerjaPatuhApd = null,
     Object? pekerjaTidakPatuhApd = null,
@@ -1002,6 +1022,10 @@ class __$$SafetyPatrolImplCopyWithImpl<$Res>
           ? _value.unsafeCondition
           : unsafeCondition // ignore: cast_nullable_to_non_nullable
               as dynamic,
+      fotoUnsafeCondition: null == fotoUnsafeCondition
+          ? _value._fotoUnsafeCondition
+          : fotoUnsafeCondition // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       jumlahUnsafeAct: null == jumlahUnsafeAct
           ? _value.jumlahUnsafeAct
           : jumlahUnsafeAct // ignore: cast_nullable_to_non_nullable
@@ -1010,6 +1034,10 @@ class __$$SafetyPatrolImplCopyWithImpl<$Res>
           ? _value.unsafeAct
           : unsafeAct // ignore: cast_nullable_to_non_nullable
               as dynamic,
+      fotoUnsafeAct: null == fotoUnsafeAct
+          ? _value._fotoUnsafeAct
+          : fotoUnsafeAct // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       pekerjaDiamati: null == pekerjaDiamati
           ? _value.pekerjaDiamati
           : pekerjaDiamati // ignore: cast_nullable_to_non_nullable
@@ -1269,8 +1297,12 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
       @JsonKey(name: 'tingkat_kebisingan') this.tingkatKebisingan,
       @JsonKey(name: 'jumlah_unsafe_condition') this.jumlahUnsafeCondition = 0,
       @JsonKey(name: 'unsafe_condition') this.unsafeCondition,
+      @JsonKey(name: 'foto_unsafe_condition')
+      final List<String> fotoUnsafeCondition = const [],
       @JsonKey(name: 'jumlah_unsafe_act') this.jumlahUnsafeAct = 0,
       @JsonKey(name: 'unsafe_act') this.unsafeAct,
+      @JsonKey(name: 'foto_unsafe_act')
+      final List<String> fotoUnsafeAct = const [],
       @JsonKey(name: 'pekerja_diamati') this.pekerjaDiamati = 0,
       @JsonKey(name: 'pekerja_patuh_apd') this.pekerjaPatuhApd = 0,
       @JsonKey(name: 'pekerja_tidak_patuh_apd') this.pekerjaTidakPatuhApd = 0,
@@ -1339,6 +1371,8 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
       @JsonKey(name: 'updated_at') this.updatedAt})
       : _anggotaPatrol = anggotaPatrol,
         _fokusPatrol = fokusPatrol,
+        _fotoUnsafeCondition = fotoUnsafeCondition,
+        _fotoUnsafeAct = fotoUnsafeAct,
         _areaKotor = areaKotor,
         _areaRapi = areaRapi,
         _rambuK3Hilang = rambuK3Hilang,
@@ -1442,6 +1476,17 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
   @JsonKey(name: 'unsafe_condition')
   final dynamic unsafeCondition;
 // JSONB array of objects
+  final List<String> _fotoUnsafeCondition;
+// JSONB array of objects
+  @override
+  @JsonKey(name: 'foto_unsafe_condition')
+  List<String> get fotoUnsafeCondition {
+    if (_fotoUnsafeCondition is EqualUnmodifiableListView)
+      return _fotoUnsafeCondition;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_fotoUnsafeCondition);
+  }
+
   @override
   @JsonKey(name: 'jumlah_unsafe_act')
   final int jumlahUnsafeAct;
@@ -1449,6 +1494,16 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
   @JsonKey(name: 'unsafe_act')
   final dynamic unsafeAct;
 // JSONB array of objects
+  final List<String> _fotoUnsafeAct;
+// JSONB array of objects
+  @override
+  @JsonKey(name: 'foto_unsafe_act')
+  List<String> get fotoUnsafeAct {
+    if (_fotoUnsafeAct is EqualUnmodifiableListView) return _fotoUnsafeAct;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_fotoUnsafeAct);
+  }
+
 // Worker observations
   @override
   @JsonKey(name: 'pekerja_diamati')
@@ -1714,7 +1769,7 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
 
   @override
   String toString() {
-    return 'SafetyPatrol(id: $id, nomorPatrol: $nomorPatrol, tanggalPatrol: $tanggalPatrol, waktuMulai: $waktuMulai, waktuSelesai: $waktuSelesai, shift: $shift, unitId: $unitId, areaPatrol: $areaPatrol, lokasiSpesifik: $lokasiSpesifik, ketuaPatrol: $ketuaPatrol, anggotaPatrol: $anggotaPatrol, jumlahAnggota: $jumlahAnggota, jenisPatrol: $jenisPatrol, tujuanPatrol: $tujuanPatrol, fokusPatrol: $fokusPatrol, cuaca: $cuaca, suhuArea: $suhuArea, kondisiPencahayaan: $kondisiPencahayaan, kondisiVentilasi: $kondisiVentilasi, tingkatKebisingan: $tingkatKebisingan, jumlahUnsafeCondition: $jumlahUnsafeCondition, unsafeCondition: $unsafeCondition, jumlahUnsafeAct: $jumlahUnsafeAct, unsafeAct: $unsafeAct, pekerjaDiamati: $pekerjaDiamati, pekerjaPatuhApd: $pekerjaPatuhApd, pekerjaTidakPatuhApd: $pekerjaTidakPatuhApd, persentaseKepatuhanApd: $persentaseKepatuhanApd, detailApd: $detailApd, skorHousekeeping: $skorHousekeeping, kondisiHousekeeping: $kondisiHousekeeping, areaKotor: $areaKotor, areaRapi: $areaRapi, jumlahMesinDiperiksa: $jumlahMesinDiperiksa, mesinKondisiBaik: $mesinKondisiBaik, mesinPerluPerbaikan: $mesinPerluPerbaikan, detailMesin: $detailMesin, rambuK3Lengkap: $rambuK3Lengkap, rambuK3Hilang: $rambuK3Hilang, rambuK3Rusak: $rambuK3Rusak, labelB3Lengkap: $labelB3Lengkap, jalurEvakuasiBebas: $jalurEvakuasiBebas, pintuDaruratBerfungsi: $pintuDaruratBerfungsi, aparTersedia: $aparTersedia, aparExpire: $aparExpire, emergencyLightBerfungsi: $emergencyLightBerfungsi, goodPractice: $goodPractice, areaExcellent: $areaExcellent, pekerjaTeladan: $pekerjaTeladan, totalTemuan: $totalTemuan, temuanKritikal: $temuanKritikal, temuanMayor: $temuanMayor, temuanMinor: $temuanMinor, rekomendasi: $rekomendasi, catatanPatrol: $catatanPatrol, actionItems: $actionItems, jumlahActionItem: $jumlahActionItem, actionSelesai: $actionSelesai, actionProgress: $actionProgress, actionBelumMulai: $actionBelumMulai, stopWorkIssued: $stopWorkIssued, stopWorkArea: $stopWorkArea, stopWorkAlasan: $stopWorkAlasan, fotoPatrol: $fotoPatrol, dokumenPendukung: $dokumenPendukung, skorKeseluruhan: $skorKeseluruhan, skorApd: $skorApd, skorKondisiArea: $skorKondisiArea, skorPeralatan: $skorPeralatan, grade: $grade, status: $status, tingkatUrgensi: $tingkatUrgensi, perluFollowUp: $perluFollowUp, tanggalFollowUp: $tanggalFollowUp, statusFollowUp: $statusFollowUp, reviewedBy: $reviewedBy, reviewedAt: $reviewedAt, reviewNotes: $reviewNotes, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SafetyPatrol(id: $id, nomorPatrol: $nomorPatrol, tanggalPatrol: $tanggalPatrol, waktuMulai: $waktuMulai, waktuSelesai: $waktuSelesai, shift: $shift, unitId: $unitId, areaPatrol: $areaPatrol, lokasiSpesifik: $lokasiSpesifik, ketuaPatrol: $ketuaPatrol, anggotaPatrol: $anggotaPatrol, jumlahAnggota: $jumlahAnggota, jenisPatrol: $jenisPatrol, tujuanPatrol: $tujuanPatrol, fokusPatrol: $fokusPatrol, cuaca: $cuaca, suhuArea: $suhuArea, kondisiPencahayaan: $kondisiPencahayaan, kondisiVentilasi: $kondisiVentilasi, tingkatKebisingan: $tingkatKebisingan, jumlahUnsafeCondition: $jumlahUnsafeCondition, unsafeCondition: $unsafeCondition, fotoUnsafeCondition: $fotoUnsafeCondition, jumlahUnsafeAct: $jumlahUnsafeAct, unsafeAct: $unsafeAct, fotoUnsafeAct: $fotoUnsafeAct, pekerjaDiamati: $pekerjaDiamati, pekerjaPatuhApd: $pekerjaPatuhApd, pekerjaTidakPatuhApd: $pekerjaTidakPatuhApd, persentaseKepatuhanApd: $persentaseKepatuhanApd, detailApd: $detailApd, skorHousekeeping: $skorHousekeeping, kondisiHousekeeping: $kondisiHousekeeping, areaKotor: $areaKotor, areaRapi: $areaRapi, jumlahMesinDiperiksa: $jumlahMesinDiperiksa, mesinKondisiBaik: $mesinKondisiBaik, mesinPerluPerbaikan: $mesinPerluPerbaikan, detailMesin: $detailMesin, rambuK3Lengkap: $rambuK3Lengkap, rambuK3Hilang: $rambuK3Hilang, rambuK3Rusak: $rambuK3Rusak, labelB3Lengkap: $labelB3Lengkap, jalurEvakuasiBebas: $jalurEvakuasiBebas, pintuDaruratBerfungsi: $pintuDaruratBerfungsi, aparTersedia: $aparTersedia, aparExpire: $aparExpire, emergencyLightBerfungsi: $emergencyLightBerfungsi, goodPractice: $goodPractice, areaExcellent: $areaExcellent, pekerjaTeladan: $pekerjaTeladan, totalTemuan: $totalTemuan, temuanKritikal: $temuanKritikal, temuanMayor: $temuanMayor, temuanMinor: $temuanMinor, rekomendasi: $rekomendasi, catatanPatrol: $catatanPatrol, actionItems: $actionItems, jumlahActionItem: $jumlahActionItem, actionSelesai: $actionSelesai, actionProgress: $actionProgress, actionBelumMulai: $actionBelumMulai, stopWorkIssued: $stopWorkIssued, stopWorkArea: $stopWorkArea, stopWorkAlasan: $stopWorkAlasan, fotoPatrol: $fotoPatrol, dokumenPendukung: $dokumenPendukung, skorKeseluruhan: $skorKeseluruhan, skorApd: $skorApd, skorKondisiArea: $skorKondisiArea, skorPeralatan: $skorPeralatan, grade: $grade, status: $status, tingkatUrgensi: $tingkatUrgensi, perluFollowUp: $perluFollowUp, tanggalFollowUp: $tanggalFollowUp, statusFollowUp: $statusFollowUp, reviewedBy: $reviewedBy, reviewedAt: $reviewedAt, reviewNotes: $reviewNotes, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1762,9 +1817,13 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
                 other.jumlahUnsafeCondition == jumlahUnsafeCondition) &&
             const DeepCollectionEquality()
                 .equals(other.unsafeCondition, unsafeCondition) &&
+            const DeepCollectionEquality()
+                .equals(other._fotoUnsafeCondition, _fotoUnsafeCondition) &&
             (identical(other.jumlahUnsafeAct, jumlahUnsafeAct) ||
                 other.jumlahUnsafeAct == jumlahUnsafeAct) &&
             const DeepCollectionEquality().equals(other.unsafeAct, unsafeAct) &&
+            const DeepCollectionEquality()
+                .equals(other._fotoUnsafeAct, _fotoUnsafeAct) &&
             (identical(other.pekerjaDiamati, pekerjaDiamati) ||
                 other.pekerjaDiamati == pekerjaDiamati) &&
             (identical(other.pekerjaPatuhApd, pekerjaPatuhApd) ||
@@ -1809,10 +1868,8 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
                 other.emergencyLightBerfungsi == emergencyLightBerfungsi) &&
             const DeepCollectionEquality()
                 .equals(other._goodPractice, _goodPractice) &&
-            const DeepCollectionEquality()
-                .equals(other._areaExcellent, _areaExcellent) &&
-            const DeepCollectionEquality()
-                .equals(other._pekerjaTeladan, _pekerjaTeladan) &&
+            const DeepCollectionEquality().equals(other._areaExcellent, _areaExcellent) &&
+            const DeepCollectionEquality().equals(other._pekerjaTeladan, _pekerjaTeladan) &&
             (identical(other.totalTemuan, totalTemuan) || other.totalTemuan == totalTemuan) &&
             (identical(other.temuanKritikal, temuanKritikal) || other.temuanKritikal == temuanKritikal) &&
             (identical(other.temuanMayor, temuanMayor) || other.temuanMayor == temuanMayor) &&
@@ -1873,8 +1930,10 @@ class _$SafetyPatrolImpl implements _SafetyPatrol {
         tingkatKebisingan,
         jumlahUnsafeCondition,
         const DeepCollectionEquality().hash(unsafeCondition),
+        const DeepCollectionEquality().hash(_fotoUnsafeCondition),
         jumlahUnsafeAct,
         const DeepCollectionEquality().hash(unsafeAct),
+        const DeepCollectionEquality().hash(_fotoUnsafeAct),
         pekerjaDiamati,
         pekerjaPatuhApd,
         pekerjaTidakPatuhApd,
@@ -1972,8 +2031,11 @@ abstract class _SafetyPatrol implements SafetyPatrol {
       @JsonKey(name: 'tingkat_kebisingan') final String? tingkatKebisingan,
       @JsonKey(name: 'jumlah_unsafe_condition') final int jumlahUnsafeCondition,
       @JsonKey(name: 'unsafe_condition') final dynamic unsafeCondition,
+      @JsonKey(name: 'foto_unsafe_condition')
+      final List<String> fotoUnsafeCondition,
       @JsonKey(name: 'jumlah_unsafe_act') final int jumlahUnsafeAct,
       @JsonKey(name: 'unsafe_act') final dynamic unsafeAct,
+      @JsonKey(name: 'foto_unsafe_act') final List<String> fotoUnsafeAct,
       @JsonKey(name: 'pekerja_diamati') final int pekerjaDiamati,
       @JsonKey(name: 'pekerja_patuh_apd') final int pekerjaPatuhApd,
       @JsonKey(name: 'pekerja_tidak_patuh_apd') final int pekerjaTidakPatuhApd,
@@ -2104,13 +2166,18 @@ abstract class _SafetyPatrol implements SafetyPatrol {
   @JsonKey(name: 'unsafe_condition')
   dynamic get unsafeCondition;
   @override // JSONB array of objects
+  @JsonKey(name: 'foto_unsafe_condition')
+  List<String> get fotoUnsafeCondition;
+  @override
   @JsonKey(name: 'jumlah_unsafe_act')
   int get jumlahUnsafeAct;
   @override
   @JsonKey(name: 'unsafe_act')
   dynamic get unsafeAct;
   @override // JSONB array of objects
-// Worker observations
+  @JsonKey(name: 'foto_unsafe_act')
+  List<String> get fotoUnsafeAct;
+  @override // Worker observations
   @JsonKey(name: 'pekerja_diamati')
   int get pekerjaDiamati;
   @override

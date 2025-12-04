@@ -1134,6 +1134,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useImageCompression } from '@/composables/useImageCompression'
+import { useAuthStore } from '@/stores/auth'
 import { safetyForumService, type SafetyForumDTO } from '@/services/api/safety-forum.service'
 import { unitsService } from '@/services/api/units.service'
 import { supabase } from '@/services/api/supabase'
@@ -1141,6 +1142,7 @@ import { supabase } from '@/services/api/supabase'
 const route = useRoute()
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
+const authStore = useAuthStore()
 
 const forums = ref<any[]>([])
 const units = ref<any[]>([])
@@ -1566,7 +1568,7 @@ const resetForm = () => {
     tanggal_forum: '',
     waktu_mulai: '',
     waktu_selesai: '',
-    unit_id: '',
+    unit_id: authStore.unitId || '',
     lokasi: '',
     jenis_forum: '',
     kategori_forum: '',

@@ -1324,11 +1324,13 @@ import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { managementWalkthroughService, type ManagementWalkthrough } from '@/services/management-walkthrough.service'
 import { unitsService } from '@/services/api/units.service'
+import { useAuthStore } from '@/stores/auth'
 import { useImageCompression } from '@/composables/useImageCompression'
 
 const route = useRoute()
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
+const authStore = useAuthStore()
 
 // State
 const loading = ref(false)
@@ -1520,7 +1522,7 @@ const resetFormData = () => {
     tanggal_walkthrough: new Date().toISOString().split('T')[0],
     waktu_mulai: '',
     waktu_selesai: '',
-    unit_id: '',
+    unit_id: authStore.unitId || '',
     area_inspeksi: '',
     departemen: '',
     pimpinan_walkthrough: '',

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
 import { safetyDrillService, type SafetyDrill, type DrillFilters } from '@/services/safety-drill.service'
 import { useImageCompression } from '@/composables/useImageCompression'
 import { supabase } from '@/services/api/supabase'
@@ -193,7 +195,7 @@ const resetForm = () => {
     tingkat_drill: 'plant_wide',
     judul_drill: '',
     deskripsi: '',
-    unit_kerja: '',
+    unit_kerja: authStore.unitId || '',
     area_lokasi: '',
     titik_kumpul: '',
     tanggal_drill: '',

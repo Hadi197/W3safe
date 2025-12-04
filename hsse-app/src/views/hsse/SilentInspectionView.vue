@@ -574,12 +574,14 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { format } from 'date-fns'
 import { useImageCompression } from '@/composables/useImageCompression'
+import { useAuthStore } from '@/stores/auth'
 import { silentInspectionService, type SilentInspection, type CreateSilentInspectionDto, type PaginatedResponse } from '@/services/api/silent-inspection.service'
 import { unitsService, type Unit } from '@/services/api/units.service'
 
 const route = useRoute()
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
+const authStore = useAuthStore()
 
 // State
 const items = ref<SilentInspection[]>([])
@@ -762,7 +764,7 @@ const resetForm = () => {
     tanggal: format(new Date(), 'yyyy-MM-dd'),
     waktu_mulai: format(new Date(), 'HH:mm'),
     waktu_selesai: '',
-    unit_id: '',
+    unit_id: authStore.unitId || '',
     area_inspeksi: '',
     kategori_bahaya: '',
     checklist_items: [],

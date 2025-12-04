@@ -11,6 +11,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!session.value)
   const userRole = computed(() => user.value?.user_metadata?.role || 'user')
+  const unitId = computed(() => user.value?.user_metadata?.unit_id || null)
+  const unitKode = computed(() => user.value?.user_metadata?.unit_kode || null)
+  const userName = computed(() => user.value?.user_metadata?.username || user.value?.email || '')
 
   // Initialize auth state
   const initialize = async () => {
@@ -95,6 +98,9 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     isAuthenticated,
     userRole,
+    unitId,
+    unitKode,
+    userName,
     initialize,
     login,
     logout,

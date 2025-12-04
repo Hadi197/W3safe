@@ -448,6 +448,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { format } from 'date-fns'
 import { useImageCompression } from '@/composables/useImageCompression'
+import { useAuthStore } from '@/stores/auth'
 import { 
   safetyBriefingService, 
   type SafetyBriefing,
@@ -463,6 +464,7 @@ interface FileWithPreview extends File {
 }
 
 const { compressSingleImage, formatFileSize } = useImageCompression()
+const authStore = useAuthStore()
 
 // State
 const items = ref<SafetyBriefing[]>([])
@@ -655,7 +657,7 @@ const resetForm = () => {
     tanggal: format(new Date(), 'yyyy-MM-dd'),
     waktu_mulai: '',
     waktu_selesai: '',
-    unit_id: '',
+    unit_id: authStore.unitId || '',
     topik: '',
     materi: '',
     jumlah_peserta: 0,

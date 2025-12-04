@@ -39,8 +39,16 @@ _$SafetyPatrolImpl _$$SafetyPatrolImplFromJson(Map<String, dynamic> json) =>
       jumlahUnsafeCondition:
           (json['jumlah_unsafe_condition'] as num?)?.toInt() ?? 0,
       unsafeCondition: json['unsafe_condition'],
+      fotoUnsafeCondition: (json['foto_unsafe_condition'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       jumlahUnsafeAct: (json['jumlah_unsafe_act'] as num?)?.toInt() ?? 0,
       unsafeAct: json['unsafe_act'],
+      fotoUnsafeAct: (json['foto_unsafe_act'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       pekerjaDiamati: (json['pekerja_diamati'] as num?)?.toInt() ?? 0,
       pekerjaPatuhApd: (json['pekerja_patuh_apd'] as num?)?.toInt() ?? 0,
       pekerjaTidakPatuhApd:
@@ -170,8 +178,10 @@ Map<String, dynamic> _$$SafetyPatrolImplToJson(_$SafetyPatrolImpl instance) =>
       'tingkat_kebisingan': instance.tingkatKebisingan,
       'jumlah_unsafe_condition': instance.jumlahUnsafeCondition,
       'unsafe_condition': instance.unsafeCondition,
+      'foto_unsafe_condition': instance.fotoUnsafeCondition,
       'jumlah_unsafe_act': instance.jumlahUnsafeAct,
       'unsafe_act': instance.unsafeAct,
+      'foto_unsafe_act': instance.fotoUnsafeAct,
       'pekerja_diamati': instance.pekerjaDiamati,
       'pekerja_patuh_apd': instance.pekerjaPatuhApd,
       'pekerja_tidak_patuh_apd': instance.pekerjaTidakPatuhApd,

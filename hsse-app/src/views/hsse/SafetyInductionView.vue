@@ -2,9 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { safetyInductionService, type SafetyInduction } from '@/services/hsse/safety-induction.service'
 import { useUnitsStore } from '@/stores/units'
+import { useAuthStore } from '@/stores/auth'
 import { useImageCompression } from '@/composables/useImageCompression'
 
 const unitsStore = useUnitsStore()
+const authStore = useAuthStore()
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
@@ -210,6 +212,7 @@ const openFormModal = (mode: 'create' | 'edit', induction?: SafetyInduction) => 
       tanggal_induction: new Date().toISOString().split('T')[0],
       waktu_mulai: '',
       lokasi_induction: '',
+      unit_id: authStore.unitId || '',
       instruktur_utama: '',
       instruktur_pendamping: [],
       status: 'scheduled',

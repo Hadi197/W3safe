@@ -3,11 +3,13 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { safetyPatrolService, type SafetyPatrol } from '@/services/hsse/safety-patrol.service'
 import { useUnitsStore } from '@/stores/units'
+import { useAuthStore } from '@/stores/auth'
 import { useImageCompression } from '@/composables/useImageCompression'
 
 const route = useRoute()
 
 const unitsStore = useUnitsStore()
+const authStore = useAuthStore()
 const { compressSingleImage, formatFileSize } = useImageCompression()
 
 // State
@@ -194,6 +196,7 @@ const openFormModal = (mode: 'create' | 'edit', patrol?: SafetyPatrol) => {
       shift: 'pagi',
       jenis_patrol: 'rutin',
       status: 'draft',
+      unit_id: authStore.unitId || '',
       unsafe_condition: [],
       unsafe_act: [],
       rekomendasi: [],

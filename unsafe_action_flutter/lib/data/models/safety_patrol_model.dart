@@ -40,8 +40,10 @@ class SafetyPatrol with _$SafetyPatrol {
     // Unsafe conditions and acts
     @JsonKey(name: 'jumlah_unsafe_condition') @Default(0) int jumlahUnsafeCondition,
     @JsonKey(name: 'unsafe_condition') dynamic unsafeCondition, // JSONB array of objects
+    @JsonKey(name: 'foto_unsafe_condition') @Default([]) List<String> fotoUnsafeCondition,
     @JsonKey(name: 'jumlah_unsafe_act') @Default(0) int jumlahUnsafeAct,
     @JsonKey(name: 'unsafe_act') dynamic unsafeAct, // JSONB array of objects
+    @JsonKey(name: 'foto_unsafe_act') @Default([]) List<String> fotoUnsafeAct,
     
     // Worker observations
     @JsonKey(name: 'pekerja_diamati') @Default(0) int pekerjaDiamati,

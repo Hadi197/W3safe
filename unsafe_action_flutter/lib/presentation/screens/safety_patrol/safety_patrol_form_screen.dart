@@ -1,6 +1,46 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../data/models/safety_patrol_model.dart';
 import '../../../data/repositories/safety_patrol_repository.dart';
+
+// Helper classes for dynamic lists
+class UnsafeConditionItem {
+  String kategori;
+  String tingkatRisiko;
+  String deskripsi;
+  String lokasi;
+  String tindakan;
+  List<File> photos;
+
+  UnsafeConditionItem({
+    this.kategori = '',
+    this.tingkatRisiko = 'sedang',
+    this.deskripsi = '',
+    this.lokasi = '',
+    this.tindakan = '',
+    List<File>? photos,
+  }) : photos = photos ?? [];
+}
+
+class UnsafeActItem {
+  String pekerja;
+  String tingkatRisiko;
+  String deskripsi;
+  String lokasi;
+  String tindakanLangsung;
+  List<File> photos;
+
+  UnsafeActItem({
+    this.pekerja = '',
+    this.tingkatRisiko = 'sedang',
+    this.deskripsi = '',
+    this.lokasi = '',
+    this.tindakanLangsung = '',
+    List<File>? photos,
+  }) : photos = photos ?? [];
+}
 
 class SafetyPatrolFormScreen extends StatefulWidget {
   final SafetyPatrol? patrol;
@@ -42,8 +82,9 @@ class _SafetyPatrolFormScreenState extends State<SafetyPatrolFormScreen>
   String? _tingkatKebisingan;
 
   // Tab 3: Unsafe Condition & Act
-  final _jumlahUnsafeConditionController = TextEditingController(text: '0');
-  final _jumlahUnsafeActController = TextEditingController(text: '0');
+  List<UnsafeConditionItem> _unsafeConditions = [];
+  List<UnsafeActItem> _unsafeActs = [];
+  final ImagePicker _imagePicker = ImagePicker();
 
   // Tab 4: Kepatuhan APD
   final _pekerjaDiamatiController = TextEditingController(text: '0');
@@ -202,6 +243,98 @@ class _SafetyPatrolFormScreenState extends State<SafetyPatrolFormScreen>
     super.dispose();
   }
 
+  // Photo management methods for Unsafe Condition
+  Future<void> _takePictureForCondition(int conditionIndex) async {
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+      
+      if (photo != null) {
+        setState(() {
+          _unsafeConditions[conditionIndex].photos.add(File(photo.path));
+        });
+        debugPrint('✅ Photo added to condition #${conditionIndex + 1}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error taking picture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error mengambil foto: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImagesForCondition(int conditionIndex) async {
+    try {
+      final List<XFile> images = await _imagePicker.pickMultiImage(imageQuality: 85);
+      
+      if (images.isNotEmpty) {
+        setState(() {
+          _unsafeConditions[conditionIndex].photos.addAll(
+            images.map((xFile) => File(xFile.path)).toList()
+          );
+        });
+        debugPrint('✅ ${images.length} photos added to condition #${conditionIndex + 1}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error picking images: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error memilih foto: $e')),
+        );
+      }
+    }
+  }
+
+  // Photo management methods for Unsafe Act
+  Future<void> _takePictureForAct(int actIndex) async {
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+      
+      if (photo != null) {
+        setState(() {
+          _unsafeActs[actIndex].photos.add(File(photo.path));
+        });
+        debugPrint('✅ Photo added to act #${actIndex + 1}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error taking picture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error mengambil foto: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImagesForAct(int actIndex) async {
+    try {
+      final List<XFile> images = await _imagePicker.pickMultiImage(imageQuality: 85);
+      
+      if (images.isNotEmpty) {
+        setState(() {
+          _unsafeActs[actIndex].photos.addAll(
+            images.map((xFile) => File(xFile.path)).toList()
+          );
+        });
+        debugPrint('✅ ${images.length} photos added to act #${actIndex + 1}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error picking images: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error memilih foto: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _savePatrol() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -213,6 +346,88 @@ class _SafetyPatrolFormScreenState extends State<SafetyPatrolFormScreen>
     setState(() => _isLoading = true);
 
     try {
+      // Process Unsafe Condition Items with Photos
+      List<Map<String, dynamic>> unsafeConditionData = [];
+      for (int i = 0; i < _unsafeConditions.length; i++) {
+        final item = _unsafeConditions[i];
+        List<String> photoUrls = [];
+        
+        // Upload photos for this condition
+        for (int j = 0; j < item.photos.length; j++) {
+          try {
+            final file = item.photos[j];
+            final fileName = 'safety-patrol-unsafe-condition/${DateTime.now().millisecondsSinceEpoch}_${i}_$j.jpg';
+            
+            debugPrint('📤 Uploading condition #${i + 1} photo ${j + 1}/${item.photos.length}: $fileName');
+            
+            await Supabase.instance.client.storage
+                .from('safety-patrol-photos')
+                .upload(fileName, file);
+            
+            final photoUrl = Supabase.instance.client.storage
+                .from('safety-patrol-photos')
+                .getPublicUrl(fileName);
+            
+            photoUrls.add(photoUrl);
+            debugPrint('✅ Condition #${i + 1} photo ${j + 1} uploaded');
+          } catch (e) {
+            debugPrint('⚠️ Failed to upload condition #${i + 1} photo ${j + 1}: $e');
+          }
+        }
+        
+        // Add condition data
+        unsafeConditionData.add({
+          'no': i + 1,
+          'kategori': item.kategori,
+          'tingkat_risiko': item.tingkatRisiko,
+          'deskripsi': item.deskripsi,
+          'lokasi': item.lokasi,
+          'tindakan': item.tindakan,
+          'foto_urls': photoUrls,
+        });
+      }
+
+      // Process Unsafe Act Items with Photos
+      List<Map<String, dynamic>> unsafeActData = [];
+      for (int i = 0; i < _unsafeActs.length; i++) {
+        final item = _unsafeActs[i];
+        List<String> photoUrls = [];
+        
+        // Upload photos for this act
+        for (int j = 0; j < item.photos.length; j++) {
+          try {
+            final file = item.photos[j];
+            final fileName = 'safety-patrol-unsafe-act/${DateTime.now().millisecondsSinceEpoch}_${i}_$j.jpg';
+            
+            debugPrint('📤 Uploading act #${i + 1} photo ${j + 1}/${item.photos.length}: $fileName');
+            
+            await Supabase.instance.client.storage
+                .from('safety-patrol-photos')
+                .upload(fileName, file);
+            
+            final photoUrl = Supabase.instance.client.storage
+                .from('safety-patrol-photos')
+                .getPublicUrl(fileName);
+            
+            photoUrls.add(photoUrl);
+            debugPrint('✅ Act #${i + 1} photo ${j + 1} uploaded');
+          } catch (e) {
+            debugPrint('⚠️ Failed to upload act #${i + 1} photo ${j + 1}: $e');
+          }
+        }
+        
+        // Add act data
+        unsafeActData.add({
+          'no': i + 1,
+          'pekerja': item.pekerja,
+          'tingkat_risiko': item.tingkatRisiko,
+          'deskripsi': item.deskripsi,
+          'lokasi': item.lokasi,
+          'tindakan_langsung': item.tindakanLangsung,
+          'foto_urls': photoUrls,
+        });
+      }
+
       final patrol = SafetyPatrol(
         id: widget.patrol?.id,
         nomorPatrol: _nomorPatrolController.text,
@@ -233,8 +448,10 @@ class _SafetyPatrolFormScreenState extends State<SafetyPatrolFormScreen>
         kondisiPencahayaan: _kondisiPencahayaan,
         kondisiVentilasi: _kondisiVentilasi,
         tingkatKebisingan: _tingkatKebisingan,
-        jumlahUnsafeCondition: int.tryParse(_jumlahUnsafeConditionController.text) ?? 0,
-        jumlahUnsafeAct: int.tryParse(_jumlahUnsafeActController.text) ?? 0,
+        jumlahUnsafeCondition: _unsafeConditions.length,
+        unsafeCondition: unsafeConditionData,
+        jumlahUnsafeAct: _unsafeActs.length,
+        unsafeAct: unsafeActData,
         pekerjaDiamati: int.tryParse(_pekerjaDiamatiController.text) ?? 0,
         pekerjaPatuhApd: int.tryParse(_pekerjaPatuhApdController.text) ?? 0,
         pekerjaTidakPatuhApd: int.tryParse(_pekerjaTidakPatuhApdController.text) ?? 0,
@@ -381,6 +598,62 @@ class _SafetyPatrolFormScreenState extends State<SafetyPatrolFormScreen>
         ),
       ),
     );
+  }
+
+  // Photo Methods
+  Future<void> _takePicture(bool isUnsafeCondition) async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        setState(() {
+          if (isUnsafeCondition) {
+            _unsafeConditionPhotos.add(File(image.path));
+          } else {
+            _unsafeActPhotos.add(File(image.path));
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error taking picture: $e');
+    }
+  }
+
+  Future<void> _pickImages(bool isUnsafeCondition) async {
+    try {
+      final List<XFile> images = await _imagePicker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+      
+      if (images.isNotEmpty) {
+        setState(() {
+          if (isUnsafeCondition) {
+            _unsafeConditionPhotos.addAll(images.map((image) => File(image.path)));
+          } else {
+            _unsafeActPhotos.addAll(images.map((image) => File(image.path)));
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking images: $e');
+    }
+  }
+
+  void _removePhoto(bool isUnsafeCondition, int index) {
+    setState(() {
+      if (isUnsafeCondition) {
+        _unsafeConditionPhotos.removeAt(index);
+      } else {
+        _unsafeActPhotos.removeAt(index);
+      }
+    });
   }
 
   // Tab 1: Data Dasar
@@ -637,60 +910,554 @@ class _SafetyPatrolFormScreenState extends State<SafetyPatrolFormScreen>
   }
 
   // Tab 3: Unsafe Condition
+  // Tab 3: Unsafe Condition
   Widget _buildUnsafeConditionTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Kondisi Tidak Aman',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red[700]),
+          // Header with Add Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Kondisi Tidak Aman',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red[700]),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _unsafeConditions.add(UnsafeConditionItem());
+                  });
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Kondisi'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _jumlahUnsafeConditionController,
-            decoration: const InputDecoration(
-              labelText: 'Jumlah Unsafe Condition',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.warning, color: Colors.red),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Catat semua kondisi tidak aman yang ditemukan seperti: peralatan rusak, lantai licin, kabel terkelupas, dll.',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
+          
+          // List of Unsafe Conditions
+          if (_unsafeConditions.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text(
+                  'Belum ada kondisi tidak aman.\nKlik "Tambah Kondisi" untuk menambahkan.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ),
+            )
+          else
+            ...List.generate(_unsafeConditions.length, (index) {
+              final item = _unsafeConditions[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                color: Colors.red[50],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.red[200]!, width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header with delete button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Kondisi #${index + 1}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                _unsafeConditions.removeAt(index);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Kategori
+                      DropdownButtonFormField<String>(
+                        value: item.kategori.isEmpty ? null : item.kategori,
+                        decoration: const InputDecoration(
+                          labelText: 'Kategori',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'peralatan', child: Text('Peralatan Rusak')),
+                          DropdownMenuItem(value: 'lantai', child: Text('Lantai/Permukaan')),
+                          DropdownMenuItem(value: 'listrik', child: Text('Listrik/Kabel')),
+                          DropdownMenuItem(value: 'struktur', child: Text('Struktur Bangunan')),
+                          DropdownMenuItem(value: 'bahan_kimia', child: Text('Bahan Kimia')),
+                          DropdownMenuItem(value: 'ventilasi', child: Text('Ventilasi')),
+                          DropdownMenuItem(value: 'pencahayaan', child: Text('Pencahayaan')),
+                          DropdownMenuItem(value: 'lainnya', child: Text('Lainnya')),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            item.kategori = value ?? '';
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Tingkat Risiko
+                      DropdownButtonFormField<String>(
+                        value: item.tingkatRisiko,
+                        decoration: const InputDecoration(
+                          labelText: 'Tingkat Risiko',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'kritikal', child: Text('Kritikal')),
+                          DropdownMenuItem(value: 'tinggi', child: Text('Tinggi')),
+                          DropdownMenuItem(value: 'sedang', child: Text('Sedang')),
+                          DropdownMenuItem(value: 'rendah', child: Text('Rendah')),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            item.tingkatRisiko = value ?? 'sedang';
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Deskripsi
+                      TextFormField(
+                        initialValue: item.deskripsi,
+                        decoration: const InputDecoration(
+                          labelText: 'Deskripsi',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        maxLines: 3,
+                        onChanged: (value) {
+                          item.deskripsi = value;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Lokasi
+                      TextFormField(
+                        initialValue: item.lokasi,
+                        decoration: const InputDecoration(
+                          labelText: 'Lokasi',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        onChanged: (value) {
+                          item.lokasi = value;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Tindakan
+                      TextFormField(
+                        initialValue: item.tindakan,
+                        decoration: const InputDecoration(
+                          labelText: 'Tindakan',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        maxLines: 2,
+                        onChanged: (value) {
+                          item.tindakan = value;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Foto Bukti
+                      const Text(
+                        'Foto Bukti',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _takePictureForCondition(index),
+                              icon: const Icon(Icons.camera_alt, size: 20),
+                              label: const Text('Ambil Foto'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _pickImagesForCondition(index),
+                              icon: const Icon(Icons.photo_library, size: 20),
+                              label: const Text('Pilih dari Galeri'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '📸 Ambil foto langsung atau pilih dari galeri. Foto akan dikompres otomatis jika >1MB',
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      ),
+                      
+                      // Photo Preview
+                      if (item.photos.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemCount: item.photos.length,
+                          itemBuilder: (context, photoIndex) {
+                            return Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    item.photos[photoIndex],
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 2,
+                                  right: 2,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        item.photos.removeAt(photoIndex);
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(4),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }),
         ],
       ),
     );
   }
 
   // Tab 4: Unsafe Act
+  // Tab 4: Unsafe Act
   Widget _buildUnsafeActTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Tindakan Tidak Aman',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange[700]),
+          // Header with Add Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Tindakan Tidak Aman',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange[700]),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _unsafeActs.add(UnsafeActItem());
+                  });
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Tindakan'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _jumlahUnsafeActController,
-            decoration: const InputDecoration(
-              labelText: 'Jumlah Unsafe Act',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.person_off, color: Colors.orange),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Catat perilaku tidak aman yang dilakukan pekerja seperti: tidak pakai APD, shortcut procedure, posisi kerja salah, dll.',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
+          
+          // List of Unsafe Acts
+          if (_unsafeActs.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text(
+                  'Belum ada tindakan tidak aman.\nKlik "Tambah Tindakan" untuk menambahkan.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ),
+            )
+          else
+            ...List.generate(_unsafeActs.length, (index) {
+              final item = _unsafeActs[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                color: Colors.orange[50],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.orange[200]!, width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header with delete button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Tindakan #${index + 1}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.orange),
+                            onPressed: () {
+                              setState(() {
+                                _unsafeActs.removeAt(index);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Pekerja
+                      TextFormField(
+                        initialValue: item.pekerja,
+                        decoration: const InputDecoration(
+                          labelText: 'Nama Pekerja',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        onChanged: (value) {
+                          item.pekerja = value;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Tingkat Risiko
+                      DropdownButtonFormField<String>(
+                        value: item.tingkatRisiko,
+                        decoration: const InputDecoration(
+                          labelText: 'Tingkat Risiko',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'kritikal', child: Text('Kritikal')),
+                          DropdownMenuItem(value: 'tinggi', child: Text('Tinggi')),
+                          DropdownMenuItem(value: 'sedang', child: Text('Sedang')),
+                          DropdownMenuItem(value: 'rendah', child: Text('Rendah')),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            item.tingkatRisiko = value ?? 'sedang';
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Deskripsi
+                      TextFormField(
+                        initialValue: item.deskripsi,
+                        decoration: const InputDecoration(
+                          labelText: 'Deskripsi Tindakan Tidak Aman',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        maxLines: 3,
+                        onChanged: (value) {
+                          item.deskripsi = value;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Lokasi
+                      TextFormField(
+                        initialValue: item.lokasi,
+                        decoration: const InputDecoration(
+                          labelText: 'Lokasi',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        onChanged: (value) {
+                          item.lokasi = value;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Tindakan Langsung
+                      TextFormField(
+                        initialValue: item.tindakanLangsung,
+                        decoration: const InputDecoration(
+                          labelText: 'Tindakan Langsung yang Diambil',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        maxLines: 2,
+                        onChanged: (value) {
+                          item.tindakanLangsung = value;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Foto Bukti
+                      const Text(
+                        'Foto Bukti',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _takePictureForAct(index),
+                              icon: const Icon(Icons.camera_alt, size: 20),
+                              label: const Text('Ambil Foto'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _pickImagesForAct(index),
+                              icon: const Icon(Icons.photo_library, size: 20),
+                              label: const Text('Pilih dari Galeri'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '📸 Ambil foto langsung atau pilih dari galeri. Foto akan dikompres otomatis jika >1MB',
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      ),
+                      
+                      // Photo Preview
+                      if (item.photos.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemCount: item.photos.length,
+                          itemBuilder: (context, photoIndex) {
+                            return Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    item.photos[photoIndex],
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 2,
+                                  right: 2,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        item.photos.removeAt(photoIndex);
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(4),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }),
         ],
       ),
     );
