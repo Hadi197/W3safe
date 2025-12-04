@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/services/api/supabase'
+import { useAuthStore } from '@/stores/auth'
 
 interface LTIFRRecord {
   id?: string
@@ -30,6 +31,7 @@ interface LTIFRRecord {
   created_at?: string
 }
 
+const authStore = useAuthStore()
 const records = ref<LTIFRRecord[]>([])
 const loading = ref(false)
 const showModal = ref(false)
@@ -152,6 +154,7 @@ function openModal(mode: 'add' | 'edit' | 'detail', record?: LTIFRRecord) {
   if (mode === 'add') {
     formData.value = {
       periode_bulan: '2025-01',
+      unit_id: authStore.unitId || '',
       jumlah_lti: 0,
       jumlah_fatality: 0,
       jumlah_near_miss: 0,
@@ -450,7 +453,7 @@ onMounted(() => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Unit</label>
                 <select
                   v-model="formData.unit_id"
-                  :disabled="modalMode === 'detail'"
+                  :disabled="modalMode === 'detail' || !authStore.isAdmin"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Semua Unit</option>

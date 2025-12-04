@@ -356,6 +356,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Unit Kerja *</label>
                 <select
                   v-model="formData.unit_kerja"
+                  :disabled="!authStore.isAdmin"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
@@ -915,9 +916,11 @@
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { UnsafeActionConditionService } from '@/services/hsse/unsafe-action-condition.service'
 import { unitsService } from '@/services/api/units.service'
+import { useAuthStore } from '@/stores/auth'
 import jsPDF from 'jspdf'
 
 // Reactive data
+const authStore = useAuthStore()
 const incidents = ref<any[]>([])
 const units = ref<any[]>([])
 const stats = reactive({
@@ -952,7 +955,7 @@ const formData = reactive({
   tanggal_kejadian: new Date().toISOString().split('T')[0],
   waktu_kejadian: new Date().toTimeString().slice(0, 5),
   lokasi_kejadian: '',
-  unit_kerja: '',
+  unit_kerja: authStore.unitKode || '',
   jenis_kejadian: '',
   kategori: '',
   sub_kategori: '',
@@ -2116,10 +2119,46 @@ onMounted(async () => {
   await loadUnits()
 })
 
+// Function to reset form data
+const resetFormData = () => {
+  formData.tanggal_kejadian = new Date().toISOString().split('T')[0]
+  formData.waktu_kejadian = new Date().toTimeString().slice(0, 5)
+  formData.lokasi_kejadian = ''
+  formData.unit_kerja = authStore.unitKode || ''
+  formData.jenis_kejadian = ''
+  formData.kategori = ''
+  formData.sub_kategori = ''
+  formData.deskripsi_kejadian = ''
+  formData.penyebab_diduga = ''
+  formData.potensi_risiko = ''
+  formData.pelapor_nama = ''
+  formData.pelapor_jabatan = ''
+  formData.pelapor_kontak = ''
+  formData.tindakan_segera = ''
+  formData.area_diamankan = false
+  formData.korban_ada = false
+  formData.korban_jumlah = 0
+  formData.foto_kejadian = []
+  formData.video_kejadian = []
+  formData.audio_catatan = ''
+  formData.prioritas = 'medium'
+  formData.severity_level = null
+  formData.latitude = null
+  formData.longitude = null
+  formData.gps_accuracy = null
+}
+
 // Watchers
 watch(filters, () => {
   loadIncidents(1)
 }, { deep: true })
+
+watch(showForm, (newVal) => {
+  // Reset form when opening modal for new incident
+  if (newVal && !selectedIncident.value) {
+    resetFormData()
+  }
+})
 </script>
 
 <style scoped>
