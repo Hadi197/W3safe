@@ -64,11 +64,11 @@ const filteredRecords = computed(() => {
   console.log('Filter unit:', filterUnit.value)
   
   if (filterMonth.value) {
-    result = result.filter(r => r.periode_bulan === filterMonth.value)
+    result = result.filter((r: any) => r.periode_bulan === filterMonth.value)
   }
   
   if (filterUnit.value) {
-    result = result.filter(r => r.unit_id === filterUnit.value)
+    result = result.filter((r: any) => r.unit_id === filterUnit.value)
   }
   
   console.log('Filtered records:', result.length)
@@ -76,15 +76,15 @@ const filteredRecords = computed(() => {
 })
 
 const totalLTI = computed(() => 
-  filteredRecords.value.reduce((sum, r) => sum + r.jumlah_lti, 0)
+  filteredRecords.value.reduce((sum: number, r: any) => sum + r.jumlah_lti, 0)
 )
 
 const totalFatality = computed(() => 
-  filteredRecords.value.reduce((sum, r) => sum + r.jumlah_fatality, 0)
+  filteredRecords.value.reduce((sum: number, r: any) => sum + r.jumlah_fatality, 0)
 )
 
 const totalJamKerja = computed(() => 
-  filteredRecords.value.reduce((sum, r) => sum + r.total_jam_kerja, 0)
+  filteredRecords.value.reduce((sum: number, r: any) => sum + r.total_jam_kerja, 0)
 )
 
 const averageLTIFR = computed(() => {

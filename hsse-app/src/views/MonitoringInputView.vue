@@ -287,9 +287,9 @@ const currentMonth = computed(() => {
 
 const summary = computed(() => {
   const total = monitoringData.value.length
-  const complete = monitoringData.value.filter(item => item.completionPercentage === 100).length
-  const partial = monitoringData.value.filter(item => item.completionPercentage > 0 && item.completionPercentage < 100).length
-  const empty = monitoringData.value.filter(item => item.completionPercentage === 0).length
+  const complete = monitoringData.value.filter((item: any) => item.completionPercentage === 100).length
+  const partial = monitoringData.value.filter((item: any) => item.completionPercentage > 0 && item.completionPercentage < 100).length
+  const empty = monitoringData.value.filter((item: any) => item.completionPercentage === 0).length
 
   return {
     total,
@@ -335,7 +335,7 @@ async function loadWilayahAndAreas() {
 function onWilayahChange() {
   filters.areaId = ''
   if (filters.wilayahId) {
-    areaList.value = allAreaList.value.filter(a => a.wilayah_id === filters.wilayahId)
+    areaList.value = allAreaList.value.filter((a: any) => a.wilayah_id === filters.wilayahId)
   } else {
     areaList.value = allAreaList.value
   }
@@ -479,7 +479,7 @@ async function loadData() {
     })
     
     // Sort by completion percentage (ascending) then by unit name
-    monitoringData.value.sort((a, b) => {
+    monitoringData.value.sort((a: any, b: any) => {
       if (a.completionPercentage !== b.completionPercentage) {
         return a.completionPercentage - b.completionPercentage
       }

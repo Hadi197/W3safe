@@ -1388,8 +1388,8 @@ const loadStats = async () => {
       supabase
         .from('management_walkthrough')
         .select('id', { count: 'exact', head: true })
-        .gte('tanggal', startDate)
-        .lt('tanggal', endDate),
+        .gte('tanggal_walkthrough', startDate)
+        .lt('tanggal_walkthrough', endDate),
 
       // Safety Induction - current month
       supabase

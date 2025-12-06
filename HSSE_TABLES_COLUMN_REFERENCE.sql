@@ -1,0 +1,475 @@
+-- =====================================================
+-- HSSE DATABASE COLUMN REFERENCE
+-- Definitive guide for all table schemas and column names
+-- Created: December 2024
+-- Purpose: Reference untuk membuat SQL queries yang akurat
+-- =====================================================
+
+-- =====================================================
+-- TABLE: safety_briefing
+-- =====================================================
+-- Primary Date Field: tanggal
+-- Description: Safety briefing records untuk setiap shift/hari
+-- 
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   tanggal DATE NOT NULL                    -- ✓ KOLOM TANGGAL UTAMA
+--   waktu_mulai TIME NOT NULL
+--   waktu_selesai TIME
+--   unit_id UUID (FK → units)
+--   petugas_id UUID (FK → pegawai)
+--   topik VARCHAR(500) NOT NULL
+--   materi TEXT
+--   jumlah_peserta INTEGER DEFAULT 0
+--   daftar_peserta TEXT[]                    -- Array of participant names
+--   foto_dokumentasi TEXT[]                  -- Array of photo URLs
+--   status VARCHAR(20)                       -- 'draft', 'approved', 'rejected'
+--   catatan TEXT
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM safety_briefing WHERE tanggal < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM safety_briefing WHERE tanggal BETWEEN '2024-12-01' AND '2024-12-31';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: safety_patrol
+-- =====================================================
+-- Primary Date Field: tanggal_patrol
+-- Description: Patrol keselamatan area kerja
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   nomor_patrol VARCHAR NOT NULL
+--   tanggal_patrol DATE NOT NULL             -- ✓ KOLOM TANGGAL UTAMA (BUKAN tanggal_patroli!)
+--   waktu_mulai TIME NOT NULL
+--   waktu_selesai TIME
+--   shift VARCHAR                            -- 'pagi', 'siang', 'malam'
+--   unit_id UUID (FK → units)
+--   area_patrol VARCHAR NOT NULL
+--   lokasi_spesifik VARCHAR
+--   ketua_patrol VARCHAR NOT NULL
+--   anggota_patrol TEXT[]                    -- Array of strings
+--   jumlah_anggota INTEGER DEFAULT 0
+--   jenis_patrol VARCHAR                     -- 'rutin', 'terjadwal', 'insidental', 'khusus', 'malam', 'emergency'
+--   tujuan_patrol TEXT
+--   fokus_patrol TEXT[]                      -- Array of strings
+--   cuaca VARCHAR                            -- 'cerah', 'mendung', 'hujan', 'panas'
+--   suhu_area DECIMAL
+--   kondisi_pencahayaan VARCHAR              -- 'baik', 'cukup', 'kurang', 'buruk'
+--   kondisi_ventilasi VARCHAR                -- 'baik', 'cukup', 'kurang', 'buruk'
+--   tingkat_kebisingan VARCHAR               -- 'normal', 'cukup_bising', 'bising', 'sangat_bising'
+--   jumlah_unsafe_condition INTEGER DEFAULT 0
+--   unsafe_condition JSONB DEFAULT '[]'      -- Array of objects
+--   jumlah_unsafe_act INTEGER DEFAULT 0
+--   unsafe_act JSONB DEFAULT '[]'            -- Array of objects
+--   foto_kondisi_unsafe TEXT[]               -- Array of photo URLs
+--   foto_perilaku_unsafe TEXT[]              -- Array of photo URLs
+--   rekomendasi TEXT
+--   tindak_lanjut TEXT
+--   pic_tindak_lanjut VARCHAR
+--   target_penyelesaian DATE
+--   status VARCHAR DEFAULT 'open'            -- 'open', 'in_progress', 'closed'
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM safety_patrol WHERE tanggal_patrol < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM safety_patrol WHERE tanggal_patrol >= '2024-12-01';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: silent_inspection
+-- =====================================================
+-- Primary Date Field: tanggal
+-- Description: Silent inspection untuk observasi tanpa interaksi
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   tanggal DATE NOT NULL                    -- ✓ KOLOM TANGGAL UTAMA (BUKAN tanggal_inspeksi!)
+--   waktu_mulai TIME NOT NULL
+--   waktu_selesai TIME
+--   unit_id UUID (FK → units)
+--   area_inspeksi VARCHAR(200) NOT NULL
+--   inspector_id UUID (FK → pegawai)
+--   anggota_tim TEXT[]                       -- Array of team member names
+--   jumlah_anggota INTEGER DEFAULT 0
+--   kategori_bahaya VARCHAR(50)              -- 'rendah', 'sedang', 'tinggi', 'kritis'
+--   checklist_items JSONB DEFAULT '[]'       -- Array of checklist objects
+--   jumlah_temuan INTEGER DEFAULT 0
+--   temuan_critical INTEGER DEFAULT 0
+--   temuan_major INTEGER DEFAULT 0
+--   temuan_minor INTEGER DEFAULT 0
+--   foto_kondisi_unsafe TEXT[]               -- Array of photo URLs
+--   foto_perilaku_unsafe TEXT[]              -- Array of photo URLs
+--   rekomendasi TEXT
+--   tindak_lanjut TEXT
+--   pic_tindak_lanjut VARCHAR(200)
+--   target_penyelesaian DATE
+--   status VARCHAR(20) DEFAULT 'open'        -- 'open', 'in_progress', 'closed'
+--   catatan_tambahan TEXT
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM silent_inspection WHERE tanggal < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM silent_inspection WHERE tanggal = '2024-12-01';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: safety_forum
+-- =====================================================
+-- Primary Date Field: tanggal_forum
+-- Description: Forum safety meeting dan diskusi K3
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   nomor_forum VARCHAR(50) UNIQUE
+--   tanggal_forum DATE NOT NULL              -- ✓ KOLOM TANGGAL UTAMA
+--   waktu_mulai TIME NOT NULL
+--   waktu_selesai TIME
+--   unit_id UUID (FK → units)
+--   lokasi VARCHAR(200) NOT NULL
+--   jenis_forum VARCHAR(50)                  -- 'bulanan', 'mingguan', 'khusus', 'darurat'
+--   periode VARCHAR(50)                      -- 'Januari 2024', 'Q1 2024', dll
+--   ketua_forum UUID (FK → pegawai)
+--   notulen_by UUID (FK → pegawai)
+--   peserta_wajib TEXT[]                     -- Array of mandatory participants
+--   peserta_hadir TEXT[]                     -- Array of attendees
+--   jumlah_peserta_hadir INTEGER DEFAULT 0
+--   jumlah_peserta_wajib INTEGER DEFAULT 0
+--   tingkat_kehadiran DECIMAL(5,2)           -- Persentase kehadiran
+--   agenda_utama TEXT NOT NULL
+--   agenda_detail JSONB DEFAULT '[]'         -- Array of agenda items
+--   topik_pembahasan TEXT[]                  -- Array of topics
+--   topik_kejadian_k3 TEXT[]                 -- Array of K3 incidents discussed
+--   topik_analisis_risiko TEXT[]             -- Array of risk analysis topics
+--   topik_perbaikan TEXT[]                   -- Array of improvement topics
+--   keputusan_forum TEXT[]                   -- Array of decisions
+--   action_items JSONB DEFAULT '[]'          -- Array of action item objects
+--   dokumentasi_foto TEXT[]                  -- Array of photo URLs
+--   status VARCHAR(20) DEFAULT 'scheduled'   -- 'scheduled', 'completed', 'cancelled'
+--   follow_up_required BOOLEAN DEFAULT false
+--   next_meeting_date DATE
+--   catatan_tambahan TEXT
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM safety_forum WHERE tanggal_forum < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM safety_forum WHERE tanggal_forum >= '2024-12-01' AND status = 'completed';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: management_walkthrough
+-- =====================================================
+-- Primary Date Field: tanggal_walkthrough
+-- Description: Management walkthrough inspection oleh manajemen
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   nomor_walkthrough VARCHAR(50) UNIQUE NOT NULL
+--   tanggal_walkthrough DATE NOT NULL        -- ✓ KOLOM TANGGAL UTAMA
+--   waktu_mulai TIME NOT NULL
+--   waktu_selesai TIME
+--   unit_id UUID (FK → units)
+--   area_inspeksi VARCHAR(255) NOT NULL
+--   departemen VARCHAR(255)
+--   pimpinan_walkthrough VARCHAR(255) NOT NULL
+--   anggota_tim TEXT[]                       -- Array of team member names
+--   jumlah_tim INTEGER DEFAULT 0
+--   tujuan_walkthrough TEXT
+--   fokus_area TEXT[]                        -- Array: housekeeping, PPE, ergonomi, dll
+--   jenis_walkthrough VARCHAR(50) DEFAULT 'rutin' -- 'rutin', 'terjadwal', 'insidental', 'follow_up', 'khusus'
+--   kondisi_housekeeping VARCHAR(20)         -- 'baik', 'cukup', 'kurang', 'buruk'
+--   kondisi_pencahayaan VARCHAR(20)          -- 'baik', 'cukup', 'kurang', 'buruk'
+--   kondisi_ventilasi VARCHAR(20)            -- 'baik', 'cukup', 'kurang', 'buruk'
+--   kondisi_akses_jalan VARCHAR(20)          -- 'baik', 'cukup', 'kurang', 'buruk'
+--   kepatuhan_apd INTEGER                    -- 0-100 percentage
+--   apd_tersedia BOOLEAN DEFAULT true
+--   apd_kondisi_baik BOOLEAN DEFAULT true
+--   apd_digunakan_benar BOOLEAN DEFAULT true
+--   apd_tidak_sesuai TEXT[]                  -- Array of non-compliant APD
+--   temuan_positif JSONB DEFAULT '[]'        -- Array of positive findings
+--   temuan_negatif JSONB DEFAULT '[]'        -- Array of negative findings
+--   jumlah_temuan_positif INTEGER DEFAULT 0
+--   jumlah_temuan_negatif INTEGER DEFAULT 0
+--   rekomendasi_perbaikan TEXT
+--   action_plan JSONB DEFAULT '[]'           -- Array of action items
+--   pic_tindak_lanjut VARCHAR(255)
+--   target_penyelesaian DATE
+--   status_tindak_lanjut VARCHAR(20) DEFAULT 'open' -- 'open', 'in_progress', 'closed'
+--   foto_dokumentasi TEXT[]                  -- Array of photo URLs
+--   catatan_tambahan TEXT
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM management_walkthrough WHERE tanggal_walkthrough < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM management_walkthrough WHERE tanggal_walkthrough BETWEEN '2024-12-01' AND '2024-12-31';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: safety_drill
+-- =====================================================
+-- Primary Date Field: tanggal_pelaksanaan atau tanggal_drill
+-- Description: Simulasi dan latihan keselamatan
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   nomor_drill VARCHAR NOT NULL
+--   judul_drill VARCHAR NOT NULL
+--   deskripsi TEXT
+--   jenis_drill VARCHAR                      -- 'fire_drill', 'earthquake_drill', 'evacuation_drill', 'chemical_spill', dll
+--   kategori_drill VARCHAR                   -- 'planned', 'unannounced', 'tabletop', 'functional', 'full_scale'
+--   tingkat_drill VARCHAR                    -- 'plant_wide', 'area_specific', 'department', 'shift_based', 'team_based'
+--   unit_kerja VARCHAR NOT NULL
+--   area_lokasi VARCHAR NOT NULL
+--   ruang_khusus VARCHAR
+--   titik_kumpul VARCHAR NOT NULL
+--   area_terdampak TEXT[]                    -- Array of affected areas
+--   tanggal_drill DATE NOT NULL              -- ✓ KOLOM TANGGAL UTAMA (atau tanggal_pelaksanaan)
+--   waktu_mulai TIME NOT NULL
+--   waktu_selesai TIME
+--   durasi_menit INTEGER
+--   shift VARCHAR
+--   tanggal_perencanaan DATE
+--   pic_perencanaan VARCHAR
+--   tujuan_drill TEXT NOT NULL
+--   sasaran_drill TEXT[]                     -- Array of objectives
+--   skenario TEXT NOT NULL
+--   jumlah_peserta INTEGER DEFAULT 0
+--   peserta_wajib TEXT[]                     -- Array of mandatory participants
+--   peserta_hadir TEXT[]                     -- Array of attendees
+--   tingkat_kehadiran DECIMAL(5,2)           -- Percentage
+--   evaluasi_keseluruhan TEXT
+--   lessons_learned TEXT[]                   -- Array of lessons
+--   rekomendasi TEXT
+--   action_items JSONB DEFAULT '[]'          -- Array of action items
+--   foto_dokumentasi TEXT[]                  -- Array of photo URLs
+--   status VARCHAR(20) DEFAULT 'planned'     -- 'planned', 'completed', 'cancelled', 'rescheduled'
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM safety_drill WHERE tanggal_drill < '2024-12-04';
+--   -- ATAU jika menggunakan tanggal_pelaksanaan:
+--   DELETE FROM safety_drill WHERE tanggal_pelaksanaan < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM safety_drill WHERE tanggal_drill >= '2024-12-01';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: safety_induction
+-- =====================================================
+-- Primary Date Field: tanggal_induction
+-- Description: Induksi keselamatan untuk karyawan baru/kontraktor
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   nomor_induction VARCHAR NOT NULL
+--   nama_peserta VARCHAR NOT NULL
+--   nik VARCHAR
+--   no_identitas VARCHAR
+--   perusahaan VARCHAR NOT NULL
+--   jabatan VARCHAR
+--   departemen VARCHAR
+--   no_telepon VARCHAR
+--   email VARCHAR
+--   foto_peserta VARCHAR                     -- URL to photo
+--   jenis_peserta VARCHAR                    -- 'karyawan_baru', 'karyawan_pindah', 'kontraktor', 'vendor', 'tamu', dll
+--   kategori_pekerjaan VARCHAR               -- 'office', 'produksi', 'maintenance', 'operator', dll
+--   tanggal_induction DATE NOT NULL          -- ✓ KOLOM TANGGAL UTAMA
+--   waktu_mulai TIME NOT NULL
+--   waktu_selesai TIME
+--   durasi_menit INTEGER
+--   unit_id UUID (FK → units)
+--   lokasi_induction VARCHAR NOT NULL
+--   ruangan VARCHAR
+--   instruktur_utama VARCHAR NOT NULL
+--   instruktur_pendamping TEXT[]             -- Array of instructors
+--   pic_hse VARCHAR NOT NULL
+--   materi_* BOOLEAN                         -- Multiple boolean fields for checklist items
+--   skor_pre_test DECIMAL(5,2)               -- Score before training
+--   skor_post_test DECIMAL(5,2)              -- Score after training
+--   status_kelulusan VARCHAR(20)             -- 'lulus', 'tidak_lulus', 'pending'
+--   sertifikat_nomor VARCHAR
+--   sertifikat_url VARCHAR
+--   masa_berlaku_dari DATE
+--   masa_berlaku_sampai DATE
+--   foto_dokumentasi TEXT[]                  -- Array of photo URLs
+--   catatan_khusus TEXT
+--   status VARCHAR(20) DEFAULT 'scheduled'   -- 'scheduled', 'completed', 'cancelled'
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM safety_induction WHERE tanggal_induction < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM safety_induction WHERE tanggal_induction >= '2024-12-01' AND status_kelulusan = 'lulus';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: unsafe_action_condition
+-- =====================================================
+-- Primary Date Field: tanggal_kejadian
+-- Description: Laporan unsafe action dan unsafe condition real-time
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   tanggal_kejadian DATE NOT NULL           -- ✓ KOLOM TANGGAL UTAMA
+--   waktu_kejadian TIME NOT NULL
+--   lokasi_kejadian VARCHAR NOT NULL
+--   unit_kerja VARCHAR NOT NULL
+--   jenis_kejadian VARCHAR NOT NULL          -- 'unsafe_action', 'unsafe_condition'
+--   kategori VARCHAR NOT NULL
+--   sub_kategori VARCHAR
+--   deskripsi_kejadian TEXT NOT NULL
+--   penyebab_diduga TEXT
+--   potensi_risiko TEXT
+--   pelapor_nama VARCHAR NOT NULL
+--   pelapor_jabatan VARCHAR
+--   pelapor_kontak VARCHAR
+--   tindakan_segera TEXT
+--   area_diamankan BOOLEAN DEFAULT false
+--   korban_ada BOOLEAN DEFAULT false
+--   korban_jumlah INTEGER DEFAULT 0
+--   foto_kejadian TEXT[]                     -- Array of photo URLs
+--   video_kejadian TEXT[]                    -- Array of video URLs
+--   audio_catatan TEXT                       -- Audio recording URL
+--   prioritas VARCHAR DEFAULT 'medium'       -- 'low', 'medium', 'high', 'critical'
+--   severity_level INTEGER                   -- 1-5 scale
+--   status VARCHAR(20) DEFAULT 'open'        -- 'open', 'in_progress', 'closed'
+--   pic_penanganan VARCHAR
+--   target_penyelesaian DATE
+--   tindakan_korektif TEXT
+--   tindakan_preventif TEXT
+--   verifikasi_selesai BOOLEAN DEFAULT false
+--   catatan_penutupan TEXT
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE:
+--   DELETE FROM unsafe_action_condition WHERE tanggal_kejadian < '2024-12-04';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM unsafe_action_condition WHERE tanggal_kejadian >= '2024-12-01' AND prioritas = 'critical';
+-- =====================================================
+
+
+-- =====================================================
+-- TABLE: ltifr_records
+-- =====================================================
+-- Primary Date Field: periode_bulan
+-- Description: Lost Time Injury Frequency Rate records bulanan
+--
+-- COLUMNS:
+--   id UUID PRIMARY KEY
+--   periode_bulan VARCHAR(7) NOT NULL        -- ✓ KOLOM PERIODE UTAMA (Format: YYYY-MM)
+--   unit_id UUID (FK → units)
+--   jumlah_lti INTEGER NOT NULL DEFAULT 0    -- Lost Time Injury
+--   jumlah_fatality INTEGER NOT NULL DEFAULT 0
+--   jumlah_near_miss INTEGER NOT NULL DEFAULT 0
+--   jumlah_pekerja INTEGER NOT NULL DEFAULT 0
+--   hari_kerja INTEGER NOT NULL DEFAULT 0
+--   jam_kerja_per_hari NUMERIC(5,2) NOT NULL DEFAULT 8.00
+--   total_jam_kerja INTEGER NOT NULL DEFAULT 0
+--   ltifr NUMERIC(10,2) NOT NULL DEFAULT 0.00 -- (jumlah_lti × 1.000.000) / total_jam_kerja
+--   deskripsi_kecelakaan TEXT
+--   tindakan_perbaikan TEXT
+--   pic_penanggung_jawab VARCHAR(150)
+--   created_at TIMESTAMPTZ
+--   updated_at TIMESTAMPTZ
+--
+-- CONTOH QUERY DELETE (berdasarkan periode):
+--   DELETE FROM ltifr_records WHERE periode_bulan < '2024-12';
+--
+-- CONTOH QUERY SELECT:
+--   SELECT * FROM ltifr_records WHERE periode_bulan = '2024-12' ORDER BY ltifr DESC;
+-- =====================================================
+
+
+-- =====================================================
+-- RINGKASAN KOLOM TANGGAL PER TABEL
+-- =====================================================
+-- ⚠️ PERHATIAN: Gunakan nama kolom yang TEPAT untuk WHERE clause
+--
+-- safety_briefing          → tanggal
+-- safety_patrol            → tanggal_patrol (BUKAN tanggal_patroli!)
+-- silent_inspection        → tanggal (BUKAN tanggal_inspeksi!)
+-- safety_forum             → tanggal_forum
+-- management_walkthrough   → tanggal_walkthrough
+-- safety_drill             → tanggal_drill (atau tanggal_pelaksanaan - cek tabel!)
+-- safety_induction         → tanggal_induction
+-- unsafe_action_condition  → tanggal_kejadian
+-- ltifr_records            → periode_bulan (VARCHAR format YYYY-MM)
+-- =====================================================
+
+
+-- =====================================================
+-- CONTOH QUERY DELETE BATCH (Hapus data sebelum tanggal tertentu)
+-- =====================================================
+-- PENTING: Pastikan menggunakan nama kolom yang TEPAT!
+
+/*
+BEGIN;
+
+-- Safety Briefing
+DELETE FROM safety_briefing WHERE tanggal < '2024-12-04';
+
+-- Safety Patrol
+DELETE FROM safety_patrol WHERE tanggal_patrol < '2024-12-04';
+
+-- Silent Inspection
+DELETE FROM silent_inspection WHERE tanggal < '2024-12-04';
+
+-- Safety Forum
+DELETE FROM safety_forum WHERE tanggal_forum < '2024-12-04';
+
+-- Management Walkthrough
+DELETE FROM management_walkthrough WHERE tanggal_walkthrough < '2024-12-04';
+
+-- Safety Drill (sesuaikan dengan nama kolom aktual!)
+DELETE FROM safety_drill WHERE tanggal_drill < '2024-12-04';
+
+-- Safety Induction
+DELETE FROM safety_induction WHERE tanggal_induction < '2024-12-04';
+
+-- Unsafe Action/Condition
+DELETE FROM unsafe_action_condition WHERE tanggal_kejadian < '2024-12-04';
+
+-- LTIFR (periode_bulan adalah VARCHAR!)
+DELETE FROM ltifr_records WHERE periode_bulan < '2024-12';
+
+COMMIT;
+-- ATAU ROLLBACK; jika ada kesalahan
+*/
+
+-- =====================================================
+-- END OF REFERENCE DOCUMENT
+-- =====================================================
+-- Last Updated: December 2024
+-- Maintainer: HSSE Development Team
+-- Note: Selalu cek dokumentasi ini sebelum membuat SQL query
+-- untuk memastikan nama kolom yang digunakan AKURAT
+-- =====================================================

@@ -2,6 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { supabase } from '@/services/api/supabase'
 import { safetyDrillService } from '@/services/safety-drill.service'
+import { PptxGeneratorService } from '@/services/pptx-generator.service.ts'
+import { ElMessage } from 'element-plus'
 
 interface ProgramData {
   id: string
@@ -177,6 +179,127 @@ const programs = ref<ProgramData[]>([
     color: '#1e40af'
   }
 ])
+
+/**
+ * Download monitoring realisasi K3 as PowerPoint
+ */
+async function downloadPowerPoint() {
+  try {
+    ElMessage.info('Mempersiapkan presentasi PowerPoint...')
+
+    // Get unit name
+    let unitName = 'Semua Unit'
+    if (rekapK3lUnit.value !== 'all') {
+      const unit = units.value.find((u: any) => u.id === rekapK3lUnit.value)
+      unitName = unit?.nama || 'Unit'
+    }
+
+    // Get periode
+    const periode = new Date(selectedMonth.value).toLocaleDateString('id-ID', {
+      month: 'long',
+      year: 'numeric'
+    })
+
+    // Prepare ALL programs data (same as displayed in cards)
+    const programsData = programs.value.map(p => ({
+      name: p.name,
+      icon: p.icon,
+      realization: p.realization,
+      target: p.target
+    }))
+
+    // Prepare insiden data (same as table)
+    const insidenTableData = insidenData.value.map(item => ({
+      no: item.no,
+      tanggal: item.tanggal,
+      uraian: item.uraian,
+      faktor_penyebab: item.faktor_penyebab,
+      lokasi: item.lokasi,
+      klasifikasi: item.klasifikasi,
+      tingkat_keparahan: item.tingkat_keparahan
+    }))
+
+    // Prepare safety alert data (same as table)
+    const safetyAlertTableData = safetyAlertData.value.map(item => ({
+      no: item.no,
+      what: item.what,
+      when: item.when,
+      where: item.where,
+      who: item.who,
+      why: item.why,
+      how: item.how,
+      howMuch: item.howMuch,
+      followUp: item.followUp,
+      lessonLearned: item.lessonLearned,
+      sumber: item.sumber
+    }))
+
+    // Prepare rekap K3L data (same as table)
+    const rekapK3LTableData = rekapK3lData.value.map((item: any) => ({
+      no: item.no || 0,
+      unit: item.unit || '',
+      safety_briefing: item.safety_briefing || 0,
+      silent_inspection: item.silent_inspection || 0,
+      jumlah_temuan: item.jumlah_temuan || 0,
+      temuan_closed: item.temuan_closed || 0,
+      persentase_penyelesaian: item.persentase_penyelesaian || '0%',
+      unsafe_act_condition: item.unsafe_act_condition || 0,
+      jumlah_unsafe: item.jumlah_unsafe || 0,
+      unsafe_closed: item.unsafe_closed || 0,
+      persentase_unsafe: item.persentase_unsafe || '0%'
+    }))
+
+    // Prepare temuan monitoring data (same as table)
+    const temuanMonitoringTableData = temuanMonitoringData.value.map((item: any) => ({
+      no: item.no || 0,
+      modul: item.modul || '',
+      unit: item.unit || '',
+      lokasi: item.lokasi || '',
+      deskripsi: item.deskripsi || '',
+      klasifikasi: item.klasifikasi || '',
+      status: item.status || '',
+      target_selesai: item.target_selesai || '',
+      pic: item.pic || ''
+    }))
+
+    // Prepare isu strategis data (same as table)
+    const isuStrategisTableData = isuStrategisData.value.map((item: any) => ({
+      no: item.no || 0,
+      unit: item.unit || '',
+      isu_strategis: item.isu_strategis || '',
+      uraian: item.uraian || '',
+      rencana_tindak_lanjut: item.rencana_tindak_lanjut || '',
+      pic: item.pic || '',
+      target_penyelesaian: item.target_penyelesaian || '',
+      status: item.status || ''
+    }))
+
+    // Generate PowerPoint with ALL data
+    const pptxService = new PptxGeneratorService()
+    pptxService.generateMonitoringK3Presentation({
+      periode,
+      unitName,
+      programs: programsData,
+      insidenData: insidenTableData,
+      safetyAlertData: safetyAlertTableData,
+      rekapK3lData: rekapK3LTableData,
+      temuanMonitoringData: temuanMonitoringTableData,
+      isuStrategisData: isuStrategisTableData,
+      lastUpdate: new Date().toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    })
+
+    ElMessage.success('PowerPoint berhasil diunduh!')
+  } catch (error) {
+    console.error('Error generating PowerPoint:', error)
+    ElMessage.error('Gagal membuat PowerPoint')
+  }
+}
 
 async function loadData() {
   loading.value = true
@@ -1685,6 +1808,17 @@ onMounted(async () => {
           Monitoring Realisasi K3 
           <span class="subtitle">(s.d <span class="highlight">{{ new Date(selectedMonth).toLocaleDateString('id-ID', { month: 'long' }) }}</span> 2025)</span>
         </h1>
+        <button 
+          @click="downloadPowerPoint" 
+          :disabled="loading"
+          class="download-ppt-btn"
+          title="Download PowerPoint"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+          Download PPT
+        </button>
       </div>
       
       <!-- Unit & Month Filter -->
@@ -2381,6 +2515,38 @@ onMounted(async () => {
   justify-content: center;
   gap: 2rem;
   margin-bottom: 1.5rem;
+}
+
+.download-ppt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: #4f46e5;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.download-ppt-btn:hover:not(:disabled) {
+  background: #eef2ff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.download-ppt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.download-ppt-btn .icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .logo {

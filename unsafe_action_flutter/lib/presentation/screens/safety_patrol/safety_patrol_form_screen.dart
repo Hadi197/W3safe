@@ -85,6 +85,10 @@ class _SafetyPatrolFormScreenState extends State<SafetyPatrolFormScreen>
   List<UnsafeConditionItem> _unsafeConditions = [];
   List<UnsafeActItem> _unsafeActs = [];
   final ImagePicker _imagePicker = ImagePicker();
+  final _jumlahUnsafeConditionController = TextEditingController();
+  final _jumlahUnsafeActController = TextEditingController();
+  final List<File> _unsafeConditionPhotos = [];
+  final List<File> _unsafeActPhotos = [];
 
   // Tab 4: Kepatuhan APD
   final _pekerjaDiamatiController = TextEditingController(text: '0');

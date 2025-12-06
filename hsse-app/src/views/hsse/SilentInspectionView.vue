@@ -700,6 +700,19 @@ const loadData = async () => {
     ])
     
     items.value = result.data
+    
+    // Debug: Log foto data
+    console.log('🖼️ Silent Inspection Data Loaded:', result.data.length, 'items')
+    result.data.forEach((item, index) => {
+      console.log(`🖼️ Item ${index}:`, {
+        id: item.id,
+        tanggal: item.tanggal,
+        foto_kondisi_unsafe: item.foto_kondisi_unsafe,
+        foto_perilaku_unsafe: item.foto_perilaku_unsafe,
+        foto_kondisi_count: item.foto_kondisi_unsafe?.length || 0,
+        foto_perilaku_count: item.foto_perilaku_unsafe?.length || 0
+      })
+    })
 
     totalRecords.value = result.count
     totalPages.value = result.totalPages
@@ -1034,7 +1047,7 @@ const handleSubmit = async () => {
     // Upload new photos kondisi with real inspection ID
     if (newPhotosKondisi.value.length > 0 && inspectionId) {
       try {
-        const files = newPhotosKondisi.value.map(p => p.file)
+        const files = newPhotosKondisi.value.map((p: { file: File }) => p.file)
         console.log(`📤 Uploading ${files.length} kondisi unsafe photos for inspection: ${inspectionId}`)
         const uploadedUrls = await silentInspectionService.uploadPhotos(files, inspectionId)
         form.value.foto_kondisi_unsafe = [...(form.value.foto_kondisi_unsafe || []), ...uploadedUrls]
@@ -1050,7 +1063,7 @@ const handleSubmit = async () => {
     // Upload new photos perilaku with real inspection ID
     if (newPhotosPerilaku.value.length > 0 && inspectionId) {
       try {
-        const files = newPhotosPerilaku.value.map(p => p.file)
+        const files = newPhotosPerilaku.value.map((p: { file: File }) => p.file)
         console.log(`📤 Uploading ${files.length} perilaku unsafe photos for inspection: ${inspectionId}`)
         const uploadedUrls = await silentInspectionService.uploadPhotos(files, inspectionId)
         form.value.foto_perilaku_unsafe = [...(form.value.foto_perilaku_unsafe || []), ...uploadedUrls]
@@ -1071,11 +1084,16 @@ const handleSubmit = async () => {
         temuan_major: form.value.temuan_major,
         temuan_minor: form.value.temuan_minor,
         jumlah_temuan: form.value.jumlah_temuan,
+        foto_kondisi_unsafe: form.value.foto_kondisi_unsafe,
+        foto_perilaku_unsafe: form.value.foto_perilaku_unsafe,
         foto_kondisi_count: form.value.foto_kondisi_unsafe?.length || 0,
         foto_perilaku_count: form.value.foto_perilaku_unsafe?.length || 0
       })
-      await silentInspectionService.update(inspectionId, form.value)
-      console.log('✅ Inspection updated with photos')
+      
+      const updateResult = await silentInspectionService.update(inspectionId, form.value)
+      console.log('✅ Inspection updated with photos. Result:', updateResult)
+      console.log('✅ Updated foto_kondisi_unsafe:', updateResult.foto_kondisi_unsafe)
+      console.log('✅ Updated foto_perilaku_unsafe:', updateResult.foto_perilaku_unsafe)
     }
 
     if (isEdit.value) {
@@ -1109,16 +1127,27 @@ const deleteItem = async (item: SilentInspection) => {
 }
 
 const viewPhotos = (item: SilentInspection) => {
+  console.log('🖼️ viewPhotos called with item:', item)
+  console.log('🖼️ foto_kondisi_unsafe:', item.foto_kondisi_unsafe)
+  console.log('🖼️ foto_perilaku_unsafe:', item.foto_perilaku_unsafe)
+  
   const allPhotos = [
     ...(item.foto_kondisi_unsafe || []),
     ...(item.foto_perilaku_unsafe || [])
   ]
+  
+  console.log('🖼️ allPhotos combined:', allPhotos)
+  console.log('🖼️ allPhotos.length:', allPhotos.length)
 
-  if (allPhotos.length === 0) return
+  if (allPhotos.length === 0) {
+    console.log('🖼️ No photos found, returning')
+    return
+  }
 
   currentPhotos.value = allPhotos
   currentPhotoIndex.value = 0
   showPhotoModal.value = true
+  console.log('🖼️ Photo modal opened, showing photo:', allPhotos[0])
 }
 
 const closePhotoModal = () => {

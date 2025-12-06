@@ -17,6 +17,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final supabase = Supabase.instance.client;
   String _userName = '';
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -36,142 +37,234 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('HSSE Management System'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // Navigate to notifications
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await supabase.auth.signOut();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
-              AppTheme.primaryColor.withOpacity(0.1),
-              Colors.white,
+              const Color(0xFF2196F3),
+              const Color(0xFF1976D2),
             ],
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Welcome Section
-                Text(
-                  'Selamat Datang,',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _userName.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                // Menu Grid
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.5,
-                    children: [
-                      _buildMenuCard(
-                        context,
-                        title: 'Safety Briefing',
-                        icon: Icons.groups,
+          child: Column(
+            children: [
+              // Header Section
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Selamat Datang',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _userName,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        size: 32,
                         color: const Color(0xFF2196F3),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SafetyBriefingListScreen(),
-                            ),
-                          );
-                        },
                       ),
-                      _buildMenuCard(
-                        context,
-                        title: 'Silent Inspection',
-                        icon: Icons.search,
-                        color: const Color(0xFF4CAF50),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SilentInspectionListScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildMenuCard(
-                        context,
-                        title: 'Management\nWalkthrough',
-                        icon: Icons.directions_walk,
-                        color: const Color(0xFF9C27B0),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ManagementWalkthroughListScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildMenuCard(
-                        context,
-                        title: 'Safety Patrol',
-                        icon: Icons.security,
-                        color: const Color(0xFFFF9800),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SafetyPatrolListScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildMenuCard(
-                        context,
-                        title: 'Unsafe Action/\nCondition',
-                        icon: Icons.warning_amber_rounded,
-                        color: const Color(0xFFF44336),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/incidents');
-                        },
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Menu Content Card
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Menu Utama',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Menu Grid
+                        Expanded(
+                          child: GridView.count(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            children: [
+                              _buildMenuCard(
+                                context,
+                                title: 'Safety\nBriefing',
+                                icon: Icons.groups,
+                                color: const Color(0xFF2196F3),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SafetyBriefingListScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _buildMenuCard(
+                                context,
+                                title: 'Silent\nInspection',
+                                icon: Icons.search,
+                                color: const Color(0xFF4CAF50),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SilentInspectionListScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _buildMenuCard(
+                                context,
+                                title: 'Management\nWalkthrough',
+                                icon: Icons.directions_walk,
+                                color: const Color(0xFFFF9800),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ManagementWalkthroughListScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _buildMenuCard(
+                                context,
+                                title: 'Safety\nPatrol',
+                                icon: Icons.security,
+                                color: const Color(0xFF9C27B0),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SafetyPatrolListScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _buildMenuCard(
+                                context,
+                                title: 'Unsafe\nAction',
+                                icon: Icons.warning_amber_rounded,
+                                color: const Color(0xFFF44336),
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/incidents');
+                                },
+                              ),
+                              _buildMenuCard(
+                                context,
+                                title: 'Logout',
+                                icon: Icons.exit_to_app,
+                                color: Colors.grey,
+                                onTap: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Konfirmasi'),
+                                      content: const Text('Apakah Anda yakin ingin keluar?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text('Batal'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: const Text('Ya'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  
+                                  if (confirm == true) {
+                                    await supabase.auth.signOut();
+                                    if (mounted) {
+                                      Navigator.pushReplacementNamed(context, '/login');
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF2196F3),
+        unselectedItemColor: Colors.grey,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.groups),
+            label: 'Briefing',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Inspection',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.security),
+            label: 'Patrol',
+          ),
+        ],
       ),
     );
   }
@@ -184,49 +277,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 2,
+      elevation: 3,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color,
-                color.withOpacity(0.7),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(16),
+            color: color.withOpacity(0.1),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: color,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
-                  size: 20,
+                  size: 26,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 title,
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                   height: 1.2,
                 ),
               ),
