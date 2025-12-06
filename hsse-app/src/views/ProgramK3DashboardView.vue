@@ -274,6 +274,20 @@ async function downloadPowerPoint() {
       status: item.status || ''
     }))
 
+    // Prepare management walkthrough data (same as table)
+    const managementWalkthroughTableData = walkthroughReportData.value.map((item: any) => ({
+      no: item.no || 0,
+      tanggal: item.tanggal || '',
+      unit: item.unit || '',
+      area: item.area || '',
+      pemimpin: item.pemimpin || '',
+      jumlah_temuan: item.jumlah_temuan || 0,
+      temuan_critical: item.temuan_critical || 0,
+      temuan_major: item.temuan_major || 0,
+      temuan_minor: item.temuan_minor || 0,
+      status_tindak_lanjut: item.status_tindak_lanjut || ''
+    }))
+
     // Generate PowerPoint with ALL data
     const pptxService = new PptxGeneratorService()
     pptxService.generateMonitoringK3Presentation({
@@ -285,6 +299,7 @@ async function downloadPowerPoint() {
       rekapK3lData: rekapK3LTableData,
       temuanMonitoringData: temuanMonitoringTableData,
       isuStrategisData: isuStrategisTableData,
+      managementWalkthroughData: managementWalkthroughTableData,
       lastUpdate: new Date().toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'long',
