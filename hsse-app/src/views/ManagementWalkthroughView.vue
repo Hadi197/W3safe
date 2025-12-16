@@ -584,7 +584,35 @@
               </div>
             </div>
 
-            <!-- 10. Ringkasan & Scoring -->
+            <!-- 10. Dokumentasi Foto -->
+            <div v-if="selectedWalkthrough.foto_walkthrough && selectedWalkthrough.foto_walkthrough.length > 0" class="mb-6 bg-gray-50 rounded-lg p-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">Dokumentasi Foto</h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                  v-for="(foto, index) in selectedWalkthrough.foto_walkthrough"
+                  :key="index"
+                  class="relative group cursor-pointer"
+                  @click="openPhotoViewer(selectedWalkthrough.foto_walkthrough, index)"
+                >
+                  <img
+                    :src="foto"
+                    :alt="`Dokumentasi ${index + 1}`"
+                    class="w-full h-32 object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500 transition-colors"
+                  />
+                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity rounded-lg flex items-center justify-center">
+                    <svg class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </div>
+                  <div class="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                    Foto {{ index + 1 }}
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">{{ selectedWalkthrough.foto_walkthrough.length }} foto dokumentasi • Klik untuk memperbesar</p>
+            </div>
+
+            <!-- 11. Ringkasan & Scoring -->
             <div class="mb-6 bg-gray-50 rounded-lg p-4">
               <h3 class="text-lg font-semibold text-gray-900 mb-3">Ringkasan & Scoring</h3>
               <div class="grid grid-cols-4 gap-3 mb-4">
@@ -1168,7 +1196,110 @@
                 </div>
               </div>
 
-              <!-- Tab 8: Scoring & Ringkasan -->
+              <!-- Tab 8: Dokumentasi -->
+              <div v-show="activeFormTab === 'dokumentasi'" class="space-y-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload Foto Dokumentasi</h3>
+                  
+                  <!-- Upload Buttons -->
+                  <div class="flex gap-3 mb-4">
+                    <label class="flex-1 cursor-pointer">
+                      <input
+                        ref="dokumentasiPhotoInput"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        class="hidden"
+                        @change="handleDokumentasiPhotoUpload"
+                      />
+                      <div class="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Upload dari Galeri</span>
+                      </div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                      <input
+                        ref="dokumentasiCameraInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        multiple
+                        class="hidden"
+                        @change="handleDokumentasiPhotoUpload"
+                      />
+                      <div class="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Ambil Foto</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <!-- Photo Preview Grid -->
+                  <div v-if="dokumentasiFotos.length > 0" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div
+                      v-for="(foto, index) in dokumentasiFotos"
+                      :key="index"
+                      class="relative group"
+                    >
+                      <img
+                        :src="foto.preview"
+                        :alt="`Dokumentasi ${index + 1}`"
+                        class="w-full h-32 object-cover rounded-lg border-2 border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        @click="removeDokumentasiFoto(index)"
+                        class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      <div class="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                        Foto {{ index + 1 }}
+                      </div>
+                      <div v-if="foto.file" class="absolute top-2 left-2 bg-green-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ formatFileSize(foto.file.size) }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Empty State -->
+                  <div v-else class="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-600">Belum ada foto dokumentasi</p>
+                    <p class="text-xs text-gray-500 mt-1">Gunakan tombol di atas untuk upload atau ambil foto</p>
+                  </div>
+
+                  <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div class="text-xs text-blue-800">
+                        <p class="font-semibold mb-1">💡 Fitur Kompresi Otomatis</p>
+                        <ul class="list-disc list-inside space-y-1">
+                          <li>Foto lebih dari <strong>1 MB</strong> akan dikompres otomatis</li>
+                          <li>Kualitas tetap terjaga dengan ukuran optimal (≤1 MB)</li>
+                          <li>Upload lebih cepat, hemat storage</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab 9: Scoring & Ringkasan -->
               <div v-show="activeFormTab === 'scoring'" class="space-y-4">
                 <div class="grid grid-cols-4 gap-4">
                   <div>
@@ -1381,6 +1512,7 @@ const formTabs = [
   { id: 'perilaku', label: 'Perilaku' },
   { id: 'temuan', label: 'Temuan' },
   { id: 'action', label: 'Action Items' },
+  { id: 'dokumentasi', label: 'Dokumentasi' },
   { id: 'scoring', label: 'Scoring' }
 ]
 
@@ -1435,6 +1567,11 @@ const rekomendasiText = ref('')
 // Photo upload refs
 const temuanPhotoInputs = ref<(HTMLInputElement | null)[]>([])
 const temuanCameraInputs = ref<(HTMLInputElement | null)[]>([])
+const dokumentasiPhotoInput = ref<HTMLInputElement | null>(null)
+const dokumentasiCameraInput = ref<HTMLInputElement | null>(null)
+
+// Dokumentasi photos state
+const dokumentasiFotos = ref<Array<{ file: File; preview: string }>>([])
 
 // Methods
 const loadWalkthroughs = async (page = currentPage.value) => {
@@ -1504,6 +1641,17 @@ const openFormModal = (mode: 'create' | 'edit', walkthrough?: ManagementWalkthro
     // Parse JSONB fields
     formData.value.temuan_bahaya = parseJSON(walkthrough.temuan_bahaya)
     formData.value.action_items = parseJSON(walkthrough.action_items)
+    
+    // Load existing dokumentasi photos as previews
+    dokumentasiFotos.value = []
+    if (walkthrough.foto_walkthrough && Array.isArray(walkthrough.foto_walkthrough)) {
+      walkthrough.foto_walkthrough.forEach((url: string) => {
+        dokumentasiFotos.value.push({
+          file: null as any, // Existing photo, no file
+          preview: url
+        })
+      })
+    }
   } else {
     selectedWalkthrough.value = null
     resetFormData()
@@ -1515,6 +1663,14 @@ const closeFormModal = () => {
   showFormModal.value = false
   selectedWalkthrough.value = null
   resetFormData()
+  
+  // Clean up dokumentasi photo previews
+  dokumentasiFotos.value.forEach(foto => {
+    if (foto.preview.startsWith('blob:')) {
+      URL.revokeObjectURL(foto.preview)
+    }
+  })
+  dokumentasiFotos.value = []
 }
 
 const resetFormData = () => {
@@ -1556,6 +1712,7 @@ const resetFormData = () => {
   feedbackPekerjaText.value = ''
   saranPekerjaText.value = ''
   rekomendasiText.value = ''
+  dokumentasiFotos.value = []
 }
 
 const addTemuan = () => {
@@ -1625,6 +1782,69 @@ const removeTemuanPhoto = (temuanIndex: number, photoIndex: number) => {
   }
 }
 
+// Dokumentasi photo handlers
+const handleDokumentasiPhotoUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  
+  if (!files || files.length === 0) return
+  
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const originalSize = file.size
+      const originalSizeMB = (originalSize / (1024 * 1024)).toFixed(2)
+      
+      // Show notification if file is larger than 1MB
+      if (originalSize > 1024 * 1024) {
+        console.log(`📸 Foto ${i + 1}: ${formatFileSize(originalSize)} - Sedang dikompres...`)
+      }
+      
+      // Compress image (automatically compresses if > 1MB)
+      const result = await compressSingleImage(file)
+      const compressedFile = result.file
+      const compressedSize = result.compressedSize
+      const compressedSizeMB = (compressedSize / (1024 * 1024)).toFixed(2)
+      
+      // Show compression result
+      if (result.wasCompressed) {
+        const savedPercent = Math.round((1 - compressedSize / originalSize) * 100)
+        console.log(
+          `✅ Foto ${i + 1} berhasil dikompres: ${originalSizeMB}MB → ${compressedSizeMB}MB (hemat ${savedPercent}%)`
+        )
+        
+        // Optional: Show user-friendly notification
+        if (i === files.length - 1) {
+          setTimeout(() => {
+            alert(`✅ ${files.length} foto berhasil dikompres!\nUkuran total berkurang hingga ${savedPercent}%`)
+          }, 300)
+        }
+      }
+      
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(compressedFile)
+      
+      // Add to dokumentasiFotos array
+      dokumentasiFotos.value.push({
+        file: compressedFile,
+        preview: previewUrl
+      })
+    }
+  } catch (error) {
+    console.error('Error processing photos:', error)
+    alert('Gagal memproses foto: ' + (error as Error).message)
+  } finally {
+    // Reset input
+    target.value = ''
+  }
+}
+
+const removeDokumentasiFoto = (index: number) => {
+  // Revoke object URL to prevent memory leak
+  URL.revokeObjectURL(dokumentasiFotos.value[index].preview)
+  dokumentasiFotos.value.splice(index, 1)
+}
+
 const openPhotoViewer = (photos: string[], startIndex: number) => {
   currentPhotos.value = photos
   currentPhotoIndex.value = startIndex
@@ -1676,6 +1896,29 @@ const handleSubmit = async () => {
     dataToSave.feedback_pekerja = feedbackPekerjaText.value.split('\n').filter(x => x.trim())
     dataToSave.saran_pekerja = saranPekerjaText.value.split('\n').filter(x => x.trim())
     dataToSave.rekomendasi = rekomendasiText.value.split('\n').filter(x => x.trim())
+    
+    // Upload dokumentasi photos
+    if (dokumentasiFotos.value.length > 0) {
+      const uploadedUrls: string[] = []
+      for (const foto of dokumentasiFotos.value) {
+        try {
+          // If foto.file is null, it's an existing photo URL
+          if (!foto.file) {
+            uploadedUrls.push(foto.preview)
+          } else {
+            // Upload new photo
+            const photoUrl = await managementWalkthroughService.uploadPhoto(
+              foto.file, 
+              formData.value.nomor_walkthrough || 'temp'
+            )
+            uploadedUrls.push(photoUrl)
+          }
+        } catch (error) {
+          console.error('Error uploading dokumentasi photo:', error)
+        }
+      }
+      dataToSave.foto_walkthrough = uploadedUrls
+    }
     
     // Calculate counts
     dataToSave.jumlah_temuan = dataToSave.temuan_bahaya.length
