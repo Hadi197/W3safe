@@ -1611,9 +1611,27 @@ const loadUnits = async () => {
   }
 }
 
-const openDetailModal = (walkthrough: ManagementWalkthrough) => {
-  selectedWalkthrough.value = walkthrough
-  showDetailModal.value = true
+const openDetailModal = async (walkthrough: ManagementWalkthrough) => {
+  try {
+    // Import PDF generator
+    const { generateManagementWalkthroughPDF } = await import('@/utils/managementWalkthroughPdfGenerator')
+    
+    // Generate PDF
+    const doc = await generateManagementWalkthroughPDF(walkthrough)
+    
+    // Open PDF in new window
+    const pdfBlob = doc.output('blob')
+    const pdfUrl = URL.createObjectURL(pdfBlob)
+    window.open(pdfUrl, '_blank')
+    
+    // Clean up after a delay
+    setTimeout(() => {
+      URL.revokeObjectURL(pdfUrl)
+    }, 1000)
+  } catch (error) {
+    console.error('Error generating PDF:', error)
+    alert('Gagal membuat PDF laporan: ' + (error as Error).message)
+  }
 }
 
 const closeDetailModal = () => {
