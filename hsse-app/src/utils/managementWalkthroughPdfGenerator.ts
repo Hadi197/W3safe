@@ -251,6 +251,86 @@ export async function generateManagementWalkthroughPDF(walkthrough: ManagementWa
     }
   }
 
+  // Section 6B: Foto Temuan
+  if (walkthrough.temuan_bahaya && Array.isArray(walkthrough.temuan_bahaya)) {
+    const temuanWithPhotos = walkthrough.temuan_bahaya.filter((t: any) => 
+      t.foto_urls && Array.isArray(t.foto_urls) && t.foto_urls.length > 0
+    )
+
+    if (temuanWithPhotos.length > 0) {
+      checkPageBreak(40)
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text('DOKUMENTASI FOTO TEMUAN', 14, yPos)
+      yPos += 8
+
+      // Loop through each temuan with photos
+      for (let temuanIdx = 0; temuanIdx < temuanWithPhotos.length; temuanIdx++) {
+        const temuan = temuanWithPhotos[temuanIdx]
+        const temuanNo = walkthrough.temuan_bahaya.indexOf(temuan) + 1
+        
+        checkPageBreak(30)
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`Temuan #${temuanNo}: ${temuan.deskripsi || 'Tidak ada deskripsi'}`, 14, yPos)
+        yPos += 5
+        
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(9)
+        if (temuan.lokasi) {
+          doc.text(`Lokasi: ${temuan.lokasi}`, 14, yPos)
+          yPos += 5
+        }
+        if (temuan.tingkat_risiko) {
+          doc.text(`Tingkat Risiko: ${formatTingkatRisiko(temuan.tingkat_risiko)}`, 14, yPos)
+          yPos += 5
+        }
+        yPos += 3
+
+        // Load and add photos for this temuan
+        for (let i = 0; i < temuan.foto_urls.length; i++) {
+          const photoUrl = temuan.foto_urls[i]
+          
+          if (!photoUrl) continue
+          
+          try {
+            // Check if we need new page
+            checkPageBreak(100)
+
+            doc.setFontSize(8)
+            doc.setFont('helvetica', 'italic')
+            doc.text(`Foto ${i + 1} dari ${temuan.foto_urls.length}:`, 14, yPos)
+            yPos += 5
+
+            // Add image to PDF
+            const img = await loadImageForPDF(photoUrl)
+            const imgWidth = 180 // Max width in PDF
+            const imgHeight = (img.height * imgWidth) / img.width
+            const maxHeight = 120 // Max height to avoid too large images
+
+            const finalHeight = imgHeight > maxHeight ? maxHeight : imgHeight
+            const finalWidth = imgHeight > maxHeight ? (img.width * maxHeight) / img.height : imgWidth
+
+            // Center the image
+            const xOffset = (pageWidth - finalWidth) / 2
+
+            // Detect image format
+            const imageFormat = photoUrl.toLowerCase().includes('.png') ? 'PNG' : 'JPEG'
+            doc.addImage(photoUrl, imageFormat, xOffset, yPos, finalWidth, finalHeight)
+            yPos += finalHeight + 8
+          } catch (error) {
+            console.error(`Error loading photo ${i + 1} for temuan #${temuanNo}:`, error)
+            doc.setFontSize(8)
+            doc.setFont('helvetica', 'italic')
+            doc.text(`[Foto ${i + 1} tidak dapat dimuat]`, 14, yPos)
+            yPos += 8
+          }
+        }
+        yPos += 5
+      }
+    }
+  }
+
   // Section 7: Action Items
   checkPageBreak(40)
   doc.setFontSize(12)
@@ -312,12 +392,12 @@ export async function generateManagementWalkthroughPDF(walkthrough: ManagementWa
     }
   }
 
-  // Section 8: Dokumentasi Foto
+  // Section 8: Dokumentasi Foto Walkthrough
   if (walkthrough.foto_walkthrough && walkthrough.foto_walkthrough.length > 0) {
     checkPageBreak(40)
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
-    doc.text('VIII. DOKUMENTASI FOTO', 14, yPos)
+    doc.text('VIII. DOKUMENTASI FOTO WALKTHROUGH', 14, yPos)
     yPos += 8
 
     doc.setFontSize(10)
@@ -352,7 +432,9 @@ export async function generateManagementWalkthroughPDF(walkthrough: ManagementWa
         // Center the image
         const xOffset = (pageWidth - finalWidth) / 2
 
-        doc.addImage(photoUrl, 'JPEG', xOffset, yPos, finalWidth, finalHeight)
+        // Detect image format
+        const imageFormat = photoUrl.toLowerCase().includes('.png') ? 'PNG' : 'JPEG'
+        doc.addImage(photoUrl, imageFormat, xOffset, yPos, finalWidth, finalHeight)
         yPos += finalHeight + 10
       } catch (error) {
         console.error(`Error loading photo ${i + 1}:`, error)
